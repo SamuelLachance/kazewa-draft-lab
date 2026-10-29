@@ -1,0 +1,988 @@
+[
+  {
+    "id": "frontline_missing",
+    "title": "Absence de frontline fonctionnelle",
+    "family": "frontline",
+    "weight": 3,
+    "sources": [
+      "2p0DCiayuz8",
+      "3iwypQEnFlk",
+      "AaeEM1lZIsQ",
+      "F0GmsMinpa8",
+      "IPgCUDzCFpA",
+      "ISAb1T_ORUU",
+      "JZecUmvga3M",
+      "LVDYSqz2RiQ",
+      "eEsCZhA3H0Q",
+      "fwexCIDkDE0",
+      "gMVCgyGQpS4",
+      "hGJJOPzx6rw",
+      "j1PhMNTYqrY",
+      "pxAtXqWFf5Y",
+      "qR11vA24_38",
+      "vWGpKbTWA88"
+    ],
+    "sourceRuleIds": [
+      "tank_absent"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "dps_missing",
+    "title": "Absence de dégâts soutenus",
+    "family": "damage",
+    "weight": 3,
+    "sources": [
+      "0Ul6yfKePWA",
+      "1UOWdQ4EcbY",
+      "91R-kQSi4_U",
+      "9agmrdVHXdg",
+      "fwexCIDkDE0",
+      "gcpX9nhllBI",
+      "jk0nI5QpC4Y",
+      "pA0HnoSk7lw"
+    ],
+    "sourceRuleIds": [
+      "dps_absent",
+      "sans_dps_soutenu"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "burst_into_tanks",
+    "title": "Le burst ne traverse pas le bloc de tanks",
+    "family": "damage",
+    "weight": 3,
+    "sources": [
+      "2DVB7PhKaSA",
+      "xscoqh9K05I"
+    ],
+    "sourceRuleIds": [],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "taxo/def_*.md"
+    ]
+  },
+  {
+    "id": "tank_without_dps",
+    "title": "La frontline manque de DPS à protéger",
+    "family": "damage",
+    "weight": 2,
+    "sources": [
+      "JZecUmvga3M",
+      "LVDYSqz2RiQ",
+      "ObEvK-hR9bs"
+    ],
+    "sourceRuleIds": [
+      "tank_plus_dps_soutenu"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "immobile_into_catch",
+    "title": "Accumulation de cibles immobiles face au catch",
+    "family": "reach",
+    "weight": 3,
+    "sources": [
+      "-0iJco4hUdk",
+      "1UOWdQ4EcbY",
+      "1UnRjK5dlCY",
+      "4dDIx2wx0ls",
+      "7h53Wk-KzA0",
+      "8DH9VTnTSDk",
+      "9WvPSAJzsKo",
+      "9rZFhLUPbHQ",
+      "pnAfZ4VlkjA",
+      "qR11vA24_38",
+      "vWGpKbTWA88",
+      "wNb7nTndl60",
+      "yUuo2k7YLwI",
+      "zn2EpFiCFwI"
+    ],
+    "sourceRuleIds": [
+      "immobiles_vs_catcheur",
+      "immobiles_x2_vs_catch"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "isolated_catcher",
+    "title": "Un catcheur isolé sans relais",
+    "family": "identity",
+    "weight": 1,
+    "sources": [
+      "-B3b80GYtDM",
+      "7gvPKJVPDy0",
+      "GnJPSjKmRrM"
+    ],
+    "sourceRuleIds": [],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "taxo/def_*.md"
+    ]
+  },
+  {
+    "id": "savers_against_catch",
+    "title": "Des gardiens pour absorber le catch",
+    "family": "protection",
+    "weight": 1.5,
+    "sources": [
+      "8Z_PXnrLbiM",
+      "EirFDpT6E5Q",
+      "S7aorVJ4wQQ"
+    ],
+    "sourceRuleIds": [],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "taxo/def_*.md"
+    ]
+  },
+  {
+    "id": "disengage_against_engage",
+    "title": "Un bloc de disengage face à un plan all-in",
+    "family": "protection",
+    "weight": 2,
+    "sources": [
+      "2DVB7PhKaSA",
+      "EirFDpT6E5Q",
+      "G_DBTj3PDUI"
+    ],
+    "sourceRuleIds": [],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "taxo/def_*.md"
+    ]
+  },
+  {
+    "id": "poke_without_peel",
+    "title": "Le poke manque de protection et de recul",
+    "family": "identity",
+    "weight": 2,
+    "sources": [
+      "1VlERsENAR8",
+      "urI4eASNSNc"
+    ],
+    "sourceRuleIds": [],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "taxo/def_*.md"
+    ]
+  },
+  {
+    "id": "carry_without_peel",
+    "title": "Un carry scaling sans protection alliée",
+    "family": "protection",
+    "weight": 2,
+    "sources": [
+      "-B3b80GYtDM",
+      "1kaw7VnpuhA",
+      "5JppK7MCE30",
+      "fvjhC4jNLw0",
+      "hueH_o389lI"
+    ],
+    "sourceRuleIds": [
+      "adc_sans_peel",
+      "jinx_support_cover"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "followup_missing",
+    "title": "Une initiation sans relais de contrôle",
+    "family": "identity",
+    "weight": 1.5,
+    "sources": [
+      "IG3AkVKLS-U",
+      "NKYY2NzHBnw",
+      "cSQP5oImnRo",
+      "cXnjfe8aBxA",
+      "jk0nI5QpC4Y",
+      "onOzhp44AmA",
+      "pA0HnoSk7lw",
+      "pF03MSD80-c"
+    ],
+    "sourceRuleIds": [
+      "jarvan_sans_follow_up",
+      "nocturne_sans_follow_up",
+      "kennen_engage_jungle"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "early_timer",
+    "title": "Le plan early doit créer une avance pour finir",
+    "family": "tempo",
+    "weight": 1.5,
+    "sources": [
+      "76u-ZX7VoTU",
+      "NKYY2NzHBnw",
+      "XQYZMHTJTPE"
+    ],
+    "sourceRuleIds": [],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "taxo/def_*.md"
+    ]
+  },
+  {
+    "id": "scaling_without_bridge",
+    "title": "Plusieurs scalers sans pont early-mid",
+    "family": "tempo",
+    "weight": 2,
+    "sources": [
+      "ZxGZIIO91Tk",
+      "aBZbd1OxPI8",
+      "yUuo2k7YLwI"
+    ],
+    "sourceRuleIds": [],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "taxo/def_*.md"
+    ]
+  },
+  {
+    "id": "protected_scaling",
+    "title": "Un scaling soutenu par frontline et protection",
+    "family": "tempo",
+    "weight": 1.5,
+    "sources": [
+      "G9qKZ7TRf9I",
+      "JZecUmvga3M",
+      "UaKcH6eYbpQ"
+    ],
+    "sourceRuleIds": [],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "taxo/def_*.md"
+    ]
+  },
+  {
+    "id": "global_against_split",
+    "title": "Un ultime global pour punir la side lane",
+    "family": "macro",
+    "weight": 1.5,
+    "sources": [
+      "cSQP5oImnRo",
+      "fwexCIDkDE0",
+      "hGJJOPzx6rw"
+    ],
+    "sourceRuleIds": [
+      "global_ult_vs_carry_1v1",
+      "yorick_vs_double_locker"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "unanswered_globals",
+    "title": "Double pression globale sans réponse globale",
+    "family": "macro",
+    "weight": 1,
+    "sources": [
+      "qR11vA24_38"
+    ],
+    "sourceRuleIds": [
+      "double_global_ult"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "anti_dash",
+    "title": "Poppy répond aux dashs répétés",
+    "family": "terrain",
+    "weight": 2,
+    "sources": [
+      "3Ey0i4JQok8",
+      "DekfOpv6cYo",
+      "GnJPSjKmRrM",
+      "IG3AkVKLS-U",
+      "ISAb1T_ORUU",
+      "LvdwKypmuVE",
+      "P_MxifJP614",
+      "XZYVApZ2_Ts",
+      "Z3ldU3XmTgs",
+      "cSQP5oImnRo",
+      "mtFtui6VgDc",
+      "rRwJ9AuMwlw",
+      "urI4eASNSNc",
+      "xC86mt0gaEI"
+    ],
+    "sourceRuleIds": [
+      "poppy_anti_dash"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "objective_plan",
+    "title": "Tank, DPS et terrain pour préparer les objectifs",
+    "family": "macro",
+    "weight": 1.5,
+    "sources": [
+      "2DVB7PhKaSA",
+      "91R-kQSi4_U",
+      "JZecUmvga3M",
+      "LVDYSqz2RiQ",
+      "ObEvK-hR9bs"
+    ],
+    "sourceRuleIds": [
+      "tank_plus_dps_soutenu"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "coherent_block",
+    "title": "Un bloc frontline-DPS-disengage complet",
+    "family": "identity",
+    "weight": 1.5,
+    "sources": [
+      "jfVT0Qguz7E"
+    ],
+    "sourceRuleIds": [],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "taxo/def_*.md"
+    ]
+  },
+  {
+    "id": "named_synergy",
+    "title": "Une synergie de champions documentée",
+    "family": "synergy",
+    "weight": 2,
+    "sources": [
+      "1aNsp7bWHVA",
+      "40iKe-flrK0",
+      "6fAcwZGblzo",
+      "7AKs-joyIOs",
+      "9UWJZe32Qsc",
+      "9agmrdVHXdg",
+      "Gdomsbq_ztI",
+      "GnJPSjKmRrM",
+      "IG3AkVKLS-U",
+      "J8IG5cArUTY",
+      "KeCNk5iHuNU",
+      "UaKcH6eYbpQ",
+      "VGCwjESeWeg",
+      "W0Oq1Sa1SLQ",
+      "XZYVApZ2_Ts",
+      "XaSxxhFVAZQ",
+      "Y1kXb5XprGo",
+      "cANONHC7N48",
+      "cSQP5oImnRo",
+      "eEsCZhA3H0Q",
+      "hf4HEqLL9oA",
+      "jfVT0Qguz7E",
+      "jk0nI5QpC4Y",
+      "lPIM3We7vE0",
+      "n1tVoWwa8dg",
+      "pF03MSD80-c",
+      "pxAtXqWFf5Y",
+      "wBOLqxRxObg"
+    ],
+    "sourceRuleIds": [
+      "azir_maokai",
+      "yasuo_knockup_combo",
+      "sion_jinx",
+      "triple_cc_catch",
+      "kalista_renata",
+      "camille_galio",
+      "azir_xayah_socle",
+      "kalista_azir",
+      "xin_brand_zac_karma",
+      "viego_resets"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "isolated_partner",
+    "title": "Un champion privé du partenaire de son plan",
+    "family": "identity",
+    "weight": 1,
+    "sources": [
+      "2QkQYFPQF48",
+      "5JppK7MCE30",
+      "ZaCo3Wutcj8"
+    ],
+    "sourceRuleIds": [],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "taxo/def_*.md"
+    ]
+  },
+  {
+    "id": "terrain_against_commit",
+    "title": "Le contrôle de terrain reçoit une compo qui entre",
+    "family": "terrain",
+    "weight": 1.5,
+    "sources": [
+      "-B3b80GYtDM",
+      "1VlERsENAR8",
+      "FEHZOwfcczc",
+      "Y2ezLdCXtO4"
+    ],
+    "sourceRuleIds": [
+      "zone_control_stack",
+      "zone_control_vs_immobiles"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "split_global_plan",
+    "title": "Une side lane soutenue par des ultimes globaux",
+    "family": "macro",
+    "weight": 1,
+    "sources": [
+      "EirFDpT6E5Q",
+      "RQPcizPRQJA",
+      "dpS0CiFtMI4",
+      "jfVT0Qguz7E",
+      "m7Yhi5wvSec"
+    ],
+    "sourceRuleIds": [
+      "tf_familles"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "sylas_ultimates",
+    "title": "Sylas dispose de plusieurs ultimes de grande valeur",
+    "family": "synergy",
+    "weight": 1.5,
+    "sources": [
+      "e3-xE1d7mk4",
+      "h7-S2AwioDY",
+      "iP33gPti5XA"
+    ],
+    "sourceRuleIds": [
+      "silas_ults_volables"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "xayah_ezreal_lane",
+    "title": "La réponse Ezreal ne neutralise pas Xayah en lane",
+    "family": "lane",
+    "weight": 1,
+    "sources": [
+      "1aNsp7bWHVA",
+      "9UWJZe32Qsc"
+    ],
+    "sourceRuleIds": [
+      "xayah_vs_ezreal"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "triple_catch_no_saver",
+    "title": "Triple catch sans gardien face à Nocturne",
+    "family": "reach",
+    "weight": 2,
+    "sources": [
+      "0Ul6yfKePWA"
+    ],
+    "sourceRuleIds": [
+      "triple_catch_sans_peel_vs_global"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "named_antisynergy",
+    "title": "Des partenaires poursuivent des plans incompatibles",
+    "family": "identity",
+    "weight": 1.5,
+    "sources": [
+      "33RqvcvXRk4",
+      "5zOvsTP_BWU",
+      "9UWJZe32Qsc",
+      "NKYY2NzHBnw",
+      "Q9Js-_jsXEs",
+      "UFnEjmmKUfQ",
+      "XaSxxhFVAZQ",
+      "cSQP5oImnRo",
+      "p5YA0gyY0b0",
+      "pxAtXqWFf5Y",
+      "t3vNRW8DMDc"
+    ],
+    "sourceRuleIds": [
+      "conflit_engage_courte_vs_poke_longue",
+      "carries_portees_opposees",
+      "longue_portee_courte_portee_sans_pont"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "named_lane_counter",
+    "title": "Un matchup de lane documenté",
+    "family": "lane",
+    "weight": 1.25,
+    "sources": [
+      "-RRd8TzEzjs",
+      "1VlERsENAR8",
+      "1kaw7VnpuhA",
+      "33RqvcvXRk4",
+      "9rZFhLUPbHQ",
+      "A-FkOmLfNQU",
+      "LVDYSqz2RiQ",
+      "NKYY2NzHBnw",
+      "UFnEjmmKUfQ",
+      "VcT-i_Tkc18",
+      "XLzH0vbYMYE",
+      "Y2ezLdCXtO4",
+      "Z5yhZKkTf0w",
+      "ZxGZIIO91Tk",
+      "_l3YPMGRl_I",
+      "dpS0CiFtMI4",
+      "iP33gPti5XA",
+      "jfVT0Qguz7E",
+      "l54MxqChXXw",
+      "mNX8GrtxCFg",
+      "nGLqsurvfYU",
+      "o5PX9BO6Lh4",
+      "oiVMH6ZJX7g",
+      "onOzhp44AmA",
+      "p5YA0gyY0b0"
+    ],
+    "sourceRuleIds": [
+      "lux_vs_mid_statique",
+      "contres_azir",
+      "azir_contres_mid",
+      "azir_contre_ranged",
+      "orianna_contres",
+      "contres_gnar",
+      "gnar_matchups",
+      "cassio_contree_true_dmg",
+      "galio_vs_rumble",
+      "contres_tf_top",
+      "shen_vs_auto_attaque",
+      "nasus_matchups"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "anti_tank_damage",
+    "title": "Des dégâts anti-tanks répondent à la frontline",
+    "family": "damage",
+    "weight": 1.5,
+    "sources": [
+      "XZYVApZ2_Ts",
+      "XgihzywQGng",
+      "Z5yhZKkTf0w",
+      "_lmEPewetAI",
+      "aIu-hmQTRd8",
+      "cSQP5oImnRo",
+      "ca6Gl0fG0_E",
+      "gIpos4fRVw8",
+      "gR6nS_l-htc",
+      "jfVT0Qguz7E",
+      "vXba7cGT7BI",
+      "w2VZvhAxo40",
+      "zn2EpFiCFwI"
+    ],
+    "sourceRuleIds": [
+      "anti_tank_nommes",
+      "anti_tanks_nommes",
+      "trundle_vs_tanks",
+      "trundle_anti_tank_immobile"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "double_tank_limited_damage",
+    "title": "Plusieurs tanks concentrent les dégâts sur trop peu de carries",
+    "family": "damage",
+    "weight": 1.5,
+    "sources": [
+      "1kaw7VnpuhA",
+      "7gvPKJVPDy0",
+      "G9qKZ7TRf9I",
+      "Q9Js-_jsXEs",
+      "XaSxxhFVAZQ",
+      "bG2Nn6Mw_lo",
+      "h7-S2AwioDY",
+      "hf4HEqLL9oA"
+    ],
+    "sourceRuleIds": [
+      "double_tank_sans_degats",
+      "trois_tanks_un_carry",
+      "sur_tanke",
+      "dps_concentre_un_carry"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "catch_against_mobile",
+    "title": "Le catch committal manque de cibles accessibles",
+    "family": "reach",
+    "weight": 1.5,
+    "sources": [
+      "XZYVApZ2_Ts",
+      "o5PX9BO6Lh4",
+      "zn2EpFiCFwI"
+    ],
+    "sourceRuleIds": [
+      "nocturne_vs_dashs"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "carry_reach",
+    "title": "Un accès fiable à un carry peu protégé",
+    "family": "reach",
+    "weight": 1.5,
+    "sources": [
+      "aBZbd1OxPI8",
+      "cSQP5oImnRo",
+      "e3-xE1d7mk4",
+      "hKd-qIpegGE",
+      "pA0HnoSk7lw"
+    ],
+    "sourceRuleIds": [
+      "jarvan_vs_carry_immobile",
+      "carry_range_immobile_vs_dashs",
+      "lockers_vs_hypercarry",
+      "smolder_vs_hard_cc"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "hypercarry_no_answer",
+    "title": "Le carry protégé manque de réponse adverse",
+    "family": "protection",
+    "weight": 1.5,
+    "sources": [
+      "0Ul6yfKePWA",
+      "tzh-LYMr1n8",
+      "w9eG_9Yc3nE"
+    ],
+    "sourceRuleIds": [
+      "hypercarry_stack_sans_reponse",
+      "pas_d_engage_vs_hypercarry",
+      "carry_protege_sans_range_ni_zoning"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "multi_winconditions",
+    "title": "Plusieurs voies de victoire indépendantes",
+    "family": "grid",
+    "weight": 1,
+    "sources": [
+      "d2XPHyOX1fQ",
+      "jfVT0Qguz7E",
+      "kstHrL54K_o",
+      "u73_c_7OQIg",
+      "xlFlfJFdXk8"
+    ],
+    "sourceRuleIds": [
+      "couverture_win_conditions",
+      "plan_teamfight_coherent"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "grid_scaling",
+    "title": "Avantage comparatif de scaling utilisable",
+    "family": "grid",
+    "weight": 1.25,
+    "sources": [
+      "1ETf1NDvOtQ",
+      "7270KpN9ehE",
+      "9yeU3vXF0Oo",
+      "ENf_B4hevcw",
+      "Ni-90p7149I",
+      "WM7ES_qBfP0",
+      "XQYZMHTJTPE",
+      "rSBntWvE4Ls",
+      "ybz_JxOvrpg",
+      "zc7f2iPq7_8",
+      "znQ0Rrq77Sw"
+    ],
+    "sourceRuleIds": [
+      "sans_scaling_vs_scaling",
+      "hypercarry_scaling_protege",
+      "scaling_accepte_early"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "grid_teamfight",
+    "title": "Avantage comparatif du bloc de teamfight",
+    "family": "grid",
+    "weight": 1,
+    "sources": [
+      "JZecUmvga3M",
+      "LVDYSqz2RiQ",
+      "ObEvK-hR9bs",
+      "jfVT0Qguz7E",
+      "kstHrL54K_o"
+    ],
+    "sourceRuleIds": [
+      "tank_plus_dps_soutenu",
+      "plan_teamfight_coherent"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "grid_objectives",
+    "title": "Avantage comparatif du setup d’objectifs",
+    "family": "grid",
+    "weight": 0.75,
+    "sources": [
+      "4eX2ylmNL3U",
+      "6fAcwZGblzo",
+      "ObEvK-hR9bs"
+    ],
+    "sourceRuleIds": [
+      "compo_nashor",
+      "solo_objectif_dps"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "grid_range",
+    "title": "La portée adverse manque de réponse de fermeture",
+    "family": "grid",
+    "weight": 1,
+    "sources": [
+      "2dRy2WJapKk",
+      "HJ8E31CLAuI",
+      "UFnEjmmKUfQ"
+    ],
+    "sourceRuleIds": [
+      "sans_range_vs_range",
+      "longue_portee_vs_courte_sans_front"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "grid_side",
+    "title": "Une menace de side lane sans réponse globale",
+    "family": "grid",
+    "weight": 0.75,
+    "sources": [
+      "EirFDpT6E5Q",
+      "FEHZOwfcczc",
+      "fvjhC4jNLw0"
+    ],
+    "sourceRuleIds": [
+      "split_131_vs_sans_global",
+      "jax_split_sans_reponse"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "no_proactivity",
+    "title": "Pas d’outil fiable pour convertir la pression",
+    "family": "identity",
+    "weight": 1,
+    "sources": [
+      "-pbefCiajKs",
+      "G_DBTj3PDUI",
+      "gIpos4fRVw8",
+      "nq-i0Lmx-Hw",
+      "pA0HnoSk7lw"
+    ],
+    "sourceRuleIds": [
+      "aucun_catcheur",
+      "enchanteur_sans_engage",
+      "catch_reactif_sans_pression"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "named_context_counter",
+    "title": "Un contre de composition documenté",
+    "family": "terrain",
+    "weight": 1.25,
+    "sources": [
+      "1aNsp7bWHVA",
+      "25-qnX2-0IU",
+      "5JppK7MCE30",
+      "5zOvsTP_BWU",
+      "R-Jm2-5HZWA",
+      "VROOrCunP-c",
+      "VczmeLqVOMg",
+      "XZYVApZ2_Ts",
+      "Y2ezLdCXtO4",
+      "Ze80FjoBccE",
+      "cANONHC7N48",
+      "eEsCZhA3H0Q",
+      "hGJJOPzx6rw",
+      "pyFogEVezkE",
+      "qs9fLYbYWOc",
+      "u73_c_7OQIg",
+      "uMyzvlkcP9A",
+      "vWGpKbTWA88",
+      "w9eG_9Yc3nE",
+      "xscoqh9K05I",
+      "yUuo2k7YLwI",
+      "zn2EpFiCFwI"
+    ],
+    "sourceRuleIds": [
+      "contres_xayah",
+      "xayah_vs_displacement",
+      "nocturne_contres",
+      "trundle_vs_immobiles_poke_kalista",
+      "jax_perd_vs_mages",
+      "braum_vs_melee",
+      "braum_vs_engage_fiable",
+      "zac_vs_immobiles_ranged",
+      "zeri_mobile_carry_vs_triple_cc"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  },
+  {
+    "id": "early_bot_support",
+    "title": "Le carry bot early manque d’un support adapté",
+    "family": "identity",
+    "weight": 1,
+    "sources": [
+      "UFnEjmmKUfQ",
+      "XgihzywQGng",
+      "aMOC8HHg8d4",
+      "e3-xE1d7mk4",
+      "l54MxqChXXw"
+    ],
+    "sourceRuleIds": [
+      "kalista_sans_engage",
+      "adc_engage_avec_enchanteur"
+    ],
+    "provenance": "Traduction opérationnelle du corpus ; seuils et poids heuristiques, non énoncés par Kazewa.",
+    "sourceFiles": [
+      "kb/KAZEWA_METHOD.md",
+      "draft_rules_final.json"
+    ]
+  }
+]

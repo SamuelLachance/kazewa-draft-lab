@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#111511" />
+    <meta
+      name="description"
+      content="Analysez les deux compositions d’une draft de League of Legends selon les principes de Kazewa. Un verdict expliqué, des sources et un suivi des matchs professionnels."
+    />
+    <title>Kazewa — Draft Lab</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.mjs"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">Aller à l’analyse</a>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Kazewa Draft Lab, accueil"
+          ><span class="brand-mark" aria-hidden="true">K</span
+          ><span>KAZEWA<span class="brand-sub">DRAFT LAB</span></span></a
+        >
+        <nav class="main-nav" aria-label="Navigation principale">
+          <button
+            class="nav-button is-active"
+            data-view="lab"
+            aria-pressed="true"
+          >
+            Draft lab
+          </button>
+          <button class="nav-button" data-view="live" aria-pressed="false">
+            <span class="tiny-dot"></span>Direct pro
+          </button>
+          <button class="nav-button" data-view="method" aria-pressed="false">
+            La méthode <span aria-hidden="true">↗</span>
+          </button>
+        </nav>
+        <div class="system-tag">
+          <span class="status-dot"></span><span>MOTEUR EXPLICABLE</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="page-title">
+          <div>
+            <p class="eyebrow">
+              <span class="eyebrow-line"></span> LEAGUE OF LEGENDS · DRAFT
+              INTELLIGENCE
+            </p>
+            <h1 id="page-title">
+              La partie commence<br />avant le <span>premier kill.</span>
+            </h1>
+            <p class="hero-description">
+              Deux compositions. Un plan de jeu. Découvrez quelle draft prend
+              l’avantage, avec le raisonnement de Kazewa à chaque étape.
+            </p>
+          </div>
+          <div class="hero-aside" aria-label="Périmètre de l’analyse">
+            <div class="orbit" aria-hidden="true">
+              <svg viewBox="0 0 180 140">
+                <path d="M18 108L52 74l30 13 34-50 44 18" />
+                <path
+                  class="orbit-grid"
+                  d="M20 25v90h145M20 70h145M65 25v90M110 25v90M155 25v90"
+                />
+                <circle cx="116" cy="37" r="6" />
+                <circle cx="160" cy="55" r="4" /></svg
+              ><span class="orbit-label"
+                >LIRE LA DRAFT.<br />VOIR LA WIN CONDITION.</span
+              >
+            </div>
+            <div class="hero-counts">
+              <div>
+                <strong id="champion-count">—</strong><span>CHAMPIONS</span>
+              </div>
+              <div>
+                <strong id="rule-count">—</strong><span>PRINCIPES SOURCÉS</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="validation-strip" id="validation-strip">
+          <span class="validation-icon" aria-hidden="true">◈</span
+          ><span id="validation-text"
+            >Chargement du moteur et de sa validation…</span
+          ><button class="text-button" data-view="method">
+            Voir la mesure <span aria-hidden="true">↗</span>
+          </button>
+        </div>
+
+        <section id="workspace" class="workspace" aria-label="Espace d’analyse">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow" id="workspace-eyebrow">01 / L’ATELIER</p>
+              <h2 id="workspace-title">Au cœur de la draft.</h2>
+            </div>
+            <div class="view-switch" role="group" aria-label="Mode d’analyse">
+              <button data-view="lab" class="is-active" aria-pressed="true">
+                Composer une draft</button
+              ><button data-view="live" aria-pressed="false">
+                <span class="tiny-dot"></span> Matchs en direct
+              </button>
+            </div>
+          </div>
+
+          <section id="lab-view" aria-label="Composition manuelle">
+            <div class="draft-toolbar">
+              <div class="toolbar-note">
+                <span class="keycap">10</span> champions. Aucun classement
+                d’équipe dans le calcul.
+              </div>
+              <div class="toolbar-actions">
+                <button id="example-button" class="small-button">
+                  Charger un cas du corpus
+                  <span aria-hidden="true">↗</span></button
+                ><button
+                  id="swap-button"
+                  class="icon-button"
+                  aria-label="Inverser les équipes"
+                  title="Inverser les équipes"
+                >
+                  ⇄</button
+                ><button
+                  id="clear-button"
+                  class="icon-button"
+                  aria-label="Vider la draft"
+                  title="Vider la draft"
+                >
+                  ↺
+                </button>
+              </div>
+            </div>
+            <div class="draft-grid">
+              <div class="team-panel blue-team" id="blue-team"></div>
+              <div class="versus" aria-hidden="true">
+                <span>VS</span><i></i>
+              </div>
+              <div class="team-panel red-team" id="red-team"></div>
+            </div>
+            <div class="draft-footnote">
+              <span id="draft-origin"
+                >Sélectionnez les champions par rôle pour lancer
+                l’analyse.</span
+              ><button id="share-button" class="text-button">
+                Copier le lien de cette draft <span aria-hidden="true">↗</span>
+              </button>
+            </div>
+          </section>
+
+          <section
+            id="live-view"
+            aria-label="Drafts professionnelles en direct"
+            hidden
+          >
+            <div class="live-toolbar">
+              <span class="feed-indicator" id="feed-indicator"
+                ><span class="status-dot"></span>Connexion au flux…</span
+              >
+              <div>
+                <button id="refresh-button" class="small-button">
+                  Actualiser ↻</button
+                ><button id="settings-button" class="small-button">
+                  Configurer le flux ⚙
+                </button>
+              </div>
+            </div>
+            <form id="feed-settings" class="feed-settings" hidden>
+              <label for="feed-url"
+                >URL publique de votre proxy live
+                <span
+                  >Une adresse HTTPS, sans clé API. Les secrets restent sur le
+                  serveur.</span
+                ></label
+              >
+              <div>
+                <input
+                  id="feed-url"
+                  type="url"
+                  placeholder="https://votre-proxy.example/api/live"
+                  autocomplete="url"
+                /><button type="submit" class="primary-button">
+                  Connecter <span aria-hidden="true">↗</span></button
+                ><button
+                  id="reset-feed-button"
+                  type="button"
+                  class="small-button"
+                >
+                  Réinitialiser
+                </button>
+              </div>
+              <p id="feed-settings-message" role="status"></p>
+            </form>
+            <div
+              id="live-matches"
+              class="live-matches"
+              aria-live="polite"
+            ></div>
+            <div id="live-draft" hidden></div>
+            <p id="live-source-note" class="fine-print">
+              Le direct dépend de la couverture et du délai du fournisseur.
+              Aucun match de démonstration ne remplace un flux absent.
+            </p>
+          </section>
+
+          <section
+            id="result-section"
+            class="result-section"
+            aria-labelledby="verdict-title"
+            hidden
+          >
+            <div class="verdict-card" id="verdict-card">
+              <div class="verdict-heading">
+                <span class="eyebrow">LE VERDICT DE LA DRAFT</span
+                ><span id="confidence-badge" class="badge"></span>
+              </div>
+              <div class="verdict-main">
+                <div>
+                  <h2 id="verdict-title"></h2>
+                  <p id="verdict-description"></p>
+                </div>
+                <div class="score-display">
+                  <strong id="verdict-margin"></strong
+                  ><span>ÉCART DE DRAFT</span>
+                </div>
+              </div>
+              <div class="advantage-track" aria-hidden="true">
+                <span id="advantage-bar"></span><i></i>
+              </div>
+              <div class="track-labels">
+                <span>CÔTÉ BLEU</span
+                ><span>Score heuristique · pas une probabilité de victoire</span
+                ><span>CÔTÉ ROUGE</span>
+              </div>
+            </div>
+            <div class="analysis-grid">
+              <section class="reason-panel">
+                <div class="panel-heading">
+                  <h3>Ce qui fait la différence</h3>
+                  <span class="mono" id="signal-count"></span>
+                </div>
+                <div id="reasons"></div>
+              </section>
+              <section class="axes-panel">
+                <div class="panel-heading">
+                  <h3>Le match des plans de jeu</h3>
+                  <span class="mini-legend"><i></i> BLEU <i></i> ROUGE</span>
+                </div>
+                <div id="axes"></div>
+                <p class="fine-print">
+                  Les axes décrivent les outils des compositions. Ils ne
+                  prédisent pas l’exécution des joueurs.
+                </p>
+              </section>
+            </div>
+            <div class="plans-grid" id="plans"></div>
+            <details id="warnings-panel" class="warnings-panel" hidden>
+              <summary>
+                Limites et points à vérifier <span id="warning-count"></span>
+              </summary>
+              <ul id="warnings"></ul>
+            </details>
+          </section>
+
+          <section id="empty-result" class="empty-result">
+            <div class="empty-symbol" aria-hidden="true">⌁</div>
+            <div>
+              <h3>Les dix picks racontent une histoire.</h3>
+              <p>
+                Complétez les deux compositions pour révéler leur plan, leurs
+                failles et le verdict.
+              </p>
+            </div>
+            <span class="mono" id="picks-progress">0 / 10 PICKS</span>
+          </section>
+
+          <section
+            id="method-view"
+            class="method-view"
+            hidden
+            aria-labelledby="method-title"
+          >
+            <div class="method-intro">
+              <span class="eyebrow">DU CORPUS AU VERDICT</span>
+              <h2 id="method-title">
+                Un raisonnement que vous<br />pouvez remonter à la source.
+              </h2>
+              <p>
+                Le moteur traduit les principes récurrents du corpus en règles
+                exécutables. C’est une reconstruction expérimentale de la
+                méthode, avec des choix d’implémentation explicites.
+              </p>
+            </div>
+            <div class="method-steps">
+              <article>
+                <span>01</span>
+                <h3>Les fondations</h3>
+                <p>
+                  Une frontline qui tient. Des dégâts soutenus. Des carries qui
+                  peuvent jouer. Les trous structurels passent avant les petits
+                  avantages.
+                </p>
+              </article>
+              <article>
+                <span>02</span>
+                <h3>Le face-à-face</h3>
+                <p>
+                  Catch contre immobiles, engage contre disengage, poke protégé,
+                  combos et anti-dash : la valeur d’un pick dépend des neuf
+                  autres.
+                </p>
+              </article>
+              <article>
+                <span>03</span>
+                <h3>Le plan dans le temps</h3>
+                <p>
+                  Qui doit agir ? Qui peut attendre ? Le moteur compare les
+                  outils de scaling, de teamfight, de terrain et de side.
+                </p>
+              </article>
+            </div>
+            <section
+              id="evaluation-details"
+              class="evaluation-details"
+              aria-label="Mesure de fidélité"
+            ></section>
+            <details class="rule-catalog">
+              <summary>Consulter les règles et leurs sources vidéo</summary>
+              <div id="rule-catalog"></div>
+            </details>
+            <div class="method-limit">
+              <strong>Le périmètre compte.</strong>
+              <p>
+                Les noms des équipes, la forme des joueurs, les bans, l’ordre de
+                sélection et l’état de la partie ne participent jamais au
+                calcul. Certains jugements de Kazewa en dépendent : une
+                imitation complète ne peut donc pas être garantie à partir des
+                dix champions. Les profils historiques et leurs contradictions
+                sont signalés.
+              </p>
+              <p>
+                La fidélité mesure l’accord avec ses jugements de draft ; elle
+                ne mesure pas le taux de victoire réel. Aucun pourcentage de
+                victoire n’est affiché sans calibration indépendante.
+              </p>
+            </div>
+          </section>
+        </section>
+
+        <section class="principles-strip" aria-label="Principes du moteur">
+          <div>
+            <span aria-hidden="true">⌘</span>
+            <p>
+              La compo, avant le nom.<small
+                >Aucune réputation d’équipe dans le score.</small
+              >
+            </p>
+          </div>
+          <div>
+            <span aria-hidden="true">◎</span>
+            <p>
+              Un verdict, des raisons.<small
+                >Chaque signal renvoie à sa source.</small
+              >
+            </p>
+          </div>
+          <div>
+            <span aria-hidden="true">↗</span>
+            <p>
+              Le doute fait partie du plan.<small
+                >Draft incomplète : le moteur s’abstient.</small
+              >
+            </p>
+          </div>
+        </section>
+      </main>
+      <footer>
+        <a class="footer-brand" href="#">KAZEWA <span>/ DRAFT LAB</span></a>
+        <p>
+          Projet indépendant fondé sur un corpus d’analyses. Non affilié à Riot
+          Games ni approuvé par Kazewa.
+        </p>
+        <span class="mono">COMPOSITION → RAISONNEMENT → VERDICT</span>
+      </footer>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <noscript
+      ><p class="fatal-error">
+        JavaScript est nécessaire pour calculer les verdicts dans votre
+        navigateur.
+      </p></noscript
+    >
+  </body>
+</html>

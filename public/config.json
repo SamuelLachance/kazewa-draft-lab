@@ -1,0 +1,6 @@
+{
+  "liveApiUrl": "",
+  "pollIntervalMs": 15000,
+  "staleAfterMs": 90000,
+  "assetPatch": "16.21.1"
+}

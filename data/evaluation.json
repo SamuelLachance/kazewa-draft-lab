@@ -1,0 +1,5164 @@
+{
+  "version": "1.0.0",
+  "evaluatedAt": "2026-10-29T18:16:12.144Z",
+  "modelVersion": "1.1.0",
+  "benchmarkVersion": "1.0.0",
+  "benchmarkDesign": "Frozen retrospective benchmark; no supervised fitting or rule tuning on these labels.",
+  "sourceOverlap": true,
+  "primary": {
+    "eligible": 5,
+    "videos": 5,
+    "decided": 5,
+    "abstentions": 0,
+    "correct": 2,
+    "incorrect": 3,
+    "agreement": 0.4,
+    "coverage": 1,
+    "agreementInterval95": {
+      "low": 0.11762077423264783,
+      "high": 0.769275718723987,
+      "method": "Wilson 95%; case-level, not cluster-adjusted"
+    },
+    "coverageInterval95": {
+      "low": 0.5655175352168251,
+      "high": 1,
+      "method": "Wilson 95%; case-level, not cluster-adjusted"
+    },
+    "macroVideoAgreement": 0.4,
+    "confusionMatrix": {
+      "rows": "expected Kazewa preference",
+      "columns": "algorithm decision",
+      "counts": {
+        "blue": {
+          "blue": 0,
+          "red": 2,
+          "abstain": 0
+        },
+        "red": {
+          "blue": 1,
+          "red": 2,
+          "abstain": 0
+        }
+      }
+    },
+    "byVideo": [
+      {
+        "video": "-B3b80GYtDM",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "5JppK7MCE30",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "dfTTHnzJVhU",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 1,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "nq-i0Lmx-Hw",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 1,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "slSBAzUOKks",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      }
+    ]
+  },
+  "broader": {
+    "eligible": 62,
+    "videos": 42,
+    "decided": 57,
+    "abstentions": 5,
+    "correct": 23,
+    "incorrect": 34,
+    "agreement": 0.40350877192982454,
+    "coverage": 0.9193548387096774,
+    "agreementInterval95": {
+      "low": 0.28617515549595607,
+      "high": 0.5330270757914608,
+      "method": "Wilson 95%; case-level, not cluster-adjusted"
+    },
+    "coverageInterval95": {
+      "low": 0.8247142865138739,
+      "high": 0.9650616530140073,
+      "method": "Wilson 95%; case-level, not cluster-adjusted"
+    },
+    "macroVideoAgreement": 0.4,
+    "confusionMatrix": {
+      "rows": "expected Kazewa preference",
+      "columns": "algorithm decision",
+      "counts": {
+        "blue": {
+          "blue": 9,
+          "red": 19,
+          "abstain": 3
+        },
+        "red": {
+          "blue": 15,
+          "red": 14,
+          "abstain": 2
+        }
+      }
+    },
+    "byVideo": [
+      {
+        "video": "-0iJco4hUdk",
+        "eligible": 1,
+        "decided": 0,
+        "correct": 0,
+        "agreement": null,
+        "coverage": 0
+      },
+      {
+        "video": "-B3b80GYtDM",
+        "eligible": 4,
+        "decided": 4,
+        "correct": 2,
+        "agreement": 0.5,
+        "coverage": 1
+      },
+      {
+        "video": "-pbefCiajKs",
+        "eligible": 2,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 0.5
+      },
+      {
+        "video": "1VlERsENAR8",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 1,
+        "agreement": 0.5,
+        "coverage": 1
+      },
+      {
+        "video": "5JppK7MCE30",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "5zOvsTP_BWU",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "7AKs-joyIOs",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "91R-kQSi4_U",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "AaeEM1lZIsQ",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 1,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "bG2Nn6Mw_lo",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "cQWR-wI69es",
+        "eligible": 1,
+        "decided": 0,
+        "correct": 0,
+        "agreement": null,
+        "coverage": 0
+      },
+      {
+        "video": "cSQP5oImnRo",
+        "eligible": 3,
+        "decided": 2,
+        "correct": 1,
+        "agreement": 0.5,
+        "coverage": 0.6666666666666666
+      },
+      {
+        "video": "dfTTHnzJVhU",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 1,
+        "agreement": 0.5,
+        "coverage": 1
+      },
+      {
+        "video": "F2aZxRBr6tY",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 1,
+        "agreement": 0.5,
+        "coverage": 1
+      },
+      {
+        "video": "g24oY7T46HU",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 1,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "gIpos4fRVw8",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "GnJPSjKmRrM",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 1,
+        "agreement": 0.5,
+        "coverage": 1
+      },
+      {
+        "video": "h7-S2AwioDY",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "HJ8E31CLAuI",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "iP33gPti5XA",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "j_LhfTsaMUc",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "JZecUmvga3M",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "k_ram4c1R8c",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 2,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "lPIM3We7vE0",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 1,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "ND-ejmPURX0",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 1,
+        "agreement": 0.5,
+        "coverage": 1
+      },
+      {
+        "video": "NKYY2NzHBnw",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 1,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "nq-i0Lmx-Hw",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 1,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "o5PX9BO6Lh4",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 1,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "p5YA0gyY0b0",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 1,
+        "agreement": 0.5,
+        "coverage": 1
+      },
+      {
+        "video": "rSBntWvE4Ls",
+        "eligible": 2,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 0.5
+      },
+      {
+        "video": "slSBAzUOKks",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "tXP0_AOfGBw",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "UFnEjmmKUfQ",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 1,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "vWGpKbTWA88",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "w9eG_9Yc3nE",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "x-NpY60n-TY",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 1,
+        "agreement": 0.5,
+        "coverage": 1
+      },
+      {
+        "video": "XZYVApZ2_Ts",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 1,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "Y1kXb5XprGo",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 1,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "yUuo2k7YLwI",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "Z5yhZKkTf0w",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 0,
+        "agreement": 0,
+        "coverage": 1
+      },
+      {
+        "video": "zc7f2iPq7_8",
+        "eligible": 1,
+        "decided": 1,
+        "correct": 1,
+        "agreement": 1,
+        "coverage": 1
+      },
+      {
+        "video": "zn2EpFiCFwI",
+        "eligible": 2,
+        "decided": 2,
+        "correct": 1,
+        "agreement": 0.5,
+        "coverage": 1
+      }
+    ]
+  },
+  "gate": {
+    "passed": false,
+    "reasons": [
+      "insufficient_cases",
+      "insufficient_videos",
+      "insufficient_agreement"
+    ],
+    "thresholds": {
+      "minimumAgreement": 0.85,
+      "minimumCoverage": 0.8,
+      "minimumCases": 50,
+      "minimumVideos": 10
+    },
+    "declaration": "Product acceptance thresholds selected for this prototype; these are not thresholds stated by Kazewa. Passing this retrospective gate would still require prospective validation."
+  },
+  "actualMatchOutcome": {
+    "separateFromFidelity": true,
+    "available": 29,
+    "excludedConflictingOutcomes": 0,
+    "decided": 24,
+    "correct": 8,
+    "accuracy": 0.3333333333333333,
+    "caveat": "Small retrospective subset; neither a calibrated win probability nor evidence that compositions determine match results."
+  },
+  "limitations": [
+    "The method, champion taxonomy and rules were distilled from overlapping Kazewa videos. This is not an independent holdout and does not establish future fidelity.",
+    "The primary screening uses explicit keywords; unobserved context can remain and some composition-only reasoning can be excluded conservatively.",
+    "Reconstructed rosters in the broader cohort come from existing project dossier headers and answer keys, not a newly verified external match feed.",
+    "Broadcast left/right are anonymized as blue/red for exact-extract cases; the engine cannot use first-pick or map-side advantages.",
+    "Predictions of Kazewa preference and predictions of actual match winners are distinct outcomes."
+  ],
+  "cases": [
+    {
+      "id": "-0iJco4hUdk_g1__oe82485",
+      "video": "-0iJco4hUdk",
+      "expected": "red",
+      "predicted": null,
+      "status": "complete",
+      "score": -1.45,
+      "confidence": "indeterminee",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process",
+        "historical_meta"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "-B3b80GYtDM_g1",
+      "video": "-B3b80GYtDM",
+      "expected": "blue",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 7.5,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "historical_meta"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "-B3b80GYtDM_g2",
+      "video": "-B3b80GYtDM",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 5.5,
+      "confidence": "moyenne",
+      "primaryEligible": true,
+      "reconstructed": false,
+      "influenceTags": [],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "-B3b80GYtDM_g3__oe76599",
+      "video": "-B3b80GYtDM",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 2.5,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "-B3b80GYtDM_g4",
+      "video": "-B3b80GYtDM",
+      "expected": "blue",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 6.5,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "-pbefCiajKs_g1",
+      "video": "-pbefCiajKs",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 1.95,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "-pbefCiajKs_g2__oe95323",
+      "video": "-pbefCiajKs",
+      "expected": "blue",
+      "predicted": null,
+      "status": "complete",
+      "score": 1.3,
+      "confidence": "indeterminee",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "1VlERsENAR8_g1",
+      "video": "1VlERsENAR8",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -1.7,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "1VlERsENAR8_g2",
+      "video": "1VlERsENAR8",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -2.75,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "5JppK7MCE30_g3",
+      "video": "5JppK7MCE30",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -3.75,
+      "confidence": "faible",
+      "primaryEligible": true,
+      "reconstructed": false,
+      "influenceTags": [],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "5zOvsTP_BWU_g2",
+      "video": "5zOvsTP_BWU",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 2.8,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "7AKs-joyIOs_g1",
+      "video": "7AKs-joyIOs",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 2,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "91R-kQSi4_U_g1",
+      "video": "91R-kQSi4_U",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 9.8,
+      "confidence": "forte",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "historical_meta",
+        "player_or_team_strength"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "91R-kQSi4_U_g2__oe73015",
+      "video": "91R-kQSi4_U",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -7.8,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process",
+        "historical_meta",
+        "player_or_team_strength"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "AaeEM1lZIsQ_g1",
+      "video": "AaeEM1lZIsQ",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -6.25,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "bG2Nn6Mw_lo_g1",
+      "video": "bG2Nn6Mw_lo",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -5.95,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "historical_meta",
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "cQWR-wI69es_g1",
+      "video": "cQWR-wI69es",
+      "expected": "blue",
+      "predicted": null,
+      "status": "complete",
+      "score": 0.95,
+      "confidence": "indeterminee",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "historical_meta",
+        "player_or_team_strength"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "cSQP5oImnRo_g3",
+      "video": "cSQP5oImnRo",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -4,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "player_or_team_strength"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "cSQP5oImnRo_g4",
+      "video": "cSQP5oImnRo",
+      "expected": "blue",
+      "predicted": null,
+      "status": "complete",
+      "score": 0.05,
+      "confidence": "indeterminee",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "player_or_team_strength"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "cSQP5oImnRo_g5__oe93026",
+      "video": "cSQP5oImnRo",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 3,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "dfTTHnzJVhU_g1",
+      "video": "dfTTHnzJVhU",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -11.05,
+      "confidence": "forte",
+      "primaryEligible": true,
+      "reconstructed": false,
+      "influenceTags": [],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "dfTTHnzJVhU_g4",
+      "video": "dfTTHnzJVhU",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -9,
+      "confidence": "forte",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "F2aZxRBr6tY_g2__oe89424",
+      "video": "F2aZxRBr6tY",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -9.5,
+      "confidence": "forte",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process",
+        "historical_meta",
+        "player_or_team_strength"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "F2aZxRBr6tY_g3__oe89425",
+      "video": "F2aZxRBr6tY",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 6,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process",
+        "player_or_team_strength"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "g24oY7T46HU_g1",
+      "video": "g24oY7T46HU",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -2.75,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "gIpos4fRVw8_g5",
+      "video": "gIpos4fRVw8",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -2.05,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "GnJPSjKmRrM_g1",
+      "video": "GnJPSjKmRrM",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -1.75,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "historical_meta"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "GnJPSjKmRrM_g2__oe73014",
+      "video": "GnJPSjKmRrM",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -5.5,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process",
+        "historical_meta"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "h7-S2AwioDY_g1",
+      "video": "h7-S2AwioDY",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 8,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "historical_meta",
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "HJ8E31CLAuI_g4__oe48741",
+      "video": "HJ8E31CLAuI",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -7,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "iP33gPti5XA_g1__oe99302",
+      "video": "iP33gPti5XA",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 7.55,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "iP33gPti5XA_g2__oe99303",
+      "video": "iP33gPti5XA",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -7.45,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "j_LhfTsaMUc_g1__oe78965",
+      "video": "j_LhfTsaMUc",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -5.45,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "JZecUmvga3M_g1",
+      "video": "JZecUmvga3M",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -2.5,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "historical_meta",
+        "player_or_team_strength"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "JZecUmvga3M_g2__oe99259",
+      "video": "JZecUmvga3M",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 9.2,
+      "confidence": "forte",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "historical_meta"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "k_ram4c1R8c_g3",
+      "video": "k_ram4c1R8c",
+      "expected": "blue",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 13.95,
+      "confidence": "forte",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "k_ram4c1R8c_g4",
+      "video": "k_ram4c1R8c",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -6.95,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "lPIM3We7vE0_g1",
+      "video": "lPIM3We7vE0",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -10.7,
+      "confidence": "forte",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "ND-ejmPURX0_g1",
+      "video": "ND-ejmPURX0",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 7.05,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "ND-ejmPURX0_g3",
+      "video": "ND-ejmPURX0",
+      "expected": "blue",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 6.7,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "NKYY2NzHBnw_g3",
+      "video": "NKYY2NzHBnw",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -1.75,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "nq-i0Lmx-Hw_g1",
+      "video": "nq-i0Lmx-Hw",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -15.3,
+      "confidence": "forte",
+      "primaryEligible": true,
+      "reconstructed": false,
+      "influenceTags": [],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "o5PX9BO6Lh4_g1",
+      "video": "o5PX9BO6Lh4",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -5,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "p5YA0gyY0b0_g1",
+      "video": "p5YA0gyY0b0",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -5.5,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "p5YA0gyY0b0_g3",
+      "video": "p5YA0gyY0b0",
+      "expected": "blue",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 2.5,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "rSBntWvE4Ls_g1__oe76668",
+      "video": "rSBntWvE4Ls",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -5.3,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "rSBntWvE4Ls_g2__oe76669",
+      "video": "rSBntWvE4Ls",
+      "expected": "red",
+      "predicted": null,
+      "status": "complete",
+      "score": -0.25,
+      "confidence": "indeterminee",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "slSBAzUOKks_g1",
+      "video": "slSBAzUOKks",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -2,
+      "confidence": "faible",
+      "primaryEligible": true,
+      "reconstructed": false,
+      "influenceTags": [],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "tXP0_AOfGBw_g1",
+      "video": "tXP0_AOfGBw",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -1.7,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "historical_meta"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "UFnEjmmKUfQ_g1",
+      "video": "UFnEjmmKUfQ",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -9.55,
+      "confidence": "forte",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "player_or_team_strength"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "vWGpKbTWA88_g5",
+      "video": "vWGpKbTWA88",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 2.05,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "w9eG_9Yc3nE_g1__oe70004",
+      "video": "w9eG_9Yc3nE",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -5.05,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "blue",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "x-NpY60n-TY_g3",
+      "video": "x-NpY60n-TY",
+      "expected": "blue",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 3.95,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "x-NpY60n-TY_g4",
+      "video": "x-NpY60n-TY",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -7.55,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "XZYVApZ2_Ts_g5",
+      "video": "XZYVApZ2_Ts",
+      "expected": "blue",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 9.5,
+      "confidence": "forte",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "Y1kXb5XprGo_g5__oe82256",
+      "video": "Y1kXb5XprGo",
+      "expected": "blue",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 7.95,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "draft_process",
+        "historical_meta"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "yUuo2k7YLwI_g1",
+      "video": "yUuo2k7YLwI",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 9.25,
+      "confidence": "forte",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "yUuo2k7YLwI_g2__oe76544",
+      "video": "yUuo2k7YLwI",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -8.05,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": true,
+      "influenceTags": [
+        "player_or_team_strength"
+      ],
+      "actualWinner": "red",
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "Z5yhZKkTf0w_g4",
+      "video": "Z5yhZKkTf0w",
+      "expected": "red",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 8.3,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "zc7f2iPq7_8_g1",
+      "video": "zc7f2iPq7_8",
+      "expected": "blue",
+      "predicted": "blue",
+      "status": "complete",
+      "score": 3.3,
+      "confidence": "faible",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process",
+        "player_or_team_strength"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "zn2EpFiCFwI_g1",
+      "video": "zn2EpFiCFwI",
+      "expected": "blue",
+      "predicted": "red",
+      "status": "complete",
+      "score": -8.55,
+      "confidence": "moyenne",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    },
+    {
+      "id": "zn2EpFiCFwI_g2",
+      "video": "zn2EpFiCFwI",
+      "expected": "red",
+      "predicted": "red",
+      "status": "complete",
+      "score": -10.55,
+      "confidence": "forte",
+      "primaryEligible": false,
+      "reconstructed": false,
+      "influenceTags": [
+        "draft_process"
+      ],
+      "actualWinner": null,
+      "actualWinnerConflict": false,
+      "overlapsCleanBenchmark": false
+    }
+  ],
+  "exploratoryRaw": {
+    "name": "Exploratory full-review corpus, kept separate from draft-phase benchmark",
+    "contributesToFidelityGate": false,
+    "summary": {
+      "eligible": 101,
+      "videos": 66,
+      "decided": 91,
+      "abstentions": 10,
+      "correct": 53,
+      "incorrect": 38,
+      "agreement": 0.5824175824175825,
+      "coverage": 0.900990099009901,
+      "agreementInterval95": {
+        "low": 0.47977166187867143,
+        "high": 0.6783870187923923,
+        "method": "Wilson 95%; case-level, not cluster-adjusted"
+      },
+      "coverageInterval95": {
+        "low": 0.8272681581315193,
+        "high": 0.9453269670329527,
+        "method": "Wilson 95%; case-level, not cluster-adjusted"
+      },
+      "macroVideoAgreement": 0.576111111111111,
+      "confusionMatrix": {
+        "rows": "expected Kazewa preference",
+        "columns": "algorithm decision",
+        "counts": {
+          "blue": {
+            "blue": 22,
+            "red": 21,
+            "abstain": 6
+          },
+          "red": {
+            "blue": 17,
+            "red": 31,
+            "abstain": 4
+          }
+        }
+      },
+      "byVideo": [
+        {
+          "video": "_l3YPMGRl_I",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "-0iJco4hUdk",
+          "eligible": 1,
+          "decided": 0,
+          "correct": 0,
+          "agreement": null,
+          "coverage": 0
+        },
+        {
+          "video": "-B3b80GYtDM",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 2,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "-pbefCiajKs",
+          "eligible": 2,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 0.5
+        },
+        {
+          "video": "1kaw7VnpuhA",
+          "eligible": 1,
+          "decided": 0,
+          "correct": 0,
+          "agreement": null,
+          "coverage": 0
+        },
+        {
+          "video": "1VlERsENAR8",
+          "eligible": 4,
+          "decided": 4,
+          "correct": 2,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "2QkQYFPQF48",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "5JppK7MCE30",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "5zOvsTP_BWU",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "7AKs-joyIOs",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "91R-kQSi4_U",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "A-FkOmLfNQU",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "AaeEM1lZIsQ",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "aBZbd1OxPI8",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "AvHU27oQDFE",
+          "eligible": 3,
+          "decided": 3,
+          "correct": 3,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "cQWR-wI69es",
+          "eligible": 1,
+          "decided": 0,
+          "correct": 0,
+          "agreement": null,
+          "coverage": 0
+        },
+        {
+          "video": "cSQP5oImnRo",
+          "eligible": 2,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 0.5
+        },
+        {
+          "video": "Cx_DtuL9TS4",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "cynwgSKLGYI",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "eEsCZhA3H0Q",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 1,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "F0GmsMinpa8",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 1,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "F2aZxRBr6tY",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "FUAJfk0irSs",
+          "eligible": 1,
+          "decided": 0,
+          "correct": 0,
+          "agreement": null,
+          "coverage": 0
+        },
+        {
+          "video": "fvjhC4jNLw0",
+          "eligible": 1,
+          "decided": 0,
+          "correct": 0,
+          "agreement": null,
+          "coverage": 0
+        },
+        {
+          "video": "g24oY7T46HU",
+          "eligible": 4,
+          "decided": 3,
+          "correct": 2,
+          "agreement": 0.6666666666666666,
+          "coverage": 0.75
+        },
+        {
+          "video": "gIpos4fRVw8",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "GnJPSjKmRrM",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "h7-S2AwioDY",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "hGJJOPzx6rw",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "ISAb1T_ORUU",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "IXQ-mf-PHsk",
+          "eligible": 5,
+          "decided": 5,
+          "correct": 2,
+          "agreement": 0.4,
+          "coverage": 1
+        },
+        {
+          "video": "j_LhfTsaMUc",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "j1PhMNTYqrY",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "jRJJGkKpKBQ",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "JZecUmvga3M",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "k_ram4c1R8c",
+          "eligible": 4,
+          "decided": 4,
+          "correct": 2,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "KOX2Kk4FMhs",
+          "eligible": 4,
+          "decided": 4,
+          "correct": 2,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "l54MxqChXXw",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "lI1sxyNrpGc",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "lPIM3We7vE0",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "ND-ejmPURX0",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "NKYY2NzHBnw",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 2,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "nq-i0Lmx-Hw",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "NueyXunR8Zk",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 2,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "o5PX9BO6Lh4",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "ObEvK-hR9bs",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "OkefBVB5D1g",
+          "eligible": 1,
+          "decided": 0,
+          "correct": 0,
+          "agreement": null,
+          "coverage": 0
+        },
+        {
+          "video": "P_MxifJP614",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 1,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "p5YA0gyY0b0",
+          "eligible": 3,
+          "decided": 2,
+          "correct": 1,
+          "agreement": 0.5,
+          "coverage": 0.6666666666666666
+        },
+        {
+          "video": "qs9fLYbYWOc",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 2,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "qtH4Q6mrr_c",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "rRwJ9AuMwlw",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "t3vNRW8DMDc",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "tXP0_AOfGBw",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "UFnEjmmKUfQ",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "uMyzvlkcP9A",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 1,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "vWGpKbTWA88",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "x-NpY60n-TY",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 2,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "XgihzywQGng",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "XL0KxTgEaRE",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "XZYVApZ2_Ts",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "Y1kXb5XprGo",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "yUuo2k7YLwI",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "Z5yhZKkTf0w",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 1,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "zc7f2iPq7_8",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "zn2EpFiCFwI",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 2,
+          "agreement": 1,
+          "coverage": 1
+        }
+      ]
+    },
+    "outsideCleanBenchmark": {
+      "eligible": 62,
+      "videos": 42,
+      "decided": 56,
+      "abstentions": 6,
+      "correct": 32,
+      "incorrect": 24,
+      "agreement": 0.5714285714285714,
+      "coverage": 0.9032258064516129,
+      "agreementInterval95": {
+        "low": 0.4413762073081303,
+        "high": 0.6923103731606176,
+        "method": "Wilson 95%; case-level, not cluster-adjusted"
+      },
+      "coverageInterval95": {
+        "low": 0.8045118138769257,
+        "high": 0.9548881279768061,
+        "method": "Wilson 95%; case-level, not cluster-adjusted"
+      },
+      "macroVideoAgreement": 0.5873873873873874,
+      "confusionMatrix": {
+        "rows": "expected Kazewa preference",
+        "columns": "algorithm decision",
+        "counts": {
+          "blue": {
+            "blue": 17,
+            "red": 12,
+            "abstain": 4
+          },
+          "red": {
+            "blue": 12,
+            "red": 15,
+            "abstain": 2
+          }
+        }
+      },
+      "byVideo": [
+        {
+          "video": "_l3YPMGRl_I",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "1kaw7VnpuhA",
+          "eligible": 1,
+          "decided": 0,
+          "correct": 0,
+          "agreement": null,
+          "coverage": 0
+        },
+        {
+          "video": "1VlERsENAR8",
+          "eligible": 3,
+          "decided": 3,
+          "correct": 1,
+          "agreement": 0.3333333333333333,
+          "coverage": 1
+        },
+        {
+          "video": "2QkQYFPQF48",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "A-FkOmLfNQU",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "aBZbd1OxPI8",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "AvHU27oQDFE",
+          "eligible": 3,
+          "decided": 3,
+          "correct": 3,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "Cx_DtuL9TS4",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "cynwgSKLGYI",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "eEsCZhA3H0Q",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 1,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "F0GmsMinpa8",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 1,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "FUAJfk0irSs",
+          "eligible": 1,
+          "decided": 0,
+          "correct": 0,
+          "agreement": null,
+          "coverage": 0
+        },
+        {
+          "video": "fvjhC4jNLw0",
+          "eligible": 1,
+          "decided": 0,
+          "correct": 0,
+          "agreement": null,
+          "coverage": 0
+        },
+        {
+          "video": "g24oY7T46HU",
+          "eligible": 3,
+          "decided": 2,
+          "correct": 1,
+          "agreement": 0.5,
+          "coverage": 0.6666666666666666
+        },
+        {
+          "video": "h7-S2AwioDY",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "hGJJOPzx6rw",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "ISAb1T_ORUU",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "IXQ-mf-PHsk",
+          "eligible": 5,
+          "decided": 5,
+          "correct": 2,
+          "agreement": 0.4,
+          "coverage": 1
+        },
+        {
+          "video": "j1PhMNTYqrY",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "jRJJGkKpKBQ",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "k_ram4c1R8c",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "KOX2Kk4FMhs",
+          "eligible": 4,
+          "decided": 4,
+          "correct": 2,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "l54MxqChXXw",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "lI1sxyNrpGc",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "NKYY2NzHBnw",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "NueyXunR8Zk",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 2,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "ObEvK-hR9bs",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "OkefBVB5D1g",
+          "eligible": 1,
+          "decided": 0,
+          "correct": 0,
+          "agreement": null,
+          "coverage": 0
+        },
+        {
+          "video": "P_MxifJP614",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 1,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "p5YA0gyY0b0",
+          "eligible": 1,
+          "decided": 0,
+          "correct": 0,
+          "agreement": null,
+          "coverage": 0
+        },
+        {
+          "video": "qs9fLYbYWOc",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 2,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "qtH4Q6mrr_c",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "rRwJ9AuMwlw",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "t3vNRW8DMDc",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "uMyzvlkcP9A",
+          "eligible": 2,
+          "decided": 2,
+          "correct": 1,
+          "agreement": 0.5,
+          "coverage": 1
+        },
+        {
+          "video": "x-NpY60n-TY",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "XgihzywQGng",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "XL0KxTgEaRE",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "Y1kXb5XprGo",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "yUuo2k7YLwI",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 0,
+          "agreement": 0,
+          "coverage": 1
+        },
+        {
+          "video": "Z5yhZKkTf0w",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        },
+        {
+          "video": "zn2EpFiCFwI",
+          "eligible": 1,
+          "decided": 1,
+          "correct": 1,
+          "agreement": 1,
+          "coverage": 1
+        }
+      ]
+    },
+    "audit": {
+      "fullReviewRecords": 318,
+      "strictCompleteUnflaggedPregameCandidates": 161,
+      "eligibleAfterQualityChecks": 101,
+      "distinctVideos": 66,
+      "overlapsCleanBenchmark": 39,
+      "outsideCleanBenchmark": 62,
+      "cleanMatchUnresolved": 16,
+      "duplicateRecordsRemoved": 0,
+      "conflicts": [],
+      "outcomeConflicts": [],
+      "exclusionCounts": {
+        "incomplete_uncertain_unknown_or_duplicate_champions": 100,
+        "clean_known_picks_conflict_or_mapping_unresolved": 49,
+        "no_stated_preference": 13,
+        "clean_draft_phase_has_no_preference": 8,
+        "explicit_late_or_result_aware_opinion": 41,
+        "raw_label_conflicts_with_clean_draft_phase": 3,
+        "uncertain_sides_or_game": 3
+      },
+      "excluded": [
+        {
+          "sourceGame": "-0iJco4hUdk__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "-B3b80GYtDM__raw2",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "-B3b80GYtDM__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "-YuMzRkTa1A__raw1",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "-pbefCiajKs__raw3",
+          "reason": "clean_draft_phase_has_no_preference"
+        },
+        {
+          "sourceGame": "0Ul6yfKePWA__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "0Ul6yfKePWA__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "0Ul6yfKePWA__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "1R5bb_UjL90__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "1UOWdQ4EcbY__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "1UOWdQ4EcbY__raw2",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "1UOWdQ4EcbY__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "1VlERsENAR8__raw5",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "1kaw7VnpuhA__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "1kaw7VnpuhA__raw3",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "2DVB7PhKaSA__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "2DVB7PhKaSA__raw2",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "2dRy2WJapKk__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "3Ey0i4JQok8__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "4eX2ylmNL3U__raw1",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "5JppK7MCE30__raw1",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "5JppK7MCE30__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "6fAcwZGblzo__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "7270KpN9ehE__raw1",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "9KsNYCUQ-xU__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "9UWJZe32Qsc__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "9UWJZe32Qsc__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "9UWJZe32Qsc__raw3",
+          "reason": "raw_label_conflicts_with_clean_draft_phase"
+        },
+        {
+          "sourceGame": "AvHU27oQDFE__raw2",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "AvHU27oQDFE__raw5",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "E2b6lsPPGHk__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "ENf_B4hevcw__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "EmwsQHVD-E4__raw1",
+          "reason": "uncertain_sides_or_game"
+        },
+        {
+          "sourceGame": "F0GmsMinpa8__raw3",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "F2aZxRBr6tY__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "F2aZxRBr6tY__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "FEHZOwfcczc__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "FEHZOwfcczc__raw2",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "FEHZOwfcczc__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "GnJPSjKmRrM__raw2",
+          "reason": "raw_label_conflicts_with_clean_draft_phase"
+        },
+        {
+          "sourceGame": "HJ8E31CLAuI__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "IRtNQStqzS4__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "ISAb1T_ORUU__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "ISAb1T_ORUU__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "IXQ-mf-PHsk__raw4",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "IXQ-mf-PHsk__raw5",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "IXQ-mf-PHsk__raw8",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "JZecUmvga3M__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "JZecUmvga3M__raw3",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "JZecUmvga3M__raw4",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "KOX2Kk4FMhs__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "KeCNk5iHuNU__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "ND-ejmPURX0__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "ND-ejmPURX0__raw2",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "ND-ejmPURX0__raw4",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "NKYY2NzHBnw__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw1",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw2",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw3",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw4",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw5",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw6",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw7",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw10",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw11",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw12",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw13",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw14",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw15",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "NueyXunR8Zk__raw16",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "OwqthUyfFxw__raw1",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "OwqthUyfFxw__raw2",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "OwqthUyfFxw__raw3",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "P_MxifJP614__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "P_MxifJP614__raw3",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "Q4EqfGi434k__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "Q4EqfGi434k__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "RH3oy2WKtq0__raw1",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "SN_Qp_esBoI__raw1",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "VGCwjESeWeg__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "VVisGIFn7MM__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "W0Oq1Sa1SLQ__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "WM7ES_qBfP0__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "XJ5bWx9xjRQ__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "XQYZMHTJTPE__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "XZYVApZ2_Ts__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "XZYVApZ2_Ts__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "XZYVApZ2_Ts__raw3",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "XZYVApZ2_Ts__raw4",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "XgihzywQGng__raw2",
+          "reason": "clean_draft_phase_has_no_preference"
+        },
+        {
+          "sourceGame": "XgihzywQGng__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "XgihzywQGng__raw4",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "XgihzywQGng__raw5",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "Y1kXb5XprGo__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "Y1kXb5XprGo__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "Y1kXb5XprGo__raw4",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "Y1kXb5XprGo__raw5",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "Z3ldU3XmTgs__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "Z5yhZKkTf0w__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "Z5yhZKkTf0w__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "ZaCo3Wutcj8__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "ZxGZIIO91Tk__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "ZxGZIIO91Tk__raw2",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "_6UdY9FGWuA__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "aEBLk-krjgU__raw1",
+          "reason": "uncertain_sides_or_game"
+        },
+        {
+          "sourceGame": "aIu-hmQTRd8__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "aIu-hmQTRd8__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "aIu-hmQTRd8__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "aIu-hmQTRd8__raw4",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw1",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw2",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw3",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw4",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw5",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw6",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw7",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw8",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw9",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw10",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw11",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw12",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw13",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw14",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "b-XG7Ja-0hY__raw15",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "bG2Nn6Mw_lo__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "bG2Nn6Mw_lo__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "bG2Nn6Mw_lo__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "bG2Nn6Mw_lo__raw4",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "cSQP5oImnRo__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "cSQP5oImnRo__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "cSQP5oImnRo__raw5",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "cXnjfe8aBxA__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "d2XPHyOX1fQ__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "dfTTHnzJVhU__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "dfTTHnzJVhU__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "dfTTHnzJVhU__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "dfTTHnzJVhU__raw4",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "fvjhC4jNLw0__raw1",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "fvjhC4jNLw0__raw3",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "g24oY7T46HU__raw4",
+          "reason": "clean_draft_phase_has_no_preference"
+        },
+        {
+          "sourceGame": "g24oY7T46HU__raw5",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "g24oY7T46HU__raw7",
+          "reason": "clean_draft_phase_has_no_preference"
+        },
+        {
+          "sourceGame": "g24oY7T46HU__raw8",
+          "reason": "clean_draft_phase_has_no_preference"
+        },
+        {
+          "sourceGame": "gIpos4fRVw8__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "gIpos4fRVw8__raw2",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "gIpos4fRVw8__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "gIpos4fRVw8__raw4",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "h7-S2AwioDY__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "hKd-qIpegGE__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "hpnGP0K-Wh0__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "iP33gPti5XA__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "iP33gPti5XA__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "iP33gPti5XA__raw3",
+          "reason": "clean_draft_phase_has_no_preference"
+        },
+        {
+          "sourceGame": "iPioYg7tv28__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "jRJJGkKpKBQ__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "ljxr-t9etaA__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "mtFtui6VgDc__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "n1tVoWwa8dg__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "nq-i0Lmx-Hw__raw2",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "nq-i0Lmx-Hw__raw3",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "o5PX9BO6Lh4__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "o5PX9BO6Lh4__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "pBD3r-dmhFA__raw1",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "pF03MSD80-c__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "pF03MSD80-c__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "pF03MSD80-c__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw1",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw2",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw3",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw4",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw5",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw6",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw7",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw8",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw9",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw10",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw11",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw12",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw13",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw14",
+          "reason": "clean_draft_phase_has_no_preference"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw15",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw16",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw17",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "qTLiY3J7nR0__raw18",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "qs9fLYbYWOc__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "qs9fLYbYWOc__raw3",
+          "reason": "clean_draft_phase_has_no_preference"
+        },
+        {
+          "sourceGame": "rRwJ9AuMwlw__raw2",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "rRwJ9AuMwlw__raw3",
+          "reason": "uncertain_sides_or_game"
+        },
+        {
+          "sourceGame": "rSBntWvE4Ls__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "rSBntWvE4Ls__raw2",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "rSBntWvE4Ls__raw3",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "rSBntWvE4Ls__raw4",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "sGdVHESreBA__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "slSBAzUOKks__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "u73_c_7OQIg__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "u73_c_7OQIg__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "uMyzvlkcP9A__raw1",
+          "reason": "no_stated_preference"
+        },
+        {
+          "sourceGame": "uVBkakyVGSY__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "urI4eASNSNc__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "vCQJZpX-aGU__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "vEK0FU9MjrY__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "vO_aFeADAtQ__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "vWGpKbTWA88__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "vWGpKbTWA88__raw2",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "vWGpKbTWA88__raw3",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "vWGpKbTWA88__raw4",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "w9eG_9Yc3nE__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "x-NpY60n-TY__raw1",
+          "reason": "raw_label_conflicts_with_clean_draft_phase"
+        },
+        {
+          "sourceGame": "x-NpY60n-TY__raw4",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "xG0LCW9_CxY__raw1",
+          "reason": "explicit_late_or_result_aware_opinion"
+        },
+        {
+          "sourceGame": "xlFlfJFdXk8__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "yUuo2k7YLwI__raw2",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "y_lElxHntxQ__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "zn2EpFiCFwI__raw1",
+          "reason": "clean_known_picks_conflict_or_mapping_unresolved"
+        },
+        {
+          "sourceGame": "zn2EpFiCFwI__raw4",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "zn2EpFiCFwI__raw5",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        },
+        {
+          "sourceGame": "znQ0Rrq77Sw__raw1",
+          "reason": "incomplete_uncertain_unknown_or_duplicate_champions"
+        }
+      ]
+    },
+    "limitations": [
+      "Explicit late opinions are excluded, but absence of a late flag is not proof of a pregame judgment. Full-review extraction can retain hindsight and omitted timing context.",
+      "Cases conflicting with matched clean draft-phase labels, including an explicit absence of preference, are excluded.",
+      "Game numbers restart in multi-series reviews. Clean matches use unambiguous known-pick correspondence; unresolved matches remain marked and cannot establish independence.",
+      "Some cases overlap the clean benchmark or method source. This cohort never contributes to the fidelity gate."
+    ],
+    "cases": [
+      {
+        "id": "_l3YPMGRl_I__raw1",
+        "video": "_l3YPMGRl_I",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 8.7,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "-0iJco4hUdk__raw1",
+        "video": "-0iJco4hUdk",
+        "expected": "red",
+        "predicted": null,
+        "status": "complete",
+        "score": -1.45,
+        "confidence": "indeterminee",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "-B3b80GYtDM__raw1",
+        "video": "-B3b80GYtDM",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 7.5,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "-B3b80GYtDM__raw4",
+        "video": "-B3b80GYtDM",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 6.5,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "-pbefCiajKs__raw1",
+        "video": "-pbefCiajKs",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 1.95,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "-pbefCiajKs__raw2",
+        "video": "-pbefCiajKs",
+        "expected": "red",
+        "predicted": null,
+        "status": "complete",
+        "score": -1.3,
+        "confidence": "indeterminee",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "1kaw7VnpuhA__raw2",
+        "video": "1kaw7VnpuhA",
+        "expected": "blue",
+        "predicted": null,
+        "status": "complete",
+        "score": 0.2,
+        "confidence": "indeterminee",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "1VlERsENAR8__raw1",
+        "video": "1VlERsENAR8",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -1.7,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "1VlERsENAR8__raw2",
+        "video": "1VlERsENAR8",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 5.75,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "1VlERsENAR8__raw3",
+        "video": "1VlERsENAR8",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -2.5,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "1VlERsENAR8__raw4",
+        "video": "1VlERsENAR8",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -11.2,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": null,
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "2QkQYFPQF48__raw1",
+        "video": "2QkQYFPQF48",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 5.5,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "5JppK7MCE30__raw3",
+        "video": "5JppK7MCE30",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -3.75,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "5zOvsTP_BWU__raw1",
+        "video": "5zOvsTP_BWU",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 2.8,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "7AKs-joyIOs__raw1",
+        "video": "7AKs-joyIOs",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -2,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "91R-kQSi4_U__raw1",
+        "video": "91R-kQSi4_U",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 9.8,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "91R-kQSi4_U__raw2",
+        "video": "91R-kQSi4_U",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -7.8,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "A-FkOmLfNQU__raw1",
+        "video": "A-FkOmLfNQU",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 8.8,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "AaeEM1lZIsQ__raw1",
+        "video": "AaeEM1lZIsQ",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -6.25,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "aBZbd1OxPI8__raw1",
+        "video": "aBZbd1OxPI8",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 9.75,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "AvHU27oQDFE__raw1",
+        "video": "AvHU27oQDFE",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 5.05,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "AvHU27oQDFE__raw3",
+        "video": "AvHU27oQDFE",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 1.55,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "AvHU27oQDFE__raw4",
+        "video": "AvHU27oQDFE",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 4,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "cQWR-wI69es__raw1",
+        "video": "cQWR-wI69es",
+        "expected": "blue",
+        "predicted": null,
+        "status": "complete",
+        "score": 0.95,
+        "confidence": "indeterminee",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "cSQP5oImnRo__raw3",
+        "video": "cSQP5oImnRo",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -4,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "cSQP5oImnRo__raw4",
+        "video": "cSQP5oImnRo",
+        "expected": "blue",
+        "predicted": null,
+        "status": "complete",
+        "score": 0.05,
+        "confidence": "indeterminee",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "Cx_DtuL9TS4__raw1",
+        "video": "Cx_DtuL9TS4",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 1.5,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "cynwgSKLGYI__raw1",
+        "video": "cynwgSKLGYI",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -6.5,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "eEsCZhA3H0Q__raw1",
+        "video": "eEsCZhA3H0Q",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -4.05,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "eEsCZhA3H0Q__raw2",
+        "video": "eEsCZhA3H0Q",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -8.5,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "F0GmsMinpa8__raw1",
+        "video": "F0GmsMinpa8",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 6.5,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "F0GmsMinpa8__raw2",
+        "video": "F0GmsMinpa8",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 2.2,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "F2aZxRBr6tY__raw2",
+        "video": "F2aZxRBr6tY",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -9.5,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "FUAJfk0irSs__raw1",
+        "video": "FUAJfk0irSs",
+        "expected": "blue",
+        "predicted": null,
+        "status": "complete",
+        "score": -0.05,
+        "confidence": "indeterminee",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "historical_meta",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "fvjhC4jNLw0__raw2",
+        "video": "fvjhC4jNLw0",
+        "expected": "red",
+        "predicted": null,
+        "status": "complete",
+        "score": 1.05,
+        "confidence": "indeterminee",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "g24oY7T46HU__raw1",
+        "video": "g24oY7T46HU",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -2.75,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "g24oY7T46HU__raw2",
+        "video": "g24oY7T46HU",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -9.25,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "g24oY7T46HU__raw3",
+        "video": "g24oY7T46HU",
+        "expected": "blue",
+        "predicted": null,
+        "status": "complete",
+        "score": 1.45,
+        "confidence": "indeterminee",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "g24oY7T46HU__raw6",
+        "video": "g24oY7T46HU",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -1.7,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "gIpos4fRVw8__raw5",
+        "video": "gIpos4fRVw8",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 2.05,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "GnJPSjKmRrM__raw1",
+        "video": "GnJPSjKmRrM",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -1.75,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "h7-S2AwioDY__raw2",
+        "video": "h7-S2AwioDY",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -5.75,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "historical_meta",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "hGJJOPzx6rw__raw1",
+        "video": "hGJJOPzx6rw",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 1.7,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": null,
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "ISAb1T_ORUU__raw2",
+        "video": "ISAb1T_ORUU",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -3.55,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "IXQ-mf-PHsk__raw1",
+        "video": "IXQ-mf-PHsk",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -9.05,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "IXQ-mf-PHsk__raw2",
+        "video": "IXQ-mf-PHsk",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 9,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "IXQ-mf-PHsk__raw3",
+        "video": "IXQ-mf-PHsk",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -3,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "IXQ-mf-PHsk__raw6",
+        "video": "IXQ-mf-PHsk",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -7.55,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "IXQ-mf-PHsk__raw7",
+        "video": "IXQ-mf-PHsk",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 7.5,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "j_LhfTsaMUc__raw1",
+        "video": "j_LhfTsaMUc",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -5.45,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "j1PhMNTYqrY__raw1",
+        "video": "j1PhMNTYqrY",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -6.75,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "jRJJGkKpKBQ__raw1",
+        "video": "jRJJGkKpKBQ",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -6.45,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "JZecUmvga3M__raw1",
+        "video": "JZecUmvga3M",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -2.5,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "k_ram4c1R8c__raw1",
+        "video": "k_ram4c1R8c",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 7.25,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "k_ram4c1R8c__raw2",
+        "video": "k_ram4c1R8c",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 5.25,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "k_ram4c1R8c__raw3",
+        "video": "k_ram4c1R8c",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -13.95,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "k_ram4c1R8c__raw4",
+        "video": "k_ram4c1R8c",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -6.95,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "KOX2Kk4FMhs__raw1",
+        "video": "KOX2Kk4FMhs",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -3.25,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "KOX2Kk4FMhs__raw3",
+        "video": "KOX2Kk4FMhs",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 7.2,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "KOX2Kk4FMhs__raw4",
+        "video": "KOX2Kk4FMhs",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -7.05,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "KOX2Kk4FMhs__raw5",
+        "video": "KOX2Kk4FMhs",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -10.95,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "l54MxqChXXw__raw1",
+        "video": "l54MxqChXXw",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 11.5,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "lI1sxyNrpGc__raw1",
+        "video": "lI1sxyNrpGc",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 4.05,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "lPIM3We7vE0__raw1",
+        "video": "lPIM3We7vE0",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -10.7,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "ND-ejmPURX0__raw3",
+        "video": "ND-ejmPURX0",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 6.7,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "NKYY2NzHBnw__raw2",
+        "video": "NKYY2NzHBnw",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -3.3,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "NKYY2NzHBnw__raw3",
+        "video": "NKYY2NzHBnw",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -1.75,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "nq-i0Lmx-Hw__raw1",
+        "video": "nq-i0Lmx-Hw",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -15.3,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "NueyXunR8Zk__raw8",
+        "video": "NueyXunR8Zk",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -7.5,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "NueyXunR8Zk__raw9",
+        "video": "NueyXunR8Zk",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 9.5,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "o5PX9BO6Lh4__raw1",
+        "video": "o5PX9BO6Lh4",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -5,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "ObEvK-hR9bs__raw1",
+        "video": "ObEvK-hR9bs",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 6.75,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "OkefBVB5D1g__raw1",
+        "video": "OkefBVB5D1g",
+        "expected": "blue",
+        "predicted": null,
+        "status": "complete",
+        "score": 1.25,
+        "confidence": "indeterminee",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "P_MxifJP614__raw1",
+        "video": "P_MxifJP614",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 4.3,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "P_MxifJP614__raw4",
+        "video": "P_MxifJP614",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 1.75,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "historical_meta",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "p5YA0gyY0b0__raw1",
+        "video": "p5YA0gyY0b0",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -5.5,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "p5YA0gyY0b0__raw2",
+        "video": "p5YA0gyY0b0",
+        "expected": "red",
+        "predicted": null,
+        "status": "complete",
+        "score": -0.3,
+        "confidence": "indeterminee",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "p5YA0gyY0b0__raw3",
+        "video": "p5YA0gyY0b0",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -2.5,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "qs9fLYbYWOc__raw2",
+        "video": "qs9fLYbYWOc",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -12,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "qs9fLYbYWOc__raw4",
+        "video": "qs9fLYbYWOc",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 7.2,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "qtH4Q6mrr_c__raw1",
+        "video": "qtH4Q6mrr_c",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -6.25,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "rRwJ9AuMwlw__raw1",
+        "video": "rRwJ9AuMwlw",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -2.5,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "t3vNRW8DMDc__raw1",
+        "video": "t3vNRW8DMDc",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -6,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "tXP0_AOfGBw__raw1",
+        "video": "tXP0_AOfGBw",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -1.7,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "UFnEjmmKUfQ__raw1",
+        "video": "UFnEjmmKUfQ",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -9.55,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "uMyzvlkcP9A__raw2",
+        "video": "uMyzvlkcP9A",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 4.8,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "uMyzvlkcP9A__raw3",
+        "video": "uMyzvlkcP9A",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -16.2,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "vWGpKbTWA88__raw5",
+        "video": "vWGpKbTWA88",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -2.05,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "x-NpY60n-TY__raw2",
+        "video": "x-NpY60n-TY",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 5.45,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "x-NpY60n-TY__raw3",
+        "video": "x-NpY60n-TY",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 3.95,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "XgihzywQGng__raw1",
+        "video": "XgihzywQGng",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 4,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "XL0KxTgEaRE__raw1",
+        "video": "XL0KxTgEaRE",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 5.7,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "historical_meta"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "XZYVApZ2_Ts__raw5",
+        "video": "XZYVApZ2_Ts",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -9.5,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "Y1kXb5XprGo__raw1",
+        "video": "Y1kXb5XprGo",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -3.75,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "yUuo2k7YLwI__raw1",
+        "video": "yUuo2k7YLwI",
+        "expected": "red",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 9.25,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "yUuo2k7YLwI__raw3",
+        "video": "yUuo2k7YLwI",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -10.25,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "Z5yhZKkTf0w__raw2",
+        "video": "Z5yhZKkTf0w",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -7.3,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "player_or_team_strength"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      },
+      {
+        "id": "Z5yhZKkTf0w__raw4",
+        "video": "Z5yhZKkTf0w",
+        "expected": "blue",
+        "predicted": "red",
+        "status": "complete",
+        "score": -8.3,
+        "confidence": "moyenne",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "zc7f2iPq7_8__raw1",
+        "video": "zc7f2iPq7_8",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 3.3,
+        "confidence": "faible",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "historical_meta"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "zn2EpFiCFwI__raw2",
+        "video": "zn2EpFiCFwI",
+        "expected": "red",
+        "predicted": "red",
+        "status": "complete",
+        "score": -10.55,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process",
+          "historical_meta"
+        ],
+        "actualWinner": "red",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": true
+      },
+      {
+        "id": "zn2EpFiCFwI__raw3",
+        "video": "zn2EpFiCFwI",
+        "expected": "blue",
+        "predicted": "blue",
+        "status": "complete",
+        "score": 10.7,
+        "confidence": "forte",
+        "primaryEligible": false,
+        "reconstructed": false,
+        "influenceTags": [
+          "draft_process"
+        ],
+        "actualWinner": "blue",
+        "actualWinnerConflict": false,
+        "overlapsCleanBenchmark": false
+      }
+    ]
+  },
+  "sourceHashes": {
+    "engine": "424fab9b5ca829f4ed97b0aead262f5ad499d7449bb90d72f2d1eb1770e8517d",
+    "knowledge": "2a52dba951c47a6bce636df058f1d0b8065c25ad90ad0a2b6e853f9d28c7f865",
+    "benchmark": "16db80b1cc247e543a569ed63207ffee6f9436035fe5b3ebbeebfa75f00efbfa"
+  }
+}

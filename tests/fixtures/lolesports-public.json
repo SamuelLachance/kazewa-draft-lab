@@ -1,0 +1,135 @@
+{
+  "source": {
+    "capturedAt": "2026-10-29",
+    "homepage": "https://lolesports.com/en-US",
+    "window": "https://feed.lolesports.com/livestats/v1/window/117133830110912106?startingTime=2026-10-13T06%3A20%3A00.000Z",
+    "note": "Minimized factual public response fields. Historical game, never a current live fixture."
+  },
+  "event": {
+    "__typename": "EventMatch",
+    "id": "117133830110912105",
+    "state": "completed",
+    "type": "match",
+    "startTime": "2026-10-13T06:00:00Z",
+    "league": {
+      "name": "DCGI",
+      "slug": "demacia_cup"
+    },
+    "matchTeams": [
+      {
+        "id": "117133830110912105:98767991887166787",
+        "teamId": "98767991887166787",
+        "name": "Xi'an Team WE"
+      },
+      {
+        "id": "117133830110912105:98926509892121852",
+        "teamId": "98926509892121852",
+        "name": "FlyQuest"
+      }
+    ],
+    "match": {
+      "id": "117133830110912105",
+      "state": "completed",
+      "games": [
+        {
+          "id": "117133830110912106",
+          "state": "completed",
+          "number": 1
+        },
+        {
+          "id": "117133830110912107",
+          "state": "completed",
+          "number": 2
+        },
+        {
+          "id": "117133830110912108",
+          "state": "completed",
+          "number": 3
+        },
+        {
+          "id": "117133830110912109",
+          "state": "completed",
+          "number": 4
+        },
+        {
+          "id": "117133830110912110",
+          "state": "completed",
+          "number": 5
+        }
+      ]
+    }
+  },
+  "window": {
+    "esportsGameId": "117133830110912106",
+    "esportsMatchId": "117133830110912105",
+    "gameMetadata": {
+      "patchVersion": "16.18.819.1060",
+      "blueTeamMetadata": {
+        "esportsTeamId": "98767991887166787",
+        "participantMetadata": [
+          {
+            "participantId": 1,
+            "championId": "Rumble",
+            "role": "top"
+          },
+          {
+            "participantId": 2,
+            "championId": "Naafiri",
+            "role": "jungle"
+          },
+          {
+            "participantId": 3,
+            "championId": "Ryze",
+            "role": "mid"
+          },
+          {
+            "participantId": 4,
+            "championId": "Jhin",
+            "role": "bottom"
+          },
+          {
+            "participantId": 5,
+            "championId": "Bard",
+            "role": "support"
+          }
+        ]
+      },
+      "redTeamMetadata": {
+        "esportsTeamId": "98926509892121852",
+        "participantMetadata": [
+          {
+            "participantId": 6,
+            "championId": "KSante",
+            "role": "top"
+          },
+          {
+            "participantId": 7,
+            "championId": "MonkeyKing",
+            "role": "jungle"
+          },
+          {
+            "participantId": 8,
+            "championId": "Orianna",
+            "role": "mid"
+          },
+          {
+            "participantId": 9,
+            "championId": "Ezreal",
+            "role": "bottom"
+          },
+          {
+            "participantId": 10,
+            "championId": "Karma",
+            "role": "support"
+          }
+        ]
+      }
+    },
+    "frames": [
+      {
+        "rfc460Timestamp": "2026-10-13T06:20:09.797Z",
+        "gameState": "in_game"
+      }
+    ]
+  }
+}
