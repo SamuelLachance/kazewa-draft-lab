@@ -18,7 +18,7 @@ LOGIQUES / REGLES
 ORDRE DE PICK
 
 
-top / supp / mid / jungle / adc 
+ADC/Jungle/Mid/Supp/Top
 
 
 BLUE 

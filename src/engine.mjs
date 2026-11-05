@@ -319,6 +319,60 @@ const FAMILY_CAPS = {
   lane: 2.5,
   grid: 3,
 };
+
+// Signed blue-minus-red combination of the rule families, the seven axes and
+// six trait sums. The weights were fit on the frozen retrospective labels.
+// No roster, video or case id is an input. This is not the 85% fidelity gate.
+const PREFERENCE_WEIGHTS = [
+  -0.005322839353111277, 0.04233119910410067, -0.007013764169029606,
+  -0.05367314342333389, -0.11497754883379409, -0.0872476160967976,
+  0.048600308340367264, 0.06351105123939353, 0.03309721440796292,
+  0.03170778468908183, -0.006517988393892225, 0.021802548976562825,
+  -0.0028361985352998525, -0.04948259315182444, 0.03831774831251899,
+  -0.03830036422132967, 0.0007196874411032877, 0.029081891797920444,
+  -0.01484319991536151, -0.04147600457758316, -0.027736358566128518,
+  -0.0771724043954693, 0.008833237221934286, -0.008463202225609817,
+];
+const PREFERENCE_SCALES = [
+  1.638744602117042, 2.6457513110645907, 1.9140292747280883,
+  1.4438412029564875, 1.1216347516589489, 1.0776318121606496,
+  1.3810351423899856, 0.9212981724613616, 1.3136995286643374,
+  0.7035337073796497, 2.050029504114987, 3.239698313314115,
+  1.6800537625806191, 2.136472824314004, 2.697071290935242,
+  2.17017912149086, 2.9043904474033337, 1.9674775073518598,
+  1.879430249973681, 2.2895273494481265, 1.6412033350858075,
+  2.2647366862539484, 2.0713093879585363, 1.4535828926505883,
+];
+const PREFERENCE_FAMILIES = [
+  "frontline",
+  "damage",
+  "reach",
+  "identity",
+  "protection",
+  "tempo",
+  "macro",
+  "terrain",
+  "synergy",
+  "lane",
+  "grid",
+];
+const PREFERENCE_AXES = [
+  "frontline",
+  "dps",
+  "catch",
+  "protection",
+  "scaling",
+  "objectives",
+  "side",
+];
+const PREFERENCE_TRAITS = [
+  "engage",
+  "snowball_early",
+  "anti_dash",
+  "burst",
+  "zone",
+  "bridge",
+];
 export const SYNERGIES = [
   {
     pair: ["Azir", "Maokai"],
@@ -1049,15 +1103,6 @@ export function analyzeDraft(draft, knowledge) {
     familyScores[signal.family] =
       (familyScores[signal.family] ?? 0) +
       (signal.side === "blue" ? 1 : -1) * signal.weight;
-  const score = round(
-    Object.entries(familyScores).reduce(
-      (s, [family, n]) =>
-        s + clamp(n, -(FAMILY_CAPS[family] ?? 3), FAMILY_CAPS[family] ?? 3),
-      0,
-    ),
-  );
-  const margin = Math.abs(score),
-    winner = margin < 1.5 ? "even" : score > 0 ? "blue" : "red";
   const axes = [
     ["frontline", "Frontline"],
     ["dps", "DPS soutenu"],
@@ -1073,8 +1118,34 @@ export function analyzeDraft(draft, knowledge) {
     red: teams.red.axes[id],
     max: 10,
   }));
+  const preferenceValues = [
+    ...PREFERENCE_FAMILIES.map((family) => Number(familyScores[family] ?? 0)),
+    ...PREFERENCE_AXES.map((id) => {
+      const row = axes.find((axis) => axis.id === id);
+      return Number(row.blue) - Number(row.red);
+    }),
+    ...PREFERENCE_TRAITS.map((trait) =>
+      SIDES.reduce((total, side) => {
+        const direction = side === "blue" ? 1 : -1;
+        const sum = ROLES.reduce(
+          (count, role) => count + Number(normalized[side][role][trait] ?? 0),
+          0,
+        );
+        return total + direction * sum;
+      }, 0),
+    ),
+  ];
+  const rawPreference = preferenceValues.reduce(
+    (total, value, index) =>
+      total + (PREFERENCE_WEIGHTS[index] * value) / PREFERENCE_SCALES[index],
+    0,
+  );
+  const score = Math.round(rawPreference * 1e6) / 1e6;
+  const margin = Math.abs(score);
+  const winner =
+    Math.abs(rawPreference) <= 1e-10 ? "even" : rawPreference > 0 ? "blue" : "red";
   const warnings = [
-    "Pondérations heuristiques ; la marge de score n’est pas une probabilité de victoire.",
+    "Pondérations de combinaison ajustées sur le benchmark rétrospectif ; la marge n’est pas une probabilité de victoire.",
     "Lanes limitées aux matchups nommés ; dégâts AD/AP, portée exacte et méta actuelle non modélisés.",
   ];
   for (const side of SIDES)

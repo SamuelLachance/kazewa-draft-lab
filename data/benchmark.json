@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "createdAt": "2026-10-29T17:51:05.404Z",
-  "design": "Frozen retrospective benchmark; no supervised fitting or rule tuning on these labels.",
+  "design": "Frozen retrospective benchmark. Structural combination weights were fit on these labels; the scorer is not a roster-to-label table.",
   "primaryDefinition": "Complete ten exact known champions in draft-phase-only extracts; no detected draft-process, player/team-strength, meta or result-aware reason. Conservative keyword screening is imperfect.",
   "broaderDefinition": "All nonconflicting draft-phase stated labels with complete rosters, including historical-context reasons and independently supplied dossier rosters for originally incomplete extracts.",
   "sourceOverlap": true,
@@ -10,7 +10,8 @@
     "The primary screening uses explicit keywords; unobserved context can remain and some composition-only reasoning can be excluded conservatively.",
     "Reconstructed rosters in the broader cohort come from existing project dossier headers and answer keys, not a newly verified external match feed.",
     "Broadcast left/right are anonymized as blue/red for exact-extract cases; the engine cannot use first-pick or map-side advantages.",
-    "Predictions of Kazewa preference and predictions of actual match winners are distinct outcomes."
+    "Predictions of Kazewa preference and predictions of actual match winners are distinct outcomes.",
+    "The structural combination weights were fit on these same retrospective labels. Agreement on this file is not an independent test, and 70% does not pass the 85% fidelity gate."
   ],
   "gate": {
     "minimumAgreement": 0.85,

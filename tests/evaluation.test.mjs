@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
+import { analyzeDraft } from "../src/engine.mjs";
 import {
   buildExploratoryRaw,
   canonicalPicks,
@@ -463,6 +465,48 @@ test("exploratory full-review examples cannot contribute to the fidelity gate", 
   assert.equal(report.gate.passed, false);
   assert.equal(report.exploratoryRaw.summary.eligible, 100);
   assert.equal(report.exploratoryRaw.contributesToFidelityGate, false);
+});
+
+test("shipped scorer agrees with Kazewa on at least 70 percent of decided drafts", async () => {
+  const realKnowledge = JSON.parse(
+    await readFile(new URL("../data/knowledge.json", import.meta.url), "utf8"),
+  );
+  const benchmark = JSON.parse(
+    await readFile(new URL("../data/benchmark.json", import.meta.url), "utf8"),
+  );
+  const report = evaluateBenchmark(benchmark, realKnowledge, analyzeDraft);
+  assert.ok(report.broader.decided >= 57);
+  assert.ok(report.broader.coverage >= 0.8);
+  assert.ok(report.broader.agreement >= 0.7);
+  assert.equal(report.gate.passed, false);
+  for (const record of benchmark.cases) {
+    const forward = analyzeDraft(
+      { blue: { ...record.blue }, red: { ...record.red } },
+      realKnowledge,
+    );
+    const backward = analyzeDraft(
+      { blue: { ...record.red }, red: { ...record.blue } },
+      realKnowledge,
+    );
+    assert.equal(forward.score, -backward.score);
+    const opposite =
+      forward.winner === "even"
+        ? "even"
+        : forward.winner === "blue"
+          ? "red"
+          : "blue";
+    assert.equal(backward.winner, opposite);
+  }
+  const outside = analyzeDraft(
+    {
+      blue: { top: "Sion", jng: "Maokai", mid: "Azir", bot: "Jinx", sup: "Lulu" },
+      red: { top: "Jayce", jng: "Nidalee", mid: "LeBlanc", bot: "Jhin", sup: "Pyke" },
+    },
+    realKnowledge,
+  );
+  assert.equal(outside.status, "complete");
+  assert.equal(outside.winner, "blue");
+  assert.ok(outside.signals.some((signal) => signal.id === "dps_missing"));
 });
 
 test("Wilson interval is bounded and does not invent a zero-sample estimate", () => {

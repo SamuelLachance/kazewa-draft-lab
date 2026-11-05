@@ -89,6 +89,38 @@ function openRoles(session, side) {
   return ROLES.filter((role) => !session.picks[side][role]);
 }
 
+// Course 3: ADC, jungle, mid, support, top. Close an open blind before opening the next role.
+const CLOSE_ORDER = ["bot", "jng", "mid", "sup", "top"];
+
+function coversRoles(champion, roles) {
+  const lanes = LANES[champion] || [];
+  return roles.every((role) => lanes.includes(role));
+}
+
+function closeTarget(session, side) {
+  const open = new Set(openRoles(session, side));
+  const blinds = [];
+  for (const role of ROLES) {
+    const champion = session.picks[other(side)][role];
+    if (!champion) continue;
+    const roles = (LANES[champion] || []).filter((lane) => open.has(lane));
+    if (roles.length) blinds.push({ champion, roles });
+  }
+  const rank = (roles) =>
+    Math.min(...roles.map((role) => CLOSE_ORDER.indexOf(role)));
+  blinds.sort(
+    (a, b) => rank(a.roles) - rank(b.roles) || a.champion.localeCompare(b.champion, "fr"),
+  );
+  if (blinds.length) {
+    const roles = blinds[0].roles;
+    return roles.length > 1
+      ? { kind: "flex", roles, closing: true }
+      : { kind: "role", role: roles[0], closing: true };
+  }
+  const role = CLOSE_ORDER.find((item) => open.has(item));
+  return role ? { kind: "role", role, closing: false } : null;
+}
+
 function profiles(session, knowledge, side) {
   return ROLES.flatMap((role) => {
     const name = session.picks[side][role];
@@ -303,17 +335,43 @@ export function advise(session, knowledge, { limit = 5 } = {}) {
         });
     }
   }
+  let target = step.action === "pick" ? closeTarget(session, step.side) : null;
+  if (
+    target?.kind === "flex" &&
+    !options.some((option) => coversRoles(option.champion, target.roles))
+  ) {
+    const role = [...target.roles].sort(
+      (a, b) => CLOSE_ORDER.indexOf(a) - CLOSE_ORDER.indexOf(b),
+    )[0];
+    target = { kind: "role", role, closing: true };
+  }
+  const matchesTarget = (option) => {
+    if (!target) return false;
+    if (target.kind === "flex") return coversRoles(option.champion, target.roles);
+    return option.role === target.role;
+  };
   options.sort(
-    (a, b) => b.score - a.score || a.champion.localeCompare(b.champion, "fr"),
+    (a, b) =>
+      Number(matchesTarget(b)) - Number(matchesTarget(a)) ||
+      b.score - a.score ||
+      a.champion.localeCompare(b.champion, "fr"),
   );
+  const roleNote =
+    target?.kind === "flex"
+      ? "L’autre côté a blind un flex. Réponds avec un champion qui couvre les mêmes rôles encore ouverts."
+      : target?.closing
+        ? `Ferme le blind sur ${ROLE_NAME[target.role]}.`
+        : target
+          ? `Aucun blind ouvert. Prochain rôle : ${ROLE_NAME[target.role]} (ADC, jungle, mid, support, top).`
+          : "";
   return {
     done: false,
     step,
     options: options.slice(0, limit),
     result: null,
     note: step.ours
-      ? "Suggestion pour ton tour. Elle suit l’ordre de draft, le rôle habituel du champion et les profils du moteur. Ce n’est pas une probabilité de victoire."
-      : "Tour adverse. Le modèle indique seulement le choix structurel le plus fort, pas ce que l’équipe va jouer.",
+      ? `${roleNote} Suggestion pour ton tour. Elle suit l’ordre de draft, le rôle habituel du champion et les profils du moteur. Ce n’est pas une probabilité de victoire.`.trim()
+      : `${roleNote} Tour adverse. Le modèle indique seulement le choix structurel le plus fort, pas ce que l’équipe va jouer.`.trim(),
   };
 }
 

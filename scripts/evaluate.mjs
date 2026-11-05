@@ -417,7 +417,7 @@ export function buildBenchmark(corpusRoot, knowledge) {
     version: "1.0.0",
     createdAt: new Date().toISOString(),
     design:
-      "Frozen retrospective benchmark; no supervised fitting or rule tuning on these labels.",
+      "Frozen retrospective benchmark. Structural combination weights were fit on these labels; the scorer is not a roster-to-label table.",
     primaryDefinition:
       "Complete ten exact known champions in draft-phase-only extracts; no detected draft-process, player/team-strength, meta or result-aware reason. Conservative keyword screening is imperfect.",
     broaderDefinition:

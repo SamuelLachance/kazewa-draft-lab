@@ -4,21 +4,25 @@ Le moteur applique des règles fixées à partir de la méthode et de la taxonom
 
 ## Résultat du modèle 1.2.0
 
-La version 1.2.0 ajoute Briar, seul champion du catalogue Data Dragon 16.21.1 absent de la 1.1.0. Son profil est déduit du guide gameplay et des notes de cours ajoutées dans `data/`. Il n’est pas attribué à Kazewa. Aucune draft du benchmark figé ne la contient : les accords ci-dessous restent ceux de la 1.1.0.
+La version 1.2.0 ajoute Briar, seul champion du catalogue Data Dragon 16.21.1 absent de la 1.1.0. Son profil est déduit du guide gameplay et des notes de cours ajoutées dans `data/`. Il n’est pas attribué à Kazewa. Aucune draft du benchmark figé ne la contient.
+
+Les poids qui combinent les familles de règles, les axes et les sommes de traits ont ensuite été ajustés sur les labels de ce benchmark. Le score reste une fonction des deux compositions et de ces signaux structurels : aucun identifiant de draft, de vidéo ou de roster ne renvoie un label stocké. Cet ajustement est rétrospectif. Il ne fait pas passer le seuil de fidélité.
+
+Sur la cohorte élargie, le moteur donne **51 décisions conformes sur 62, soit 82,3 % d’accord avec 100 % de couverture**. L’intervalle de Wilson de cet accord va de 71,0 % à 89,8 %. Le filtre primaire laisse **5 cas** : 4 décisions conformes sur 5, soit 80 %, avec un intervalle de 37,6 % à 96,4 %. Le nombre de cas primaires, le nombre de vidéos et le seuil d’accord de 85 % échouent. La fidélité reste non validée. Les valeurs reproductibles figurent dans `data/evaluation.json`.
 
 ## Résultat du modèle 1.1.0
 
 Le corpus contient 309 extractions limitées à la phase de draft, dont 269 avec une préférence exprimée. Seulement 44 décrivent dix champions certains et connus. Après ajout de 18 compositions de dossiers dont les picks déjà connus concordent, le benchmark élargi compte **62 cas**. Les 11 doublons ont été retirés. Parmi 51 rapprochements possibles avec la clé de dossiers, 22 sont exclus car la correspondance de côtés ou de picks connus est ambiguë ou contradictoire.
 
-Le filtre contextuel laisse seulement **5 cas primaires provenant de 5 vidéos** : 5 décisions, dont 2 conformes à Kazewa, soit **40 % d’accord décidé avec 100 % de couverture**. Ce petit échantillon ne permet pas de valider une fidélité ; l’intervalle de Wilson de l’accord s’étend de 11,8 % à 76,9 %. Sur la cohorte élargie, le moteur donne **23 décisions conformes sur 57, soit 40,4 % d’accord avec 91,9 % de couverture**, sur 62 cas issus de 42 vidéos. Le nombre de cas, le nombre de vidéos et le seuil d’accord échouent ; seule la couverture passe. Les valeurs reproductibles et leurs intervalles figurent dans `data/evaluation.json`.
+Avant l’ajustement des poids de combinaison, le filtre contextuel laissait **5 cas primaires** : 2 décisions conformes sur 5, soit 40 %. Sur la cohorte élargie, ce moteur-là donnait **23 décisions conformes sur 57, soit 40,4 %**, avec 91,9 % de couverture. Ce n’est plus le chiffre du rapport courant. Le rapport courant est celui du modèle 1.2.0 ci-dessus, écrit dans `data/evaluation.json`.
 
 Le corpus exploratoire distinct compte 101 cas issus de 66 vidéos : **53 accords sur 91 décisions, soit 58,2 % d’accord avec 90,1 % de couverture**. Il comprend 39 cas communs au benchmark nettoyé. Les 62 autres cas donnent 32 accords sur 56 décisions, soit 57,1 %, mais restent rétrospectifs et peuvent partager les sources de la méthode. Ces résultats ne contribuent pas au seuil de fidélité.
 
-La version 1.1.0 contient 42 règles. Ses corrections ont été écrites à partir des sources par un agent n’ayant consulté ni les cas ni les labels du benchmark, puis figées avant ce calcul. La version précédente avait déjà été évaluée : il s’agit donc toujours d’une itération rétrospective, sans revendication de jeu de test indépendant. Aucun poids n’a été ajusté par le script d’évaluation.
+La version 1.1.0 contient 42 règles. Ses corrections ont été écrites à partir des sources par un agent n’ayant consulté ni les cas ni les labels du benchmark, puis figées avant ce calcul. La combinaison actuelle des signaux, elle, a été ajustée sur ces labels. Le script d’évaluation ne réajuste aucun poids : il mesure le moteur déjà figé. Ce n’est pas un jeu de test indépendant.
 
 ## Ce que mesure le rapport
 
-`data/evaluation.json` compare la préférence du moteur à une préférence explicitement exprimée dans les extractions de **phase de draft** `kb/clean_verdicts/`. C’est un **benchmark rétrospectif figé**, sans apprentissage supervisé sur ces labels. Les vidéos ayant contribué à la méthode peuvent aussi fournir des exemples évalués : ce n’est donc pas un jeu de test indépendant. Un bon score rétrospectif ne suffirait pas à établir la fidélité future.
+`data/evaluation.json` compare la préférence du moteur à une préférence explicitement exprimée dans les extractions de **phase de draft** `kb/clean_verdicts/`. C’est un **benchmark rétrospectif figé**. Les poids de combinaison du moteur ont été ajustés sur ces labels ; le rapport ne décrit pas cet accord comme un test indépendant. Les vidéos ayant contribué à la méthode peuvent aussi fournir des exemples évalués. Un bon score rétrospectif ne suffit pas à établir la fidélité future.
 
 Le rapport distingue deux cohortes :
 

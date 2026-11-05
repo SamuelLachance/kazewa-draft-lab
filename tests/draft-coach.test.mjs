@@ -122,3 +122,45 @@ test("a banned or duplicate champion cannot be entered", () => {
   const session = applyAction(createSession("first"), "Ahri");
   assert.throws(() => applyAction(session, "Ahri"), /déjà/);
 });
+
+function afterOpeningBans() {
+  const bans = ["Bard", "Ivern", "Yuumi", "Nami", "Soraka", "Milio"];
+  let session = createSession("first");
+  let ban = 0;
+  while (currentStep(session).action === "ban")
+    session = applyAction(session, bans[ban++]);
+  return session;
+}
+
+test("the drafter opens on ADC and closes blinds before the next role", () => {
+  assert.equal(advise(afterOpeningBans(), knowledge).options[0].role, "bot");
+
+  const topBlind = applyAction(afterOpeningBans(), "Renekton", "top");
+  assert.equal(currentStep(topBlind).side, "red");
+  assert.equal(advise(topBlind, knowledge).options[0].role, "top");
+
+  const flexBlind = applyAction(afterOpeningBans(), "Sett", "top");
+  const flex = advise(flexBlind, knowledge).options[0];
+  assert.ok(LANES[flex.champion].includes("top"), flex.champion);
+  assert.ok(LANES[flex.champion].includes("sup"), flex.champion);
+
+  let session = applyAction(afterOpeningBans(), "Caitlyn", "bot");
+  session = applyAction(session, "Jinx", "bot");
+  const pairs = {
+    jng: ["Lee Sin", "Viego"],
+    mid: ["Azir", "Orianna"],
+    sup: ["Thresh", "Nautilus"],
+    top: ["Renekton", "Darius"],
+  };
+  const extraBans = ["Braum", "Rakan", "Leona", "Alistar"];
+  let extraBan = 0;
+  for (const role of ["jng", "mid", "sup", "top"]) {
+    assert.equal(advise(session, knowledge).options[0].role, role, role);
+    session = applyAction(session, pairs[role][0], role);
+    assert.equal(advise(session, knowledge).options[0].role, role, `close ${role}`);
+    session = applyAction(session, pairs[role][1], role);
+    while (currentStep(session)?.action === "ban")
+      session = applyAction(session, extraBans[extraBan++]);
+  }
+  assert.equal(currentStep(session), null);
+});
