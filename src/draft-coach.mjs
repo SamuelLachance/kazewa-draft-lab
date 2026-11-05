@@ -1,4 +1,6 @@
-/** Turn order, draft rules, and engine-ranked ban/pick advice. The final score still ignores bans. */
+/** Turn order and draft rules. Suggestions are ranked by the finished-draft
+ * advantage from the shipped calculator. Bans only remove champions from the
+ * pool: the finished score itself still ignores bans and pick order. */
 import { analyzeDraft, scorePartial, ROLES } from "./engine.mjs";
 import { LANES } from "./lanes.mjs";
 
@@ -117,33 +119,11 @@ function closeTarget(session, side) {
   return role ? { kind: "role", role, closing: false } : null;
 }
 
-function boardFrom(session, side = null, champion = null, role = null) {
-  const draft = {
-    blue: { ...session.picks.blue },
-    red: { ...session.picks.red },
-  };
-  if (side && champion && role) draft[side][role] = champion;
-  return draft;
-}
-
-function signalKey(signal) {
-  return `${signal.id}|${signal.side}|${signal.subject}|${signal.evidence}`;
-}
-
-function reasonsFor(before, after, side, champion) {
-  const prior = new Set(before.map(signalKey));
-  const afterKeys = new Set(after.map(signalKey));
-  const added = after.filter((signal) => !prior.has(signalKey(signal)));
-  const removed = before.filter(
-    (signal) => signal.side !== side && !afterKeys.has(signalKey(signal)),
-  );
-  const ranked = [
-    ...added.map((signal) => ({ signal, text: signal.evidence })),
-    ...removed.map((signal) => ({
-      signal,
-      text: `retire « ${signal.title} »`,
-    })),
-  ];
+function reasonsFrom(signals, side, champion) {
+  const ranked = (signals ?? []).map((signal) => ({
+    signal,
+    text: signal.evidence,
+  }));
   ranked.sort((a, b) => {
     const mention = (item) =>
       item.text.includes(champion) || item.signal.evidence.includes(champion) ? 1 : 0;
@@ -161,8 +141,13 @@ function reasonsFor(before, after, side, champion) {
     const text = item.text.replace(/\s+/g, " ").trim();
     reasons.push(text.length > 160 ? item.signal.title : text);
   }
-  if (!reasons.length) reasons.push("le calculateur ne déplace pas le score");
+  if (!reasons.length) reasons.push("draft complète selon le calculateur");
   return reasons;
+}
+
+function formatSigned(score) {
+  if (!Number.isFinite(score) || Object.is(score, -0)) return "0";
+  return score > 0 ? `+${score}` : String(score);
 }
 
 function candidateRoles(session, side, champion, followDraft) {
@@ -184,45 +169,264 @@ function candidateRoles(session, side, champion, followDraft) {
   return fallback ? [fallback] : [];
 }
 
-function placeChampion(session, knowledge, side, champion, baseline, followDraft) {
-  const sign = side === "blue" ? 1 : -1;
-  let best = null;
-  for (const role of candidateRoles(session, side, champion, followDraft)) {
-    const scored = scorePartial(
-      boardFrom(session, side, champion, role),
-      knowledge,
-    );
-    const score = Math.round((scored.score - baseline.score) * sign * 100) / 100;
-    const rank = CLOSE_ORDER.indexOf(role);
-    if (
-      !best ||
-      score > best.score ||
-      (score === best.score && rank < best.rank)
-    ) {
-      best = {
-        role,
-        rank,
-        score,
-        reasons: reasonsFor(baseline.signals, scored.signals, side, champion),
-      };
+const searchBags = new WeakMap();
+
+function searchBag(knowledge) {
+  let bag = searchBags.get(knowledge);
+  if (!bag) {
+    bag = {
+      exact: new Map(),
+      rollout: new Map(),
+      strength: new Map(),
+      rosters: new Map(),
+    };
+    searchBags.set(knowledge, bag);
+  }
+  return bag;
+}
+
+function stateFrom(session) {
+  return {
+    bans: { blue: [...session.bans.blue], red: [...session.bans.red] },
+    picks: { blue: { ...session.picks.blue }, red: { ...session.picks.red } },
+    logLength: session.log.length,
+  };
+}
+
+function stateKey(state) {
+  const cell = (picks) => ROLES.map((role) => picks[role] || "").join(",");
+  return [
+    state.logLength,
+    state.bans.blue.join(","),
+    state.bans.red.join(","),
+    cell(state.picks.blue),
+    cell(state.picks.red),
+  ].join("#");
+}
+
+function viewOf(state) {
+  return { bans: state.bans, picks: state.picks };
+}
+
+function availableNames(state, knowledge) {
+  const unavailable = new Set([...state.bans.blue, ...state.bans.red]);
+  for (const side of SIDES)
+    for (const role of ROLES) {
+      const name = state.picks[side][role];
+      if (name) unavailable.add(name);
     }
+  return Object.keys(knowledge.champions)
+    .filter((name) => !unavailable.has(name))
+    .sort((a, b) => a.localeCompare(b, "fr"));
+}
+
+function applyState(state, step, move) {
+  const next = {
+    bans: state.bans,
+    picks: state.picks,
+    logLength: state.logLength + 1,
+  };
+  if (step.action === "ban") {
+    next.bans = {
+      ...state.bans,
+      [step.side]: [...state.bans[step.side], move.champion],
+    };
+    return next;
+  }
+  next.picks = {
+    ...state.picks,
+    [step.side]: { ...state.picks[step.side], [move.role]: move.champion },
+  };
+  return next;
+}
+
+function shouldSearchExactly(state, knowledge) {
+  const stepsLeft = DRAFT_STEPS.length - state.logLength;
+  if (stepsLeft <= 1) return true;
+  const left = availableNames(state, knowledge).length;
+  if (left <= 1) return true;
+  return stepsLeft * Math.log(left) <= Math.log(20000);
+}
+
+// Inside the role rule when anybody can follow it. Off-role fills only when
+// the required role has no legal champion left.
+function searchMoves(state, knowledge, step) {
+  const names = availableNames(state, knowledge);
+  if (step.action === "ban")
+    return names.map((champion) => ({ champion, role: null }));
+  const view = viewOf(state);
+  const target = closeTarget(view, step.side);
+  const open = openRoles(view, step.side);
+  const detailed = names.map((champion) => {
+    const lanes = (LANES[champion] || []).filter((role) => open.includes(role));
+    const matches =
+      target?.kind === "flex"
+        ? coversRoles(champion, target.roles)
+        : Boolean(target?.kind === "role" && lanes.includes(target.role));
+    return {
+      champion,
+      roles: candidateRoles(view, step.side, champion, true),
+      matches,
+    };
+  });
+  const matched = detailed.filter((item) => item.matches);
+  const pool = matched.length ? matched : detailed;
+  const moves = [];
+  for (const item of pool)
+    for (const role of item.roles) moves.push({ champion: item.champion, role });
+  moves.sort(
+    (a, b) =>
+      a.champion.localeCompare(b.champion, "fr") ||
+      CLOSE_ORDER.indexOf(a.role) - CLOSE_ORDER.indexOf(b.role),
+  );
+  return moves;
+}
+
+function scoreRoster(picks, knowledge) {
+  const bag = searchBag(knowledge);
+  const key = ROLES.map(
+    (role) => `${picks.blue[role] || ""}/${picks.red[role] || ""}`,
+  ).join("|");
+  if (bag.rosters.has(key)) return bag.rosters.get(key);
+  const result = analyzeDraft(
+    { blue: { ...picks.blue }, red: { ...picks.red } },
+    knowledge,
+  );
+  const leaf = { blueScore: result.score, signals: result.signals };
+  bag.rosters.set(key, leaf);
+  return leaf;
+}
+
+function exactValue(state, knowledge) {
+  const bag = searchBag(knowledge);
+  const key = stateKey(state);
+  if (bag.exact.has(key)) return bag.exact.get(key);
+  const step = DRAFT_STEPS[state.logLength];
+  const moves = step ? searchMoves(state, knowledge, step) : [];
+  if (!step || !moves.length) {
+    const leaf = scoreRoster(state.picks, knowledge);
+    bag.exact.set(key, leaf);
+    return leaf;
+  }
+  let best = null;
+  for (const move of moves) {
+    const child = exactValue(applyState(state, step, move), knowledge);
+    const improves =
+      !best ||
+      (step.side === "blue"
+        ? child.blueScore > best.blueScore
+        : child.blueScore < best.blueScore);
+    if (improves) best = child;
+  }
+  bag.exact.set(key, best);
+  return best;
+}
+
+function sideStrength(knowledge, side, champion, role) {
+  const bag = searchBag(knowledge);
+  const key = `${side}|${champion}|${role}`;
+  if (bag.strength.has(key)) return bag.strength.get(key);
+  const draft = { blue: emptyPicks(), red: emptyPicks() };
+  draft[side][role] = champion;
+  const advantage = (side === "blue" ? 1 : -1) * scorePartial(draft, knowledge).score;
+  bag.strength.set(key, advantage);
+  return advantage;
+}
+
+function opponentPeak(knowledge, side, champion) {
+  const lanes = LANES[champion]?.length ? LANES[champion] : ROLES;
+  let best = -Infinity;
+  for (const role of lanes) {
+    const value = sideStrength(knowledge, side, champion, role);
+    if (value > best) best = value;
   }
   return best;
 }
 
-function picksBefore(session, side) {
-  const upcoming = DRAFT_STEPS.slice(session.log.length);
-  const pick = upcoming.findIndex(
-    (step) => step.action === "pick" && step.side === side,
-  );
-  return pick === -1 ? 99 : pick;
+function policyMove(state, knowledge, step) {
+  const moves = searchMoves(state, knowledge, step);
+  let best = null;
+  for (const move of moves) {
+    const value =
+      step.action === "ban"
+        ? opponentPeak(knowledge, other(step.side), move.champion)
+        : sideStrength(knowledge, step.side, move.champion, move.role);
+    const closer =
+      !best ||
+      value > best.value ||
+      (value === best.value &&
+        (move.champion.localeCompare(best.move.champion, "fr") < 0 ||
+          (move.champion === best.move.champion &&
+            CLOSE_ORDER.indexOf(move.role) < CLOSE_ORDER.indexOf(best.move.role))));
+    if (closer) best = { move, value };
+  }
+  return best?.move ?? null;
 }
 
-let adviceCache = null;
+// A full pool cannot be expanded pick by pick. The searched slice is still
+// ordered by finished calculator lines. Everybody else stays listed underneath.
+const SEARCH_LIMIT = 8;
 
-function adviceKey(session, knowledge) {
+function searchedNames(state, knowledge, step, available, exact) {
+  if (exact || available.length <= SEARCH_LIMIT) return available;
+  if (step.action === "ban") {
+    const foe = other(step.side);
+    return [...available]
+      .sort(
+        (a, b) =>
+          opponentPeak(knowledge, foe, b) - opponentPeak(knowledge, foe, a) ||
+          a.localeCompare(b, "fr"),
+      )
+      .slice(0, SEARCH_LIMIT);
+  }
+  const view = viewOf(state);
+  const target = closeTarget(view, step.side);
+  const open = openRoles(view, step.side);
+  const rows = available.map((champion) => {
+    const lanes = (LANES[champion] || []).filter((role) => open.includes(role));
+    const matches =
+      target?.kind === "flex"
+        ? coversRoles(champion, target.roles)
+        : Boolean(target?.kind === "role" && lanes.includes(target.role));
+    const role = candidateRoles(view, step.side, champion, true)[0];
+    return {
+      champion,
+      matches,
+      strength: role
+        ? sideStrength(knowledge, step.side, champion, role)
+        : -Infinity,
+    };
+  });
+  const pool = rows.some((row) => row.matches)
+    ? rows.filter((row) => row.matches)
+    : rows;
+  pool.sort(
+    (a, b) =>
+      b.strength - a.strength || a.champion.localeCompare(b.champion, "fr"),
+  );
+  return pool.slice(0, SEARCH_LIMIT).map((row) => row.champion);
+}
+
+function rollout(state, knowledge) {
+  const bag = searchBag(knowledge);
+  const key = stateKey(state);
+  if (bag.rollout.has(key)) return bag.rollout.get(key);
+  let cursor = state;
+  while (cursor.logLength < DRAFT_STEPS.length) {
+    const step = DRAFT_STEPS[cursor.logLength];
+    const move = policyMove(cursor, knowledge, step);
+    if (!move) break;
+    cursor = applyState(cursor, step, move);
+  }
+  const leaf = scoreRoster(cursor.picks, knowledge);
+  bag.rollout.set(key, leaf);
+  return leaf;
+}
+
+const adviceCache = new WeakMap();
+
+function adviceKey(session) {
   return [
-    knowledge?.version ?? "",
     session.userSide,
     session.log.length,
     JSON.stringify(session.bans),
@@ -231,10 +435,14 @@ function adviceKey(session, knowledge) {
 }
 
 export function advise(session, knowledge, { limit = 5 } = {}) {
-  const key = adviceKey(session, knowledge);
-  if (!adviceCache || adviceCache.key !== key)
-    adviceCache = { key, advice: rankAdvice(session, knowledge) };
-  const advice = adviceCache.advice;
+  let byState = adviceCache.get(knowledge);
+  if (!byState) {
+    byState = new Map();
+    adviceCache.set(knowledge, byState);
+  }
+  const key = adviceKey(session);
+  if (!byState.has(key)) byState.set(key, rankAdvice(session, knowledge));
+  const advice = byState.get(key);
   return { ...advice, options: advice.options.slice(0, limit) };
 }
 
@@ -250,76 +458,78 @@ function rankAdvice(session, knowledge) {
       note: "Les dix champions sont lock. Le verdict ignore les bans et l’ordre, comme le moteur.",
     };
   }
-  const unavailable = taken(session);
-  const available = Object.keys(knowledge.champions)
-    .filter((name) => !unavailable.has(name))
-    .sort();
-  const baseline = scorePartial(boardFrom(session), knowledge);
+  const state = stateFrom(session);
+  const exact = shouldSearchExactly(state, knowledge);
+  const valueOf = (next) =>
+    exact ? exactValue(next, knowledge) : rollout(next, knowledge);
+  const sign = step.side === "blue" ? 1 : -1;
+  const available = availableNames(state, knowledge);
+  const searched = new Set(
+    searchedNames(state, knowledge, step, available, exact),
+  );
   const options = [];
+  const scorePick = (champion) => {
+    const view = viewOf(state);
+    let best = null;
+    for (const role of candidateRoles(view, step.side, champion, true)) {
+      const line = valueOf(applyState(state, step, { champion, role }));
+      const score = sign * line.blueScore;
+      const rank = CLOSE_ORDER.indexOf(role);
+      if (!best || score > best.score || (score === best.score && rank < best.rank)) {
+        best = {
+          role,
+          rank,
+          score,
+          reasons: reasonsFrom(line.signals, step.side, champion),
+        };
+      }
+    }
+    return best;
+  };
   if (step.action === "ban") {
-    const opponent = other(step.side);
-    const wePickFirst =
-      picksBefore(session, step.side) < picksBefore(session, opponent);
-    const valuedByUs = available
-      .map((champion) => ({
-        champion,
-        placed: placeChampion(
-          session,
-          knowledge,
-          step.side,
-          champion,
-          baseline,
-          false,
-        ),
-      }))
-      .filter((entry) => entry.placed)
-      .sort((a, b) => b.placed.score - a.placed.score);
-    const keep = new Set(
-      wePickFirst ? valuedByUs.slice(0, 5).map((entry) => entry.champion) : [],
-    );
+    const baseline = valueOf({
+      bans: state.bans,
+      picks: state.picks,
+      logLength: state.logLength + 1,
+    });
     for (const champion of available) {
-      if (keep.has(champion)) continue;
-      const threat = placeChampion(
-        session,
-        knowledge,
-        opponent,
-        champion,
-        baseline,
-        false,
-      );
-      if (!threat) continue;
-      const sideName = opponent === "blue" ? "le bleu" : "le rouge";
+      if (!searched.has(champion)) continue;
+      const line = valueOf(applyState(state, step, { champion, role: null }));
       options.push({
         champion,
         role: null,
-        score: threat.score,
-        reasons: [
-          `le calculateur le valorise pour ${sideName} en ${ROLE_NAME[threat.role]} (${threat.score > 0 ? "+" : ""}${threat.score})`,
-          wePickFirst
-            ? "tu peux encore prendre tes priorités au pick"
-            : "il peut le prendre avant toi",
-          ...(threat.reasons[0] ? [threat.reasons[0]] : []),
-        ].slice(0, 3),
+        score: sign * (line.blueScore - baseline.blueScore),
+        reasons: reasonsFrom(line.signals, step.side, champion),
       });
     }
   } else {
     for (const champion of available) {
-      const placed = placeChampion(
-        session,
-        knowledge,
-        step.side,
-        champion,
-        baseline,
-        true,
-      );
-      if (!placed) continue;
+      if (!searched.has(champion)) continue;
+      const best = scorePick(champion);
+      if (!best) continue;
       options.push({
         champion,
-        role: placed.role,
-        score: placed.score,
-        reasons: placed.reasons,
+        role: best.role,
+        score: best.score,
+        reasons: best.reasons,
       });
     }
+  }
+  const floor = options.reduce((min, option) => Math.min(min, option.score), 0);
+  const view = viewOf(state);
+  for (const champion of available) {
+    if (searched.has(champion)) continue;
+    const role =
+      step.action === "pick"
+        ? candidateRoles(view, step.side, champion, true)[0] ?? null
+        : null;
+    if (step.action === "pick" && !role) continue;
+    options.push({
+      champion,
+      role,
+      score: floor - 1,
+      reasons: ["hors des lignes complètes cherchées"],
+    });
   }
   let target = step.action === "pick" ? closeTarget(session, step.side) : null;
   if (
@@ -354,8 +564,8 @@ function rankAdvice(session, knowledge) {
   const proposal = !best
     ? ""
     : step.action === "pick"
-      ? `Le calculateur propose ${best.champion} en ${ROLE_NAME[best.role]} (${best.score > 0 ? "+" : ""}${best.score}) : ${best.reasons[0]}.`
-      : `Le calculateur propose de bannir ${best.champion} (${best.score > 0 ? "+" : ""}${best.score}).`;
+      ? `Le calculateur propose ${best.champion} en ${ROLE_NAME[best.role]} (${formatSigned(best.score)}) : ${best.reasons[0]}.`
+      : `Le calculateur propose de bannir ${best.champion} (${formatSigned(best.score)}).`;
   const turn = step.ours
     ? "Suggestion pour ton tour."
     : "Tour adverse. Le calculateur indique le choix le plus fort pour eux, pas ce que l’équipe va jouer.";
@@ -364,7 +574,7 @@ function rankAdvice(session, knowledge) {
     step,
     options,
     result: null,
-    note: `${roleNote} ${turn} ${proposal} L’ordre des rôles suit les règles de draft. Le classement vient du calculateur. Ce n’est pas une probabilité de victoire.`
+    note: `${roleNote} ${turn} ${proposal} L’ordre des rôles suit les règles de draft. Le chiffre est l’avantage du côté qui joue sur la draft complète, si l’autre côté résiste. Ce n’est pas une probabilité de victoire.`
       .replace(/\s+/g, " ")
       .trim(),
   };

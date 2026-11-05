@@ -9,7 +9,7 @@ import {
   currentStep,
   undo,
 } from "../src/draft-coach.mjs";
-import { scorePartial } from "../src/engine.mjs";
+import { analyzeDraft, scorePartial } from "../src/engine.mjs";
 import { LANES } from "../src/lanes.mjs";
 
 const knowledge = JSON.parse(
@@ -86,47 +86,105 @@ test("the top pick is the calculator's best champion on the role the draft rules
   session = applyAction(session, "Caitlyn", "bot");
   session = applyAction(session, "Jinx", "bot");
   session = applyAction(session, "Azir", "mid");
-  const advice = advise(session, knowledge, { limit: 40 });
+  const advice = advise(session, knowledge);
   assert.equal(currentStep(session).side, "blue");
   assert.equal(advice.options[0].role, "mid");
   assert.match(advice.note, /calculateur/);
-  const tristana = advice.options.find((option) => option.champion === "Tristana");
+  assert.match(advice.note, /draft complète/);
+  const small = subsetKnowledge([
+    "Caitlyn",
+    "Jinx",
+    "Elise",
+    "Lee Sin",
+    "Lulu",
+    "Nautilus",
+    "Azir",
+    "Renekton",
+    "Tristana",
+    "Aatrox",
+  ]);
+  const late = play([
+    ...OUTSIDERS.slice(0, 6).map((champion) => ({ champion, role: null })),
+    { champion: "Caitlyn", role: "bot" },
+    { champion: "Jinx", role: "bot" },
+    { champion: "Elise", role: "jng" },
+    { champion: "Lee Sin", role: "jng" },
+    { champion: "Lulu", role: "sup" },
+    { champion: "Nautilus", role: "sup" },
+    ...OUTSIDERS.slice(6, 10).map((champion) => ({ champion, role: null })),
+    { champion: "Azir", role: "mid" },
+    { champion: "Renekton", role: "top" },
+  ]);
+  assert.equal(currentStep(late).side, "blue");
+  const counter = advise(late, small, { limit: 10 });
+  const tristana = counter.options.find((option) => option.champion === "Tristana");
   assert.equal(tristana.role, "mid");
   assert.match(tristana.reasons.join(" "), /Azir/);
-  const board = {
-    blue: { ...session.picks.blue, mid: "Tristana" },
-    red: { ...session.picks.red },
-  };
-  const withTristana = scorePartial(board, knowledge);
+  const finished = analyzeDraft(
+    {
+      blue: { ...late.picks.blue, mid: "Tristana" },
+      red: { ...late.picks.red, top: "Aatrox" },
+    },
+    small,
+  );
+  assert.equal(finished.status, "complete");
+  assert.equal(tristana.score, finished.score);
   assert.ok(
-    withTristana.signals.some(
+    finished.signals.some(
       (signal) => signal.id === "named_lane_counter" && signal.side === "blue",
     ),
   );
 });
 
-test("a documented partner raises the paired champion above the same champion alone", () => {
-  const reach = (firstPick) => {
-    const bans = ["Bard", "Ivern", "Yuumi", "Nami", "Soraka", "Milio"];
-    let session = createSession("first");
-    let ban = 0;
-    while (currentStep(session).action === "ban")
-      session = applyAction(session, bans[ban++]);
-    session = applyAction(session, firstPick, "mid");
-    session = applyAction(session, "Renekton", "top");
-    session = applyAction(session, "Lee Sin", "jng");
-    return session;
+test("a documented partner raises the paired champion on the finished draft", () => {
+  const reach = (mid) => {
+    const small = subsetKnowledge([
+      "Jinx",
+      "Lee Sin",
+      mid,
+      "Lulu",
+      "Caitlyn",
+      "Elise",
+      "Syndra",
+      "Nautilus",
+      "Camille",
+      "Aatrox",
+    ]);
+    const session = play([
+      ...OUTSIDERS.slice(0, 6).map((champion) => ({ champion, role: null })),
+      { champion: "Jinx", role: "bot" },
+      { champion: "Caitlyn", role: "bot" },
+      { champion: "Elise", role: "jng" },
+      { champion: "Lee Sin", role: "jng" },
+      { champion: mid, role: "mid" },
+      { champion: "Syndra", role: "mid" },
+      ...OUTSIDERS.slice(6, 10).map((champion) => ({ champion, role: null })),
+      { champion: "Nautilus", role: "sup" },
+      { champion: "Lulu", role: "sup" },
+    ]);
+    return { session, small };
   };
-  const withPartner = advise(reach("Galio"), knowledge, { limit: 200 }).options.find(
-    (option) => option.champion === "Camille",
+  const withPartner = reach("Galio");
+  const without = reach("Orianna");
+  const camilleOf = (built) =>
+    advise(built.session, built.small, { limit: 10 }).options.find(
+      (option) => option.champion === "Camille",
+    );
+  const paired = camilleOf(withPartner);
+  const alone = camilleOf(without);
+  assert.ok(paired);
+  assert.ok(alone);
+  assert.ok(paired.score > alone.score);
+  assert.match(paired.reasons.join(" "), /Galio/);
+  const finished = analyzeDraft(
+    {
+      blue: { ...withPartner.session.picks.blue, top: "Camille" },
+      red: { ...withPartner.session.picks.red, top: "Aatrox" },
+    },
+    withPartner.small,
   );
-  const without = advise(reach("Orianna"), knowledge, { limit: 200 }).options.find(
-    (option) => option.champion === "Camille",
-  );
-  assert.ok(withPartner);
-  assert.ok(without);
-  assert.ok(withPartner.score > without.score);
-  assert.match(withPartner.reasons.join(" "), /Galio/);
+  assert.equal(finished.status, "complete");
+  assert.equal(paired.score, finished.score);
 });
 
 test("following the advice completes a legal draft and only then asks the engine", () => {
@@ -173,6 +231,139 @@ test("a clicked champion receives a role without a manual choice", () => {
   const elsewhere = applyAction(flexBlind, "Azir");
   assert.equal(elsewhere.picks.red.mid, "Azir");
   assert.equal(elsewhere.picks.red.top, null);
+});
+
+function subsetKnowledge(names) {
+  return {
+    ...knowledge,
+    champions: Object.fromEntries(
+      names.map((name) => [name, knowledge.champions[name]]),
+    ),
+  };
+}
+
+function play(actions) {
+  return actions.reduce(
+    (session, action) => applyAction(session, action.champion, action.role ?? null),
+    createSession("first"),
+  );
+}
+
+const OUTSIDERS = [
+  "Bard",
+  "Ivern",
+  "Yuumi",
+  "Nami",
+  "Soraka",
+  "Milio",
+  "Braum",
+  "Rakan",
+  "Leona",
+  "Zyra",
+];
+
+test("a pick follows the resistant finished score when the partial board disagrees", () => {
+  const pool = ["Aatrox", "Akali", "Akshan", "Rumble"];
+  const locked = ["Jinx", "Lee Sin", "Azir", "Lulu", "Caitlyn", "Elise", "Orianna", "Nautilus"];
+  const small = subsetKnowledge([...locked, ...pool]);
+  const session = play([
+    ...OUTSIDERS.slice(0, 6).map((champion) => ({ champion, role: null })),
+    { champion: "Jinx", role: "bot" },
+    { champion: "Caitlyn", role: "bot" },
+    { champion: "Elise", role: "jng" },
+    { champion: "Lee Sin", role: "jng" },
+    { champion: "Azir", role: "mid" },
+    { champion: "Orianna", role: "mid" },
+    ...OUTSIDERS.slice(6, 10).map((champion) => ({ champion, role: null })),
+    { champion: "Nautilus", role: "sup" },
+    { champion: "Lulu", role: "sup" },
+  ]);
+  assert.equal(currentStep(session).action, "pick");
+  assert.equal(currentStep(session).side, "blue");
+  const draftOf = (pick, answer) => ({
+    blue: { ...session.picks.blue, top: pick },
+    red: { ...session.picks.red, top: answer },
+  });
+  const partialOf = (pick) =>
+    scorePartial(
+      { blue: { ...session.picks.blue, top: pick }, red: { ...session.picks.red } },
+      small,
+    ).score;
+  const finishedOf = (pick, answer) => analyzeDraft(draftOf(pick, answer), small).score;
+  const resistant = (pick) =>
+    Math.min(...pool.filter((name) => name !== pick).map((answer) => finishedOf(pick, answer)));
+  const cooperative = (pick) =>
+    Math.max(...pool.filter((name) => name !== pick).map((answer) => finishedOf(pick, answer)));
+  assert.ok(partialOf("Rumble") > partialOf("Aatrox"));
+  assert.ok(resistant("Aatrox") > resistant("Rumble"));
+  assert.ok(resistant("Aatrox") > resistant("Akali"));
+  assert.ok(resistant("Aatrox") > resistant("Akshan"));
+  assert.notEqual(cooperative("Aatrox"), resistant("Aatrox"));
+  const advice = advise(session, small, { limit: 10 });
+  assert.equal(advice.options[0].champion, "Aatrox");
+  assert.equal(advice.options[0].role, "top");
+  assert.equal(advice.options[0].score, resistant("Aatrox"));
+  assert.notEqual(advice.options[0].score, cooperative("Aatrox"));
+  for (const name of pool)
+    assert.equal(advice.options.some((option) => option.champion === name), true);
+});
+
+test("a ban follows the resistant finished-score gain when the partial threat disagrees", () => {
+  const pool = ["Alistar", "Amumu", "Annie", "Aatrox", "Ambessa"];
+  const locked = ["Jinx", "Lee Sin", "Azir", "Caitlyn", "Elise", "Orianna"];
+  const small = subsetKnowledge([...locked, ...pool]);
+  const session = play([
+    ...OUTSIDERS.slice(0, 6).map((champion) => ({ champion, role: null })),
+    { champion: "Jinx", role: "bot" },
+    { champion: "Caitlyn", role: "bot" },
+    { champion: "Elise", role: "jng" },
+    { champion: "Lee Sin", role: "jng" },
+    { champion: "Azir", role: "mid" },
+    { champion: "Orianna", role: "mid" },
+    ...OUTSIDERS.slice(6, 9).map((champion) => ({ champion, role: null })),
+  ]);
+  assert.equal(currentStep(session).action, "ban");
+  assert.equal(currentStep(session).side, "blue");
+  const shell = {
+    blue: { ...session.picks.blue },
+    red: { ...session.picks.red },
+  };
+  const finished = (blueSup, blueTop, redSup, redTop) =>
+    analyzeDraft(
+      {
+        blue: { ...shell.blue, sup: blueSup, top: blueTop },
+        red: { ...shell.red, sup: redSup, top: redTop },
+      },
+      small,
+    ).score;
+  const pass = finished("Amumu", "Aatrox", "Alistar", "Ambessa");
+  const gains = {
+    Ambessa: finished("Amumu", "Aatrox", "Alistar", "Annie") - pass,
+    Annie: finished("Amumu", "Aatrox", "Alistar", "Ambessa") - pass,
+    Alistar: finished("Annie", "Aatrox", "Amumu", "Ambessa") - pass,
+    Aatrox: finished("Amumu", "Ambessa", "Alistar", "Annie") - pass,
+    Amumu: finished("Annie", "Aatrox", "Alistar", "Ambessa") - pass,
+  };
+  const bestBan = Object.entries(gains).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "fr"))[0];
+  assert.equal(bestBan[0], "Ambessa");
+  const threat = (champion) => {
+    const baseline = scorePartial(shell, small).score;
+    const lanes = (LANES[champion] || []).filter((role) => !shell.red[role]);
+    let best = -Infinity;
+    for (const role of lanes) {
+      const draft = { blue: { ...shell.blue }, red: { ...shell.red, [role]: champion } };
+      const gained = -(scorePartial(draft, small).score - baseline);
+      if (gained > best) best = gained;
+    }
+    return best;
+  };
+  assert.ok(threat("Alistar") > threat("Ambessa"));
+  const advice = advise(session, small, { limit: 10 });
+  assert.equal(advice.options[0].champion, "Ambessa");
+  assert.equal(advice.options[0].role, null);
+  assert.equal(advice.options[0].score, gains.Ambessa);
+  for (const name of pool)
+    assert.equal(advice.options.some((option) => option.champion === name), true);
 });
 
 test("the drafter opens on ADC and closes blinds before the next role", () => {
