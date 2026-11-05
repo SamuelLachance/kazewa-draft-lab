@@ -150,7 +150,29 @@ function formatSigned(score) {
   return score > 0 ? `+${score}` : String(score);
 }
 
-function candidateRoles(session, side, champion, followDraft) {
+function remainingNames(session, knowledge) {
+  if (!knowledge?.champions) return null;
+  return availableNames(session, knowledge);
+}
+
+// Off-role is a last resort for a role nobody left can play. Azir does not
+// become a jungler while a jungler is still in the pool.
+function offroleRole(session, side, champion, open, knowledge) {
+  const target = closeTarget(session, side);
+  const dump =
+    target?.kind === "role" && open.includes(target.role)
+      ? target.role
+      : target?.kind === "flex"
+        ? earliestRole(target.roles.filter((role) => open.includes(role)))
+        : earliestRole(open);
+  if (!dump) return null;
+  const names = remainingNames(session, knowledge);
+  if (names?.some((name) => name !== champion && (LANES[name] || []).includes(dump)))
+    return null;
+  return dump;
+}
+
+function candidateRoles(session, side, champion, followDraft, knowledge = null) {
   const open = openRoles(session, side);
   const lanes = (LANES[champion] || []).filter((role) => open.includes(role));
   if (followDraft) {
@@ -163,10 +185,8 @@ function candidateRoles(session, side, champion, followDraft) {
   }
   if (lanes.length) return lanes;
   if (!followDraft) return [];
-  const target = closeTarget(session, side);
-  if (target?.kind === "role" && open.includes(target.role)) return [target.role];
-  const fallback = earliestRole(open);
-  return fallback ? [fallback] : [];
+  const dump = offroleRole(session, side, champion, open, knowledge);
+  return dump ? [dump] : [];
 }
 
 const searchBags = new WeakMap();
@@ -265,7 +285,7 @@ function searchMoves(state, knowledge, step) {
         : Boolean(target?.kind === "role" && lanes.includes(target.role));
     return {
       champion,
-      roles: candidateRoles(view, step.side, champion, true),
+      roles: candidateRoles(view, step.side, champion, true, knowledge),
       matches,
     };
   });
@@ -388,7 +408,7 @@ function searchedNames(state, knowledge, step, available, exact) {
       target?.kind === "flex"
         ? coversRoles(champion, target.roles)
         : Boolean(target?.kind === "role" && lanes.includes(target.role));
-    const role = candidateRoles(view, step.side, champion, true)[0];
+    const role = candidateRoles(view, step.side, champion, true, knowledge)[0];
     return {
       champion,
       matches,
@@ -471,7 +491,7 @@ function rankAdvice(session, knowledge) {
   const scorePick = (champion) => {
     const view = viewOf(state);
     let best = null;
-    for (const role of candidateRoles(view, step.side, champion, true)) {
+    for (const role of candidateRoles(view, step.side, champion, true, knowledge)) {
       const line = valueOf(applyState(state, step, { champion, role }));
       const score = sign * line.blueScore;
       const rank = CLOSE_ORDER.indexOf(role);
@@ -521,7 +541,7 @@ function rankAdvice(session, knowledge) {
     if (searched.has(champion)) continue;
     const role =
       step.action === "pick"
-        ? candidateRoles(view, step.side, champion, true)[0] ?? null
+        ? candidateRoles(view, step.side, champion, true, knowledge)[0] ?? null
         : null;
     if (step.action === "pick" && !role) continue;
     options.push({
@@ -582,7 +602,8 @@ function rankAdvice(session, knowledge) {
 
 // The click does not ask for a role. Answer the open blind when the champion
 // plays it; otherwise use that champion's earliest usual lane still open.
-export function inferPickRole(session, champion) {
+// A champion is never dropped onto a role he does not play while someone left plays it.
+export function inferPickRole(session, champion, knowledge = null) {
   const step = currentStep(session);
   if (!step || step.action !== "pick") return null;
   const open = new Set(openRoles(session, step.side));
@@ -604,13 +625,10 @@ export function inferPickRole(session, champion) {
     }
   }
   if (lanes.length) return earliestRole(lanes);
-  if (target?.kind === "role" && open.has(target.role)) return target.role;
-  if (target?.kind === "flex")
-    return earliestRole(target.roles.filter((role) => open.has(role)));
-  return earliestRole([...open]);
+  return offroleRole(session, step.side, champion, [...open], knowledge);
 }
 
-export function applyAction(session, champion, role = null) {
+export function applyAction(session, champion, role = null, knowledge = null) {
   const step = currentStep(session);
   if (!step) throw new Error("La draft est déjà complète.");
   const name = String(champion || "");
@@ -635,9 +653,15 @@ export function applyAction(session, champion, role = null) {
   const assigned =
     ROLES.includes(role) && !next.picks[step.side][role]
       ? role
-      : inferPickRole(next, name);
-  if (!assigned || next.picks[step.side][assigned])
-    throw new Error("Aucun rôle libre pour ce pick.");
+      : inferPickRole(next, name, knowledge);
+  if (!assigned || next.picks[step.side][assigned]) {
+    const usual = (LANES[name] || []).filter((lane) => !session.picks[step.side][lane]);
+    throw new Error(
+      usual.length
+        ? "Aucun rôle libre pour ce pick."
+        : `${name} ne joue aucun rôle encore ouvert.`,
+    );
+  }
   next.picks[step.side][assigned] = name;
   next.log.push({
     action: "pick",

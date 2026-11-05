@@ -627,7 +627,7 @@ function acceptCoachAction(champion, role) {
     return;
   }
   try {
-    coach = applyAction(coach, name, role || null);
+    coach = applyAction(coach, name, role || null, knowledge);
     coachFocus = "self";
     coachQuery = "";
     const search = $("#coach-search");

@@ -366,6 +366,47 @@ test("a ban follows the resistant finished-score gain when the partial threat di
     assert.equal(advice.options.some((option) => option.champion === name), true);
 });
 
+test("Azir stays off jungle while a jungler remains, and fills it only when none does", () => {
+  let session = afterOpeningBans();
+  session = applyAction(session, "Orianna", "mid");
+  session = applyAction(session, "Ahri", "mid");
+  session = applyAction(session, "Lee Sin", "jng");
+  assert.equal(currentStep(session).side, "blue");
+  assert.equal(currentStep(session).action, "pick");
+  const advice = advise(session, knowledge, { limit: 80 });
+  assert.equal(advice.options[0].role, "jng");
+  assert.ok((LANES[advice.options[0].champion] || []).includes("jng"));
+  assert.equal(
+    advice.options.some((option) => option.champion === "Azir" && option.role === "jng"),
+    false,
+  );
+  assert.throws(() => applyAction(session, "Azir", null, knowledge), /Azir/);
+  assert.equal(session.picks.blue.jng, null);
+  const picked = applyAction(session, "Viego", null, knowledge);
+  assert.equal(picked.picks.blue.jng, "Viego");
+
+  const small = subsetKnowledge([
+    ...OUTSIDERS,
+    "Caitlyn",
+    "Jinx",
+    "Azir",
+    "Orianna",
+    "Ahri",
+  ]);
+  const stranded = play([
+    ...OUTSIDERS.slice(0, 6).map((champion) => ({ champion, role: null })),
+    { champion: "Caitlyn", role: "bot" },
+    { champion: "Jinx", role: "bot" },
+    { champion: "Orianna", role: "mid" },
+    { champion: "Ahri", role: "mid" },
+  ]);
+  assert.equal(currentStep(stranded).side, "blue");
+  const fill = advise(stranded, small, { limit: 20 });
+  assert.equal(fill.options[0].champion, "Azir");
+  assert.equal(fill.options[0].role, "jng");
+  assert.equal(LANES.Azir.includes("jng"), false);
+});
+
 test("the drafter opens on ADC and closes blinds before the next role", () => {
   assert.equal(advise(afterOpeningBans(), knowledge).options[0].role, "bot");
 
