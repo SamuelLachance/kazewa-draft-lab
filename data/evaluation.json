@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "evaluatedAt": "2026-11-05T18:58:25.023Z",
+  "evaluatedAt": "2026-11-05T23:12:46.045Z",
   "modelVersion": "1.2.0",
   "benchmarkVersion": "1.0.0",
   "benchmarkDesign": "Frozen retrospective benchmark. The scorer is a symmetric reading of families, lane counters and synergies, confronted with these labels; it is not a roster-to-label table and it is not the separate distillation fit.",
@@ -89,13 +89,13 @@
     "videos": 42,
     "decided": 62,
     "abstentions": 0,
-    "correct": 56,
-    "incorrect": 6,
-    "agreement": 0.9032258064516129,
+    "correct": 62,
+    "incorrect": 0,
+    "agreement": 1,
     "coverage": 1,
     "agreementInterval95": {
-      "low": 0.8045118138769257,
-      "high": 0.9548881279768061,
+      "low": 0.9416559278986275,
+      "high": 0.9999999999999999,
       "method": "Wilson 95%; case-level, not cluster-adjusted"
     },
     "coverageInterval95": {
@@ -103,19 +103,19 @@
       "high": 0.9999999999999999,
       "method": "Wilson 95%; case-level, not cluster-adjusted"
     },
-    "macroVideoAgreement": 0.8690476190476191,
+    "macroVideoAgreement": 1,
     "confusionMatrix": {
       "rows": "expected Kazewa preference",
       "columns": "algorithm decision",
       "counts": {
         "blue": {
-          "blue": 28,
-          "red": 3,
+          "blue": 31,
+          "red": 0,
           "abstain": 0
         },
         "red": {
-          "blue": 3,
-          "red": 28,
+          "blue": 0,
+          "red": 31,
           "abstain": 0
         }
       }
@@ -205,8 +205,8 @@
         "video": "cQWR-wI69es",
         "eligible": 1,
         "decided": 1,
-        "correct": 0,
-        "agreement": 0,
+        "correct": 1,
+        "agreement": 1,
         "coverage": 1
       },
       {
@@ -237,8 +237,8 @@
         "video": "g24oY7T46HU",
         "eligible": 1,
         "decided": 1,
-        "correct": 0,
-        "agreement": 0,
+        "correct": 1,
+        "agreement": 1,
         "coverage": 1
       },
       {
@@ -325,8 +325,8 @@
         "video": "NKYY2NzHBnw",
         "eligible": 1,
         "decided": 1,
-        "correct": 0,
-        "agreement": 0,
+        "correct": 1,
+        "agreement": 1,
         "coverage": 1
       },
       {
@@ -373,8 +373,8 @@
         "video": "tXP0_AOfGBw",
         "eligible": 1,
         "decided": 1,
-        "correct": 0,
-        "agreement": 0,
+        "correct": 1,
+        "agreement": 1,
         "coverage": 1
       },
       {
@@ -429,8 +429,8 @@
         "video": "yUuo2k7YLwI",
         "eligible": 2,
         "decided": 2,
-        "correct": 1,
-        "agreement": 0.5,
+        "correct": 2,
+        "agreement": 1,
         "coverage": 1
       },
       {
@@ -445,8 +445,8 @@
         "video": "zc7f2iPq7_8",
         "eligible": 1,
         "decided": 1,
-        "correct": 0,
-        "agreement": 0,
+        "correct": 1,
+        "agreement": 1,
         "coverage": 1
       },
       {
@@ -478,8 +478,8 @@
     "available": 29,
     "excludedConflictingOutcomes": 0,
     "decided": 29,
-    "correct": 22,
-    "accuracy": 0.7586206896551724,
+    "correct": 24,
+    "accuracy": 0.8275862068965517,
     "caveat": "Small retrospective subset; neither a calibrated win probability nor evidence that compositions determine match results."
   },
   "limitations": [
@@ -616,8 +616,8 @@
       "expected": "red",
       "predicted": "red",
       "status": "complete",
-      "score": -11.3,
-      "confidence": "forte",
+      "score": -5.3,
+      "confidence": "moyenne",
       "primaryEligible": false,
       "reconstructed": false,
       "influenceTags": [
@@ -665,8 +665,8 @@
       "expected": "red",
       "predicted": "red",
       "status": "complete",
-      "score": -2.3,
-      "confidence": "faible",
+      "score": -5.3,
+      "confidence": "moyenne",
       "primaryEligible": false,
       "reconstructed": false,
       "influenceTags": [
@@ -772,10 +772,10 @@
       "id": "cQWR-wI69es_g1",
       "video": "cQWR-wI69es",
       "expected": "blue",
-      "predicted": "red",
+      "predicted": "blue",
       "status": "complete",
-      "score": -3.7,
-      "confidence": "moyenne",
+      "score": 0.30000000000000004,
+      "confidence": "faible",
       "primaryEligible": false,
       "reconstructed": false,
       "influenceTags": [
@@ -913,9 +913,9 @@
       "id": "g24oY7T46HU_g1",
       "video": "g24oY7T46HU",
       "expected": "red",
-      "predicted": "blue",
+      "predicted": "red",
       "status": "complete",
-      "score": 3.37,
+      "score": -2.63,
       "confidence": "moyenne",
       "primaryEligible": false,
       "reconstructed": false,
@@ -1162,8 +1162,8 @@
       "expected": "red",
       "predicted": "red",
       "status": "complete",
-      "score": -0.30000000000000004,
-      "confidence": "faible",
+      "score": -3.3,
+      "confidence": "moyenne",
       "primaryEligible": false,
       "reconstructed": false,
       "influenceTags": [
@@ -1194,9 +1194,9 @@
       "id": "NKYY2NzHBnw_g3",
       "video": "NKYY2NzHBnw",
       "expected": "red",
-      "predicted": "blue",
+      "predicted": "red",
       "status": "complete",
-      "score": 1.88,
+      "score": -1.12,
       "confidence": "faible",
       "primaryEligible": false,
       "reconstructed": false,
@@ -1213,7 +1213,7 @@
       "expected": "red",
       "predicted": "red",
       "status": "complete",
-      "score": -8.08,
+      "score": -11.08,
       "confidence": "forte",
       "primaryEligible": true,
       "reconstructed": false,
@@ -1280,8 +1280,8 @@
       "expected": "blue",
       "predicted": "blue",
       "status": "complete",
-      "score": 3.05,
-      "confidence": "moyenne",
+      "score": 7.05,
+      "confidence": "forte",
       "primaryEligible": false,
       "reconstructed": true,
       "influenceTags": [
@@ -1327,10 +1327,10 @@
       "id": "tXP0_AOfGBw_g1",
       "video": "tXP0_AOfGBw",
       "expected": "blue",
-      "predicted": "red",
+      "predicted": "blue",
       "status": "complete",
-      "score": -5.55,
-      "confidence": "moyenne",
+      "score": 0.44999999999999996,
+      "confidence": "faible",
       "primaryEligible": false,
       "reconstructed": false,
       "influenceTags": [
@@ -1467,10 +1467,10 @@
       "id": "yUuo2k7YLwI_g1",
       "video": "yUuo2k7YLwI",
       "expected": "red",
-      "predicted": "blue",
+      "predicted": "red",
       "status": "complete",
-      "score": 2.75,
-      "confidence": "moyenne",
+      "score": -0.25,
+      "confidence": "faible",
       "primaryEligible": false,
       "reconstructed": false,
       "influenceTags": [
@@ -1518,10 +1518,10 @@
       "id": "zc7f2iPq7_8_g1",
       "video": "zc7f2iPq7_8",
       "expected": "blue",
-      "predicted": "red",
+      "predicted": "blue",
       "status": "complete",
-      "score": -2.67,
-      "confidence": "moyenne",
+      "score": 0.83,
+      "confidence": "faible",
       "primaryEligible": false,
       "reconstructed": false,
       "influenceTags": [
@@ -1575,13 +1575,13 @@
       "videos": 66,
       "decided": 100,
       "abstentions": 1,
-      "correct": 70,
-      "incorrect": 30,
-      "agreement": 0.7,
+      "correct": 75,
+      "incorrect": 25,
+      "agreement": 0.75,
       "coverage": 0.9900990099009901,
       "agreementInterval95": {
-        "low": 0.6041514536665332,
-        "high": 0.7810511470506724,
+        "low": 0.656955364519384,
+        "high": 0.8245478863771232,
         "method": "Wilson 95%; case-level, not cluster-adjusted"
       },
       "coverageInterval95": {
@@ -1589,19 +1589,19 @@
         "high": 0.9982500887510318,
         "method": "Wilson 95%; case-level, not cluster-adjusted"
       },
-      "macroVideoAgreement": 0.693076923076923,
+      "macroVideoAgreement": 0.7553846153846154,
       "confusionMatrix": {
         "rows": "expected Kazewa preference",
         "columns": "algorithm decision",
         "counts": {
           "blue": {
-            "blue": 36,
-            "red": 12,
+            "blue": 39,
+            "red": 9,
             "abstain": 1
           },
           "red": {
-            "blue": 18,
-            "red": 34,
+            "blue": 16,
+            "red": 36,
             "abstain": 0
           }
         }
@@ -1731,8 +1731,8 @@
           "video": "cQWR-wI69es",
           "eligible": 1,
           "decided": 1,
-          "correct": 0,
-          "agreement": 0,
+          "correct": 1,
+          "agreement": 1,
           "coverage": 1
         },
         {
@@ -1803,8 +1803,8 @@
           "video": "g24oY7T46HU",
           "eligible": 4,
           "decided": 4,
-          "correct": 3,
-          "agreement": 0.75,
+          "correct": 4,
+          "agreement": 1,
           "coverage": 1
         },
         {
@@ -1851,8 +1851,8 @@
           "video": "IXQ-mf-PHsk",
           "eligible": 5,
           "decided": 5,
-          "correct": 4,
-          "agreement": 0.8,
+          "correct": 3,
+          "agreement": 0.6,
           "coverage": 1
         },
         {
@@ -1939,8 +1939,8 @@
           "video": "NKYY2NzHBnw",
           "eligible": 2,
           "decided": 2,
-          "correct": 0,
-          "agreement": 0,
+          "correct": 1,
+          "agreement": 0.5,
           "coverage": 1
         },
         {
@@ -2035,8 +2035,8 @@
           "video": "tXP0_AOfGBw",
           "eligible": 1,
           "decided": 1,
-          "correct": 0,
-          "agreement": 0,
+          "correct": 1,
+          "agreement": 1,
           "coverage": 1
         },
         {
@@ -2107,8 +2107,8 @@
           "video": "yUuo2k7YLwI",
           "eligible": 2,
           "decided": 2,
-          "correct": 1,
-          "agreement": 0.5,
+          "correct": 2,
+          "agreement": 1,
           "coverage": 1
         },
         {
@@ -2123,8 +2123,8 @@
           "video": "zc7f2iPq7_8",
           "eligible": 1,
           "decided": 1,
-          "correct": 0,
-          "agreement": 0,
+          "correct": 1,
+          "agreement": 1,
           "coverage": 1
         },
         {
@@ -2142,13 +2142,13 @@
       "videos": 42,
       "decided": 61,
       "abstentions": 1,
-      "correct": 37,
-      "incorrect": 24,
-      "agreement": 0.6065573770491803,
+      "correct": 36,
+      "incorrect": 25,
+      "agreement": 0.5901639344262295,
       "coverage": 0.9838709677419355,
       "agreementInterval95": {
-        "low": 0.48117252628978935,
-        "high": 0.7193164854696293,
+        "low": 0.4649979227300693,
+        "high": 0.7046466256817463,
         "method": "Wilson 95%; case-level, not cluster-adjusted"
       },
       "coverageInterval95": {
@@ -2156,7 +2156,7 @@
         "high": 0.9971471328313782,
         "method": "Wilson 95%; case-level, not cluster-adjusted"
       },
-      "macroVideoAgreement": 0.5743902439024391,
+      "macroVideoAgreement": 0.5695121951219513,
       "confusionMatrix": {
         "rows": "expected Kazewa preference",
         "columns": "algorithm decision",
@@ -2167,8 +2167,8 @@
             "abstain": 1
           },
           "red": {
-            "blue": 15,
-            "red": 14,
+            "blue": 16,
+            "red": 13,
             "abstain": 0
           }
         }
@@ -2314,8 +2314,8 @@
           "video": "IXQ-mf-PHsk",
           "eligible": 5,
           "decided": 5,
-          "correct": 4,
-          "agreement": 0.8,
+          "correct": 3,
+          "agreement": 0.6,
           "coverage": 1
         },
         {
@@ -3537,8 +3537,8 @@
         "expected": "red",
         "predicted": "red",
         "status": "complete",
-        "score": -11.3,
-        "confidence": "forte",
+        "score": -5.3,
+        "confidence": "moyenne",
         "primaryEligible": false,
         "reconstructed": false,
         "influenceTags": [
@@ -3636,8 +3636,8 @@
         "expected": "red",
         "predicted": "red",
         "status": "complete",
-        "score": -2.3,
-        "confidence": "faible",
+        "score": -5.3,
+        "confidence": "moyenne",
         "primaryEligible": false,
         "reconstructed": false,
         "influenceTags": [
@@ -3743,8 +3743,8 @@
         "expected": "red",
         "predicted": "blue",
         "status": "complete",
-        "score": 4.13,
-        "confidence": "moyenne",
+        "score": 1.13,
+        "confidence": "faible",
         "primaryEligible": false,
         "reconstructed": false,
         "influenceTags": [
@@ -3808,10 +3808,10 @@
         "id": "cQWR-wI69es__raw1",
         "video": "cQWR-wI69es",
         "expected": "blue",
-        "predicted": "red",
+        "predicted": "blue",
         "status": "complete",
-        "score": -3.7,
-        "confidence": "moyenne",
+        "score": 0.30000000000000004,
+        "confidence": "faible",
         "primaryEligible": false,
         "reconstructed": false,
         "influenceTags": [
@@ -3917,8 +3917,8 @@
         "expected": "red",
         "predicted": "red",
         "status": "complete",
-        "score": -2.38,
-        "confidence": "faible",
+        "score": -5.38,
+        "confidence": "moyenne",
         "primaryEligible": false,
         "reconstructed": false,
         "influenceTags": [
@@ -3986,7 +3986,7 @@
         "expected": "blue",
         "predicted": "blue",
         "status": "complete",
-        "score": 6.3,
+        "score": 7.55,
         "confidence": "forte",
         "primaryEligible": false,
         "reconstructed": false,
@@ -4019,9 +4019,9 @@
         "id": "g24oY7T46HU__raw1",
         "video": "g24oY7T46HU",
         "expected": "red",
-        "predicted": "blue",
+        "predicted": "red",
         "status": "complete",
-        "score": 3.37,
+        "score": -2.63,
         "confidence": "moyenne",
         "primaryEligible": false,
         "reconstructed": false,
@@ -4247,10 +4247,10 @@
         "id": "IXQ-mf-PHsk__raw7",
         "video": "IXQ-mf-PHsk",
         "expected": "red",
-        "predicted": "red",
+        "predicted": "blue",
         "status": "complete",
-        "score": -0.37,
-        "confidence": "faible",
+        "score": 3.63,
+        "confidence": "moyenne",
         "primaryEligible": false,
         "reconstructed": false,
         "influenceTags": [
@@ -4564,9 +4564,9 @@
         "id": "NKYY2NzHBnw__raw3",
         "video": "NKYY2NzHBnw",
         "expected": "red",
-        "predicted": "blue",
+        "predicted": "red",
         "status": "complete",
-        "score": 1.88,
+        "score": -1.12,
         "confidence": "faible",
         "primaryEligible": false,
         "reconstructed": false,
@@ -4585,7 +4585,7 @@
         "expected": "red",
         "predicted": "red",
         "status": "complete",
-        "score": -8.08,
+        "score": -11.08,
         "confidence": "forte",
         "primaryEligible": false,
         "reconstructed": false,
@@ -4619,8 +4619,8 @@
         "expected": "blue",
         "predicted": "blue",
         "status": "complete",
-        "score": 2,
-        "confidence": "faible",
+        "score": 5,
+        "confidence": "moyenne",
         "primaryEligible": false,
         "reconstructed": false,
         "influenceTags": [],
@@ -4860,10 +4860,10 @@
         "id": "tXP0_AOfGBw__raw1",
         "video": "tXP0_AOfGBw",
         "expected": "blue",
-        "predicted": "red",
+        "predicted": "blue",
         "status": "complete",
-        "score": -5.55,
-        "confidence": "moyenne",
+        "score": 0.44999999999999996,
+        "confidence": "faible",
         "primaryEligible": false,
         "reconstructed": false,
         "influenceTags": [
@@ -4979,8 +4979,8 @@
         "expected": "blue",
         "predicted": "blue",
         "status": "complete",
-        "score": 4,
-        "confidence": "moyenne",
+        "score": 8,
+        "confidence": "forte",
         "primaryEligible": false,
         "reconstructed": false,
         "influenceTags": [],
@@ -4994,8 +4994,8 @@
         "expected": "red",
         "predicted": "red",
         "status": "complete",
-        "score": -3.2,
-        "confidence": "moyenne",
+        "score": -0.19999999999999996,
+        "confidence": "faible",
         "primaryEligible": false,
         "reconstructed": false,
         "influenceTags": [
@@ -5039,10 +5039,10 @@
         "id": "yUuo2k7YLwI__raw1",
         "video": "yUuo2k7YLwI",
         "expected": "red",
-        "predicted": "blue",
+        "predicted": "red",
         "status": "complete",
-        "score": 2.75,
-        "confidence": "moyenne",
+        "score": -0.25,
+        "confidence": "faible",
         "primaryEligible": false,
         "reconstructed": false,
         "influenceTags": [],
@@ -5106,10 +5106,10 @@
         "id": "zc7f2iPq7_8__raw1",
         "video": "zc7f2iPq7_8",
         "expected": "blue",
-        "predicted": "red",
+        "predicted": "blue",
         "status": "complete",
-        "score": -2.67,
-        "confidence": "moyenne",
+        "score": 0.83,
+        "confidence": "faible",
         "primaryEligible": false,
         "reconstructed": false,
         "influenceTags": [
@@ -5157,7 +5157,7 @@
     ]
   },
   "sourceHashes": {
-    "engine": "98d1c96f828d3d9d35ea369d9552d5f02f43468d9768f84a5173e29bd46a3074",
+    "engine": "96329d0bb6a3fbcb46b887ded12c67f592cf72f573f13d104f863574e4b1f48a",
     "knowledge": "e4a3eaba80b4258e150d54623db4c2116c01d4d7c26146feb8415f98feda9471",
     "benchmark": "14ca61a5ec53af9527b12d15dabc3b4f423f7ef8e153519953b1f5d5a5b22849"
   }

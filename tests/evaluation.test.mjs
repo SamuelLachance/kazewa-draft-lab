@@ -467,7 +467,7 @@ test("exploratory full-review examples cannot contribute to the fidelity gate", 
   assert.equal(report.exploratoryRaw.contributesToFidelityGate, false);
 });
 
-test("shipped scorer agrees with Kazewa on at least 90 percent of decided drafts", async () => {
+test("shipped scorer agrees with Kazewa on at least 98 percent of decided drafts", async () => {
   const realKnowledge = JSON.parse(
     await readFile(new URL("../data/knowledge.json", import.meta.url), "utf8"),
   );
@@ -475,10 +475,15 @@ test("shipped scorer agrees with Kazewa on at least 90 percent of decided drafts
     await readFile(new URL("../data/benchmark.json", import.meta.url), "utf8"),
   );
   const report = evaluateBenchmark(benchmark, realKnowledge, analyzeDraft);
-  assert.ok(report.broader.decided >= 57);
-  assert.ok(report.broader.coverage >= 0.8);
-  assert.ok(report.broader.agreement >= 0.9);
+  assert.equal(report.broader.eligible, 62);
+  assert.equal(report.broader.decided, report.broader.eligible);
+  assert.equal(report.broader.coverage, 1);
+  assert.ok(report.broader.agreement >= 0.98);
+  assert.ok(report.broader.agreement <= 1);
   assert.equal(report.gate.passed, false);
+  console.log(
+    `broader agreement ${report.broader.agreement} correct ${report.broader.correct}/${report.broader.decided} coverage ${report.broader.coverage}`,
+  );
   for (const record of benchmark.cases) {
     const forward = analyzeDraft(
       { blue: { ...record.blue }, red: { ...record.red } },

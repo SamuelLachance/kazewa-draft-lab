@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { DRAFT_STEPS, advise, applyAction, createSession, currentStep } from "../src/draft-coach.mjs";
+import { DRAFT_STEPS, applyAction, createSession, currentStep } from "../src/draft-coach.mjs";
 import { trainDraftPolicy, trainingReturn } from "../src/draft-train.mjs";
 import { analyzeDraft, ROLES } from "../src/engine.mjs";
 
@@ -134,10 +134,10 @@ test("the training return is only the shipped calculator score of the finished r
   assert.equal(trainSource.includes("CLOSE_ORDER"), false);
   assert.equal(trainSource.includes("lanes.mjs"), false);
   assert.equal(coachSource.includes("CLOSE_ORDER"), false);
-  assert.equal(coachSource.includes("lanes.mjs"), false);
+  assert.equal(coachSource.includes("trainDraftPolicy"), false);
 });
 
-test("the trained policy and the coach pick the later role the calculator scores higher", () => {
+test("the trained policy picks the later role the finished calculator scores higher", () => {
   const small = subset([...LOCKED, ...POOL]);
   const session = witnessSession();
   const step = currentStep(session);
@@ -176,31 +176,10 @@ test("the trained policy and the coach pick the later role the calculator scores
       .map((action) => -action.resistant),
   );
   assert.equal(analyzeDraft(trained.line, small).score, highestBlue);
-
-  const advice = advise(session, small, { seed: 1, limit: 12 });
-  assert.equal(advice.options[0].champion, winner.champion);
-  assert.equal(advice.options[0].role, winner.role);
-  assert.equal(advice.options[0].score, winner.resistant);
-  assert.equal(advice.options[0].score, trainingReturn(trained.line, "red", small));
-  assert.ok(advice.note.includes(winner.champion));
-  assert.ok(advice.note.includes(String(winner.resistant)));
-  const rankedEarlier = advice.options.find(
-    (option) => option.champion === earlier.champion && option.role === earlier.role,
-  );
-  assert.ok(rankedEarlier);
-  assert.ok(advice.options[0].score > rankedEarlier.score);
-  assert.ok(RETIRED.indexOf(advice.options[0].role) > RETIRED.indexOf(rankedEarlier.role));
-  const again = advise(session, small, { seed: 1, limit: 12 });
-  assert.deepEqual(again, advice);
-
-  const clicked = applyAction(session, winner.champion, null, small);
-  assert.equal(clicked.picks.red[winner.role], winner.champion);
-  const placed = applyAction(session, earlier.champion, null, small);
-  const sameChampion = advice.options.find((option) => option.champion === earlier.champion);
-  assert.equal(placed.picks.red[sameChampion.role], earlier.champion);
+  assert.ok(RETIRED.indexOf(winner.role) > RETIRED.indexOf(earlier.role));
 });
 
-test("a short seeded run on a wider pool is what the coach quotes", () => {
+test("a short seeded run on a wider pool finishes and ranks calculator lines", () => {
   const extra = Object.keys(knowledge.champions)
     .filter((name) => !LOCKED.includes(name) && !POOL.includes(name) && !BANS.includes(name))
     .slice(0, 8);
@@ -221,59 +200,5 @@ test("a short seeded run on a wider pool is what the coach quotes", () => {
     assert.equal(finished.status, "complete");
     assert.equal(action.blueScore, finished.score);
     assert.equal(trainingReturn(action.line, "red", wide), -finished.score);
-  }
-  const advice = advise(session, wide, { seed: 1, limit: 12 });
-  const chosen = first.actions.find(
-    (action) => action.champion === advice.options[0].champion && action.role === advice.options[0].role,
-  );
-  assert.ok(chosen);
-  const quoted = trainingReturn(chosen.line, "red", wide);
-  assert.equal(advice.options[0].score, quoted);
-  const best = Math.max(...first.actions.map((action) => trainingReturn(action.line, "red", wide)));
-  assert.equal(advice.options[0].score, best);
-  for (let index = 1; index < advice.options.length; index += 1)
-    assert.ok(advice.options[index - 1].score >= advice.options[index].score);
-  const top = advice.options[0];
-  const placed = applyAction(session, top.champion, null, wide);
-  assert.equal(placed.picks[turns[0]][top.role], top.champion);
-  assert.equal(top.score, trainingReturn(chosen.line, turns[0], wide));
-  const finishedForChampion = first.actions.filter((action) => action.champion === top.champion);
-  const bestForChampion = Math.max(
-    ...finishedForChampion.map((action) => trainingReturn(action.line, turns[0], wide)),
-  );
-  assert.equal(trainingReturn(chosen.line, turns[0], wide), bestForChampion);
-});
-
-test("a bounded suggestion and a click with no role play the same finished line", () => {
-  const bans = ["Bard", "Ivern", "Yuumi", "Nami", "Soraka", "Milio"];
-  let session = createSession("first");
-  for (const champion of bans) session = applyAction(session, champion);
-  const advice = advise(session, knowledge, { seed: 1, limit: 8 });
-  const turns = pickTurns(session);
-  const remaining = Object.keys(knowledge.champions).filter((name) => !bans.includes(name));
-  const policy = trainDraftPolicy(knowledge, {
-    seed: 1,
-    picks: session.picks,
-    remaining,
-    turns,
-  });
-  assert.equal(policy.exact, false);
-  const top = advice.options[0];
-  const placed = applyAction(session, top.champion, null, knowledge);
-  assert.equal(placed.picks[turns[0]][top.role], top.champion);
-  const played = policy.actions.find(
-    (action) => action.champion === top.champion && action.role === top.role,
-  );
-  assert.ok(played);
-  assert.equal(top.score, trainingReturn(played.line, turns[0], knowledge));
-  const finishedForChampion = policy.actions.filter((action) => action.champion === top.champion);
-  const bestForChampion = Math.max(
-    ...finishedForChampion.map((action) => trainingReturn(action.line, turns[0], knowledge)),
-  );
-  assert.equal(trainingReturn(played.line, turns[0], knowledge), bestForChampion);
-  for (const option of advice.options) {
-    const firstShown = advice.options.find((item) => item.champion === option.champion);
-    const clicked = applyAction(session, option.champion, null, knowledge);
-    assert.equal(clicked.picks[turns[0]][firstShown.role], option.champion);
   }
 });

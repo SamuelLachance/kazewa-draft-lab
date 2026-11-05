@@ -514,7 +514,9 @@ function renderDraftSide(side, advice) {
   const step = advice.step;
   const active = Boolean(step && step.side === side);
   const highlight =
-    active && step.action === "pick" ? advice.options[0]?.role : null;
+    active && step.action === "pick" && !advice.options[0]?.flex
+      ? advice.options[0]?.role
+      : null;
   const bans = Array.from({ length: 5 }, (_, index) => {
     const name = coach.bans[side][index];
     const now = active && step.action === "ban" && coach.bans[side].length === index;
@@ -529,8 +531,16 @@ function renderDraftSide(side, advice) {
     .join("");
   return `<div class="team-heading"><span class="team-side">${side === "blue" ? "BLUE SIDE" : "RED SIDE"}</span><h3>${side === coach.userSide ? "Ton côté" : "Adverse"}</h3></div><div class="ban-row">${bans}</div>${picks}`;
 }
+function formatCoachScore(score) {
+  if (!Number.isFinite(score) || Object.is(score, -0)) return "0";
+  const rounded = Math.round(score * 100) / 100;
+  const text = Object.is(rounded, -0) ? "0" : String(rounded);
+  return rounded > 0 ? `+${text}` : text;
+}
 function renderCoachGrid(advice) {
   const taken = coachTaken();
+  const ranked = advice.pool || advice.options;
+  const byName = new Map(ranked.map((option) => [option.champion, option]));
   const suggested = new Set(advice.options.map((option) => option.champion));
   const query = coachQuery
     .normalize("NFD")
@@ -548,17 +558,23 @@ function renderCoachGrid(advice) {
         .includes(query);
     })
     .sort((a, b) => {
-      const rank = Number(suggested.has(b)) - Number(suggested.has(a));
-      if (rank) return rank;
       const used = Number(taken.has(a)) - Number(taken.has(b));
-      return used || a.localeCompare(b, "fr");
+      if (used) return used;
+      const score = (byName.get(b)?.score ?? -Infinity) - (byName.get(a)?.score ?? -Infinity);
+      if (score) return score;
+      return a.localeCompare(b, "fr");
     });
+  const picking = advice.step?.action === "pick";
   $("#coach-grid").innerHTML = names
     .map((name) => {
       const used = taken.has(name) || advice.done;
-      const hint = advice.options.find((option) => option.champion === name);
+      const hint = byName.get(name);
       const title = hint?.reasons?.[0] ? ` title="${esc(hint.reasons[0])}"` : "";
-      return `<button type="button" class="champ-tile${suggested.has(name) ? " is-suggested" : ""}${taken.has(name) ? " is-taken" : ""}" data-champion="${esc(name)}"${title}${used ? " disabled" : ""}>${championImage(name, 74)}<span>${esc(name)}</span></button>`;
+      const score = hint ? formatCoachScore(hint.score) : "";
+      const tone = !hint || hint.score === 0 ? "" : hint.score > 0 ? " is-up" : " is-down";
+      const role = hint && picking ? (hint.flex ? "FLEX" : ROLE_LABEL[hint.role]) : "";
+      const label = [name, score, role].filter(Boolean).join(" ");
+      return `<button type="button" class="champ-tile${suggested.has(name) ? " is-suggested" : ""}${taken.has(name) ? " is-taken" : ""}" data-champion="${esc(name)}" data-score="${esc(score)}" aria-label="${esc(label)}"${title}${used ? " disabled" : ""}>${championImage(name, 74)}${score ? `<span class="champ-score${tone}">${esc(score)}</span>` : ""}${role ? `<span class="champ-role">${esc(role)}</span>` : ""}<span class="champ-name">${esc(name)}</span></button>`;
     })
     .join("");
 }

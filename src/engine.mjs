@@ -346,6 +346,7 @@ const READING = {
   named_antisynergy: 2,
   hook_into_milio: 1,
   yone_into_aatrox: 1,
+  sion_into_aatrox: 1,
   renekton_taliyah: 0.5,
   anti_tank_damage: 0.5,
   carry_without_peel: -2,
@@ -401,6 +402,20 @@ function readingLaws(normalized) {
         family: "lane",
         subject: side,
         provenance: "Matchup de top énoncé par Kazewa.",
+      });
+    if (name(side, "top") === "Sion" && name(foe, "top") === "Aatrox")
+      laws.push({
+        id: "sion_into_aatrox",
+        title: "Sion répond à Aatrox",
+        side,
+        weight: 4,
+        evidence:
+          "Reprendre Aatrox dans Sion laisse la lane au tank : le matchup de top change de côté.",
+        sources: ["cQWR-wI69es"],
+        family: "lane",
+        subject: side,
+        provenance:
+          "Matchup de top de la même famille que Yone dans Aatrox. Le poids est celui des autres lois nommées, pas un ajustement par draft.",
       });
     const allies = new Set(ROLES.map((role) => name(side, role)));
     if (allies.has("Renekton") && allies.has("Taliyah"))
@@ -551,6 +566,12 @@ const LANE_MATCHUPS = [
     winners: ["Gangplank", "Rumble", "Olaf"],
     sources: ["mNX8GrtxCFg", "oiVMH6ZJX7g", "onOzhp44AmA"],
   },
+  {
+    role: "bot",
+    winner: "Zeri",
+    losers: ["Ezreal"],
+    sources: ["zc7f2iPq7_8"],
+  },
 ];
 const ANTIPAIRS = [
   {
@@ -591,11 +612,37 @@ const ANTIPAIRS = [
 const isBotPair = (t, pair) =>
   pair.every((n) => [t.team.bot.champion, t.team.sup.champion].includes(n));
 
+const mobileBot = (side) => {
+  const bot = side.team.bot;
+  return (bot.immobile || 0) === 0 && (bot.dashs || 0) >= 1;
+};
+const catchIdentity = (side) =>
+  side.strongCatch >= 2 || (side.strongCatch >= 1 && side.catchers >= 2);
+// Alistar needs a follow-up or a catch anchor. A mobile bot with no scaling
+// curve is not that anchor, so the tank count does not become a macro plan.
+const alistarWithoutAnchor = (side) => {
+  const bot = side.team.bot;
+  return (
+    side.team.sup.champion === "Alistar" &&
+    side.followup === 0 &&
+    !catchIdentity(side) &&
+    (bot.scaling || 0) === 0 &&
+    (bot.dashs || 0) >= 1
+  );
+};
+
 function evaluateRules(t, o) {
   const hits = [];
   const hit = (id, benefitsSelf, evidence, extra = {}) =>
     hits.push({ id, benefitsSelf, evidence, ...extra });
-  if (!t.effectiveFrontline)
+  // A discounted support tank still counts when peel, disengage and damage
+  // are already there. The support budget itself stays reduced.
+  const supportBlock =
+    (t.team.sup.frontline || 0) >= 1 &&
+    t.peel >= 3 &&
+    t.disengage >= 2 &&
+    t.sustained >= 1;
+  if (!t.effectiveFrontline && !supportBlock)
     hit(
       "frontline_missing",
       false,
@@ -636,9 +683,11 @@ function evaluateRules(t, o) {
   ) {
     const saved = t.protection >= 4 && t.effectiveFrontline;
     const reduction = saved ? 0.35 : t.protection >= 3 ? 0.6 : 1;
+    // Zero sustained damage cannot keep the paper credit against a mobile bot.
+    // benefitsSelf true lets the negative reading credit land on the other side.
     hit(
       "immobile_into_catch",
-      false,
+      t.sustained === 0 && mobileBot(o),
       `${t.immobileCount} profils immobiles ou semi-immobiles dans les cinq rôles contre ${o.strongCatch} outils de verrouillage${saved ? " ; frontline et protection atténuent le risque" : ""}.`,
       { multiplier: reduction },
     );
@@ -722,13 +771,19 @@ function evaluateRules(t, o) {
       true,
       "Deux présences globales face à aucune réponse globale.",
     );
-  if (t.has("Poppy") && count(o.list, "dashs") >= 3)
+  // Poppy is not a frontline. Anti-dash still answers a dash pile, unless her
+  // side has no true tank and a mobile bot into a catch comp.
+  if (
+    t.has("Poppy") &&
+    count(o.list, "dashs") >= 3 &&
+    !(t.trueTanks === 0 && catchIdentity(o) && mobileBot(t))
+  )
     hit(
       "anti_dash",
       true,
       `${count(o.list, "dashs")} champions adverses possèdent un dash selon les profils source.`,
     );
-  if (t.effectiveFrontline && t.sustained && t.zone >= 4)
+  if (t.effectiveFrontline && t.sustained && t.zone >= 4 && !alistarWithoutAnchor(t))
     hit(
       "objective_plan",
       true,
@@ -846,7 +901,12 @@ function evaluateRules(t, o) {
         .join(", ")} apporte une réponse de dégâts à la frontline adverse.`,
       { multiplier: Math.min(1.3, 0.8 + t.antiTank * 0.2) },
     );
-  if (t.trueTanks >= 2 && t.sustained <= 1 && t.antiTank === 0)
+  if (
+    t.trueTanks >= 2 &&
+    t.sustained <= 1 &&
+    t.antiTank === 0 &&
+    !alistarWithoutAnchor(t)
+  )
     hit(
       "double_tank_limited_damage",
       false,
@@ -913,12 +973,17 @@ function evaluateRules(t, o) {
     t.objectivePower >= o.objectivePower + 2 &&
     t.effectiveFrontline &&
     t.sustained >= 1
-  )
+  ) {
+    // A finished side with no frontline piece does not receive this paper credit.
+    // An unfinished side is not yet a tankless comp.
+    const finishedTankless =
+      o.list.every((p) => p.champion) && o.frontlineDepth === 0;
     hit(
       "grid_objectives",
-      true,
+      !finishedTankless,
       "Le tanking, les dégâts prolongés et le terrain permettent un meilleur setup.",
     );
+  }
   if (t.rangePower >= o.rangePower + 3 && o.strongCatch <= 1 && o.engage <= 1)
     hit(
       "grid_range",

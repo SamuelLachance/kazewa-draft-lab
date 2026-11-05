@@ -1482,11 +1482,15 @@ footer > .mono {
 }
 @media (max-width: 760px) {
   .app-shell {
-    padding: 0 20px;
+    padding: 0 max(20px, env(safe-area-inset-right)) env(safe-area-inset-bottom)
+      max(20px, env(safe-area-inset-left));
   }
   .topbar {
-    height: 85px;
-    gap: 12px;
+    height: auto;
+    min-height: 0;
+    gap: 8px 12px;
+    flex-wrap: wrap;
+    padding-top: max(8px, env(safe-area-inset-top));
   }
   .brand {
     font-size: 18px;
@@ -1503,14 +1507,19 @@ footer > .mono {
     margin-top: 5px;
   }
   .main-nav {
-    gap: 18px;
+    order: 3;
+    flex: 1 0 100%;
+    margin-left: 0;
+    gap: 2px;
+    justify-content: space-between;
+    overflow-x: auto;
   }
   .nav-button {
+    flex: 1 0 auto;
+    justify-content: center;
     font-size: 11px;
-    padding: 30px 0 28px;
-  }
-  .main-nav .nav-button[data-view="method"] {
-    display: none;
+    padding: 10px 4px 8px;
+    white-space: nowrap;
   }
   .hero {
     padding: 39px 0 30px;
@@ -1525,7 +1534,7 @@ footer > .mono {
     letter-spacing: 1px;
   }
   h1 {
-    font-size: 58px;
+    font-size: clamp(34px, 11vw, 58px);
     line-height: 1.03;
   }
   .hero-description {
@@ -1567,13 +1576,14 @@ footer > .mono {
     font-size: 10px;
   }
   .draft-toolbar {
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: stretch;
     gap: 10px;
   }
   .toolbar-note {
-    font-size: 9px;
+    font-size: 12px;
     line-height: 1.5;
-    max-width: 175px;
+    max-width: none;
   }
   .toolbar-note .keycap {
     display: none;
@@ -1819,6 +1829,7 @@ footer > .mono {
   }
   .evaluation-details {
     padding: 18px;
+    overflow-x: auto;
   }
   .eval-stat strong {
     font-size: 31px;
@@ -1944,11 +1955,17 @@ body[data-view="coach"] .principles-strip {
   font: 9px var(--mono);
   letter-spacing: 1px;
 }
+.pick-slot > div:last-child {
+  min-width: 0;
+}
 .pick-slot strong {
   font-family: var(--heading);
   font-size: 18px;
   letter-spacing: 0.3px;
   line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .pick-face {
   width: 46px;
@@ -2025,14 +2042,39 @@ body[data-view="coach"] .principles-strip {
   object-fit: cover;
   display: block;
 }
-.champ-tile span {
+.champ-tile .champ-score,
+.champ-tile .champ-role,
+.champ-tile .champ-name {
   display: block;
-  font-size: 10px;
-  line-height: 1.2;
-  padding: 3px 2px 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.champ-tile .champ-score {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  padding: 3px 2px 0;
+  color: var(--muted);
+}
+.champ-tile .champ-score.is-up {
+  color: var(--lime);
+}
+.champ-tile .champ-score.is-down {
+  color: var(--red);
+}
+.champ-tile .champ-role {
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  line-height: 1.2;
+  color: var(--muted);
+  padding: 0 2px;
+}
+.champ-tile .champ-name {
+  font-size: 10px;
+  line-height: 1.2;
+  padding: 1px 2px 4px;
 }
 .champ-tile.is-suggested {
   outline: 2px solid var(--lime);
@@ -2074,6 +2116,36 @@ body[data-view="coach"] .principles-strip {
   }
   .champion-grid {
     max-height: 52vh;
+  }
+}
+@media (max-width: 760px) {
+  .lane-filters button {
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+}
+@media (max-height: 520px) {
+  .topbar {
+    height: auto;
+  }
+  .hero {
+    padding: 16px 0 12px;
+    gap: 20px;
+  }
+  h1 {
+    font-size: clamp(28px, 6vw, 44px);
+    margin-top: 8px;
+  }
+  .hero-description {
+    margin-top: 8px;
+  }
+  .nav-button {
+    padding-top: 12px;
+    padding-bottom: 10px;
+  }
+  .champion-grid {
+    max-height: 68vh;
   }
 }
 @media (prefers-reduced-motion: reduce) {
