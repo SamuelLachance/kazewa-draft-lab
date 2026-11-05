@@ -1,5 +1,6 @@
 /** Turn order and structural ban/pick advice. The final score still ignores bans. */
 import { analyzeDraft, ROLES, SYNERGIES } from "./engine.mjs";
+import { LANES } from "./lanes.mjs";
 
 const SIDES = ["blue", "red"];
 const other = (side) => (side === "blue" ? "red" : "blue");
@@ -117,6 +118,14 @@ function needs(session, knowledge, side) {
   };
 }
 
+function laneFit(champion, role) {
+  const lanes = LANES[champion];
+  if (!lanes?.length) return { bonus: 0, rank: 50, onLane: false };
+  const rank = lanes.indexOf(role);
+  if (rank === -1) return { bonus: -4, rank: 90, onLane: false };
+  return { bonus: 2.4, rank, onLane: true };
+}
+
 function synergyBonus(champion, allies) {
   const partners = [];
   for (const synergy of SYNERGIES) {
@@ -178,6 +187,9 @@ function scoreForRole(
     score += 2.4;
     reasons.push(`synergie avec ${partners[0]}`);
   }
+  const lane = laneFit(profile.champion, role);
+  score += lane.bonus;
+  if (lane.onLane) reasons.push("rôle habituel");
   if (firstBluePick && (role === "bot" || role === "jng")) {
     score += 0.8;
     reasons.push("tes notes ouvrent le first pick bleu sur l’ADC ou la jungle");
@@ -201,7 +213,13 @@ function bestPlacement(session, knowledge, side, champion, extra = {}) {
   let best = null;
   for (const role of openRoles(session, side)) {
     const scored = scoreForRole(profile, role, gap, allies, extra);
-    if (!best || scored.score > best.score) best = { role, ...scored };
+    const rank = laneFit(champion, role).rank;
+    if (
+      !best ||
+      scored.score > best.score ||
+      (scored.score === best.score && rank < best.rank)
+    )
+      best = { role, rank, ...scored };
   }
   return best;
 }
@@ -294,7 +312,7 @@ export function advise(session, knowledge, { limit = 5 } = {}) {
     options: options.slice(0, limit),
     result: null,
     note: step.ours
-      ? "Suggestion pour ton tour. Elle suit les profils du moteur, pas une probabilité de victoire."
+      ? "Suggestion pour ton tour. Elle suit l’ordre de draft, le rôle habituel du champion et les profils du moteur. Ce n’est pas une probabilité de victoire."
       : "Tour adverse. Le modèle indique seulement le choix structurel le plus fort, pas ce que l’équipe va jouer.",
   };
 }

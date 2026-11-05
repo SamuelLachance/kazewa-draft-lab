@@ -9,6 +9,7 @@ import {
   currentStep,
   undo,
 } from "../src/draft-coach.mjs";
+import { LANES } from "../src/lanes.mjs";
 
 const knowledge = JSON.parse(
   await readFile(new URL("../data/knowledge.json", import.meta.url), "utf8"),
@@ -59,6 +60,24 @@ test("advice stays inside the remaining pool and pick advice names an open role"
   assert.equal(pick.step.action, "pick");
   assert.equal(pick.step.side, "blue");
   assert.ok(pick.options.every((option) => ["top", "jng", "mid", "bot", "sup"].includes(option.role)));
+});
+
+test("every modeled champion has a usual lane and early picks stay on it", () => {
+  for (const name of Object.keys(knowledge.champions))
+    assert.ok(LANES[name]?.length, name);
+  let session = createSession("first");
+  const bans = ["Bard", "Ivern", "Yuumi", "Nami", "Soraka", "Milio"];
+  let ban = 0;
+  while (currentStep(session).action === "ban")
+    session = applyAction(session, bans[ban++]);
+  const options = advise(session, knowledge, { limit: 400 }).options;
+  const roleOf = (name) => options.find((option) => option.champion === name)?.role;
+  assert.equal(roleOf("Azir"), "mid");
+  assert.equal(roleOf("Caitlyn"), "bot");
+  assert.equal(roleOf("Lee Sin"), "jng");
+  assert.equal(roleOf("Thresh"), "sup");
+  assert.equal(roleOf("Briar"), "jng");
+  assert.ok(options.slice(0, 5).every((option) => LANES[option.champion].includes(option.role)));
 });
 
 test("a documented partner raises the paired champion above the same champion alone", () => {
