@@ -528,7 +528,9 @@ function renderCoachGrid(advice) {
   $("#coach-grid").innerHTML = names
     .map((name) => {
       const used = taken.has(name) || advice.done;
-      return `<button type="button" class="champ-tile${suggested.has(name) ? " is-suggested" : ""}${taken.has(name) ? " is-taken" : ""}" data-champion="${esc(name)}"${used ? " disabled" : ""}>${championImage(name, 74)}<span>${esc(name)}</span></button>`;
+      const hint = advice.options.find((option) => option.champion === name);
+      const title = hint?.reasons?.[0] ? ` title="${esc(hint.reasons[0])}"` : "";
+      return `<button type="button" class="champ-tile${suggested.has(name) ? " is-suggested" : ""}${taken.has(name) ? " is-taken" : ""}" data-champion="${esc(name)}"${title}${used ? " disabled" : ""}>${championImage(name, 74)}<span>${esc(name)}</span></button>`;
     })
     .join("");
 }

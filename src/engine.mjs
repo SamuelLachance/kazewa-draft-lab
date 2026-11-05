@@ -1109,6 +1109,72 @@ export function analyzeDraft(draft, knowledge) {
     ];
     return base;
   }
+  return { ...base, status: "complete", ...publishVerdict(normalized, knowledge) };
+}
+
+const EMPTY_PROFILE = {
+  champion: "",
+  catch: 0,
+  engage: 0,
+  follow_up: 0,
+  immobile: 0,
+  dashs: 0,
+  anti_dash: 0,
+  frontline: 0,
+  peel: 0,
+  disengage: 0,
+  scaling: 0,
+  snowball_early: 0,
+  bridge: 0,
+  dps: 0,
+  burst: 0,
+  global: 0,
+  split: 0,
+  poke: 0,
+  zone: 0,
+  source: {},
+};
+
+function emptyProfile(role) {
+  return { ...EMPTY_PROFILE, role };
+}
+
+// Same published signals as a finished draft. Empty roles stay blank so the
+// coach can rank a champion before the ten locks exist. analyzeDraft still
+// abstains on an incomplete board.
+export function scorePartial(draft, knowledge) {
+  if (!knowledge?.champions || !Array.isArray(knowledge.rules)) {
+    return {
+      status: "invalid",
+      winner: null,
+      score: 0,
+      margin: 0,
+      confidence: "indeterminee",
+      signals: [],
+    };
+  }
+  const normalized = { blue: {}, red: {} };
+  let missing = 0;
+  for (const side of SIDES) {
+    for (const role of ROLES) {
+      const value = draft?.[side]?.[role];
+      const name =
+        typeof value === "string" && value
+          ? normalizeChampion(value, knowledge)
+          : null;
+      if (!name) missing += 1;
+      normalized[side][role] = name
+        ? { ...knowledge.champions[name], role }
+        : emptyProfile(role);
+    }
+  }
+  return {
+    ...publishVerdict(normalized, knowledge),
+    status: missing ? "partial" : "complete",
+  };
+}
+
+function publishVerdict(normalized, knowledge) {
   const teams = Object.fromEntries(
     SIDES.map((s) => [s, summarize(normalized[s])]),
   );
@@ -1242,8 +1308,6 @@ export function analyzeDraft(draft, knowledge) {
     }),
   );
   return {
-    ...base,
-    status: "complete",
     winner,
     score,
     margin,

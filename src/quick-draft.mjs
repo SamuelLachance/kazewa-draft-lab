@@ -30,6 +30,63 @@ function dictionary(knowledge) {
   return byFold;
 }
 
+function damerau(left, right) {
+  const rows = left.length + 1;
+  const cols = right.length + 1;
+  const dp = Array.from({ length: rows }, () => new Array(cols).fill(0));
+  for (let row = 0; row < rows; row++) dp[row][0] = row;
+  for (let col = 0; col < cols; col++) dp[0][col] = col;
+  for (let row = 1; row < rows; row++) {
+    for (let col = 1; col < cols; col++) {
+      const cost = left[row - 1] === right[col - 1] ? 0 : 1;
+      dp[row][col] = Math.min(
+        dp[row - 1][col] + 1,
+        dp[row][col - 1] + 1,
+        dp[row - 1][col - 1] + cost,
+      );
+      if (
+        row > 1 &&
+        col > 1 &&
+        left[row - 1] === right[col - 2] &&
+        left[row - 2] === right[col - 1]
+      )
+        dp[row][col] = Math.min(dp[row][col], dp[row - 2][col - 2] + 1);
+    }
+  }
+  return dp[left.length][right.length];
+}
+
+function uniqueName(keys, exact) {
+  const names = new Set(keys.map((key) => exact.get(key)));
+  return names.size === 1 ? [...names][0] : null;
+}
+
+// Exact names win earlier. A unique prefix of 3+ letters ("Xin") or one
+// unique edit ("Xin Zaho" → Xin Zhao) resolves the token. "Mal" stays unknown.
+function resolveLoose(folded, exact, keys) {
+  if (!folded) return null;
+  if (folded.length >= 3) {
+    const prefixed = uniqueName(
+      keys.filter((key) => key.startsWith(folded)),
+      exact,
+    );
+    if (prefixed) return prefixed;
+  }
+  if (folded.length < 4) return null;
+  let best = [];
+  let bestDistance = Infinity;
+  for (const key of keys) {
+    if (Math.abs(key.length - folded.length) > 1) continue;
+    const distance = damerau(folded, key);
+    if (distance > 1 || distance > bestDistance) continue;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = [key];
+    } else best.push(key);
+  }
+  return bestDistance <= 1 ? uniqueName(best, exact) : null;
+}
+
 export function parseChampions(text, knowledge) {
   const exact = dictionary(knowledge);
   const keys = [...exact.keys()];
@@ -38,6 +95,10 @@ export function parseChampions(text, knowledge) {
   const duplicates = [];
   const chars = [...String(text ?? "")];
   const hardBreak = (ch) => ch === undefined || /[,;\n/|+]/.test(ch);
+  const remember = (name) => {
+    if (champions.includes(name)) duplicates.push(name);
+    else champions.push(name);
+  };
   let i = 0;
   while (i < chars.length) {
     while (i < chars.length && /[\s,;\n/|+·•]/.test(chars[i])) i++;
@@ -54,15 +115,46 @@ export function parseChampions(text, knowledge) {
       if (!keys.some((key) => key.startsWith(foldedBuf))) break;
     }
     if (last) {
-      if (champions.includes(last.name)) duplicates.push(last.name);
-      else champions.push(last.name);
+      remember(last.name);
       i = last.next;
       continue;
     }
-    let token = "";
-    while (i < chars.length && !hardBreak(chars[i])) token += chars[i++];
-    const trimmed = token.trim();
+    let end = i;
+    while (end < chars.length && !hardBreak(chars[end])) end++;
+    const words = chars.slice(i, end).join("").trim().split(/\s+/).filter(Boolean);
+    let resolved = null;
+    let consumed = 0;
+    for (let count = Math.min(3, words.length); count >= 1; count--) {
+      const name = resolveLoose(
+        foldChampion(words.slice(0, count).join(" ")),
+        exact,
+        keys,
+      );
+      if (!name) continue;
+      resolved = name;
+      consumed = count;
+      break;
+    }
+    if (resolved) {
+      remember(resolved);
+      let cursor = i;
+      let left = consumed;
+      while (cursor < end && left > 0) {
+        while (cursor < end && /\s/.test(chars[cursor])) cursor++;
+        while (
+          cursor < end &&
+          !/\s/.test(chars[cursor]) &&
+          !hardBreak(chars[cursor])
+        )
+          cursor++;
+        left--;
+      }
+      i = cursor;
+      continue;
+    }
+    const trimmed = chars.slice(i, end).join("").trim();
     if (trimmed) unknown.push(trimmed);
+    i = end;
   }
   return { champions, unknown, duplicates };
 }

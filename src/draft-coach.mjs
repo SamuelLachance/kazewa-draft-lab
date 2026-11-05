@@ -1,5 +1,5 @@
-/** Turn order and structural ban/pick advice. The final score still ignores bans. */
-import { analyzeDraft, ROLES, SYNERGIES } from "./engine.mjs";
+/** Turn order, draft rules, and engine-ranked ban/pick advice. The final score still ignores bans. */
+import { analyzeDraft, scorePartial, ROLES } from "./engine.mjs";
 import { LANES } from "./lanes.mjs";
 
 const SIDES = ["blue", "red"];
@@ -32,14 +32,6 @@ const ROLE_NAME = {
   bot: "ADC",
   sup: "support",
 };
-const FIRST_PICK_MARKS = new Set([
-  "Caitlyn",
-  "Varus",
-  "Aphelios",
-  "Jinx",
-  "Xayah",
-]);
-
 const emptyPicks = () => Object.fromEntries(ROLES.map((role) => [role, null]));
 
 export function createSession(seat = "first") {
@@ -125,137 +117,95 @@ function closeTarget(session, side) {
   return role ? { kind: "role", role, closing: false } : null;
 }
 
-function profiles(session, knowledge, side) {
-  return ROLES.flatMap((role) => {
-    const name = session.picks[side][role];
-    const profile = name ? knowledge.champions[name] : null;
-    return profile ? [{ ...profile, role }] : [];
+function boardFrom(session, side = null, champion = null, role = null) {
+  const draft = {
+    blue: { ...session.picks.blue },
+    red: { ...session.picks.red },
+  };
+  if (side && champion && role) draft[side][role] = champion;
+  return draft;
+}
+
+function signalKey(signal) {
+  return `${signal.id}|${signal.side}|${signal.subject}|${signal.evidence}`;
+}
+
+function reasonsFor(before, after, side, champion) {
+  const prior = new Set(before.map(signalKey));
+  const afterKeys = new Set(after.map(signalKey));
+  const added = after.filter((signal) => !prior.has(signalKey(signal)));
+  const removed = before.filter(
+    (signal) => signal.side !== side && !afterKeys.has(signalKey(signal)),
+  );
+  const ranked = [
+    ...added.map((signal) => ({ signal, text: signal.evidence })),
+    ...removed.map((signal) => ({
+      signal,
+      text: `retire « ${signal.title} »`,
+    })),
+  ];
+  ranked.sort((a, b) => {
+    const mention = (item) =>
+      item.text.includes(champion) || item.signal.evidence.includes(champion) ? 1 : 0;
+    const ours = (item) => (item.signal.side === side ? 1 : 0);
+    return (
+      mention(b) - mention(a) ||
+      ours(b) - ours(a) ||
+      b.signal.weight - a.signal.weight ||
+      a.signal.id.localeCompare(b.signal.id)
+    );
   });
-}
-
-function needs(session, knowledge, side) {
-  const ours = profiles(session, knowledge, side);
-  const enemy = profiles(session, knowledge, other(side));
-  const frontline = ours.reduce((sum, profile) => sum + profile.frontline, 0);
-  const dps = ours
-    .filter((profile) => profile.role !== "sup")
-    .reduce((sum, profile) => sum + profile.dps, 0);
-  const peel = ours.reduce((sum, profile) => sum + profile.peel, 0);
-  return {
-    frontline: frontline < 2,
-    dps: dps < 2,
-    engage: !ours.some((profile) => profile.engage >= 2),
-    peel:
-      ours.some((profile) => profile.scaling >= 2 && profile.dps >= 1) &&
-      peel < 2,
-    enemyImmobile: enemy.filter((profile) => profile.immobile >= 1).length,
-    enemyEngage: enemy.filter((profile) => profile.engage >= 2).length,
-    enemyDash: enemy.reduce((sum, profile) => sum + profile.dashs, 0),
-  };
-}
-
-function laneFit(champion, role) {
-  const lanes = LANES[champion];
-  if (!lanes?.length) return { bonus: 0, rank: 50, onLane: false };
-  const rank = lanes.indexOf(role);
-  if (rank === -1) return { bonus: -4, rank: 90, onLane: false };
-  return { bonus: 2.4, rank, onLane: true };
-}
-
-function synergyBonus(champion, allies) {
-  const partners = [];
-  for (const synergy of SYNERGIES) {
-    if (!synergy.pair.includes(champion)) continue;
-    const partner = synergy.pair.find((name) => name !== champion);
-    if (allies.has(partner)) partners.push(partner);
-  }
-  return partners;
-}
-
-function scoreForRole(
-  profile,
-  role,
-  gap,
-  allies,
-  { firstBluePick = false, repair = false } = {},
-) {
   const reasons = [];
-  let score = 0;
-  const frontlineWeight = role === "sup" && profile.champion !== "Alistar" ? 0.65 : 1;
-  if (repair && gap.frontline && profile.frontline > 0) {
-    score += profile.frontline * frontlineWeight * 3;
-    reasons.push("ferme le trou de frontline");
+  for (const item of ranked) {
+    if (reasons.length >= 3) break;
+    const text = item.text.replace(/\s+/g, " ").trim();
+    reasons.push(text.length > 160 ? item.signal.title : text);
   }
-  if (repair && gap.dps && role !== "sup" && profile.dps > 0) {
-    score += profile.dps * 3;
-    reasons.push("apporte des dégâts soutenus");
-  }
-  if (repair && gap.engage && profile.engage >= 2) {
-    score += 2.2;
-    reasons.push("donne un vrai engage");
-  }
-  if (repair && gap.peel && profile.peel > 0) {
-    score += profile.peel * 1.6;
-    reasons.push("protège le carry");
-  }
-  if (repair && gap.enemyImmobile >= 2 && profile.catch >= 2) {
-    score += 1.8;
-    reasons.push("punit les immobiles déjà lock");
-  }
-  if (repair && gap.enemyEngage >= 1 && profile.disengage + profile.peel >= 2) {
-    score += 1.4;
-    reasons.push("répond aux engages adverses");
-  }
-  if (repair && gap.enemyDash >= 4 && profile.champion === "Poppy") {
-    score += 2;
-    reasons.push("répond aux dashs adverses");
-  }
-  score +=
-    profile.dps * (role === "sup" ? 0.25 : 0.8) +
-    profile.frontline * frontlineWeight * 0.7 +
-    profile.engage * 0.55 +
-    profile.catch * 0.45 +
-    profile.peel * 0.4 +
-    profile.scaling * 0.35 +
-    profile.global * 0.3;
-  const partners = synergyBonus(profile.champion, allies);
-  if (partners.length) {
-    score += 2.4;
-    reasons.push(`synergie avec ${partners[0]}`);
-  }
-  const lane = laneFit(profile.champion, role);
-  score += lane.bonus;
-  if (lane.onLane) reasons.push("rôle habituel");
-  if (firstBluePick && (role === "bot" || role === "jng")) {
-    score += 0.8;
-    reasons.push("tes notes ouvrent le first pick bleu sur l’ADC ou la jungle");
-  }
-  if (firstBluePick && role === "bot" && FIRST_PICK_MARKS.has(profile.champion)) {
-    score += 1.4;
-    reasons.push("ADC prioritaire de tes notes de first pick");
-  }
-  return {
-    score: Math.round(score * 100) / 100,
-    reasons: [...new Set(reasons)].slice(0, 3),
-  };
+  if (!reasons.length) reasons.push("le calculateur ne déplace pas le score");
+  return reasons;
 }
 
-function bestPlacement(session, knowledge, side, champion, extra = {}) {
-  const profile = knowledge.champions[champion];
-  const gap = needs(session, knowledge, side);
-  const allies = new Set(profiles(session, knowledge, side).map((p) => p.champion));
-  const repair = 5 - openRoles(session, side).length >= 2;
-  extra = { ...extra, repair };
+function candidateRoles(session, side, champion, followDraft) {
+  const open = openRoles(session, side);
+  const lanes = (LANES[champion] || []).filter((role) => open.includes(role));
+  if (followDraft) {
+    const target = closeTarget(session, side);
+    if (target?.kind === "role" && lanes.includes(target.role)) return [target.role];
+    if (target?.kind === "flex") {
+      const covered = target.roles.filter((role) => lanes.includes(role));
+      if (covered.length) return covered;
+    }
+  }
+  if (lanes.length) return lanes;
+  if (!followDraft) return [];
+  const target = closeTarget(session, side);
+  if (target?.kind === "role" && open.includes(target.role)) return [target.role];
+  const fallback = earliestRole(open);
+  return fallback ? [fallback] : [];
+}
+
+function placeChampion(session, knowledge, side, champion, baseline, followDraft) {
+  const sign = side === "blue" ? 1 : -1;
   let best = null;
-  for (const role of openRoles(session, side)) {
-    const scored = scoreForRole(profile, role, gap, allies, extra);
-    const rank = laneFit(champion, role).rank;
+  for (const role of candidateRoles(session, side, champion, followDraft)) {
+    const scored = scorePartial(
+      boardFrom(session, side, champion, role),
+      knowledge,
+    );
+    const score = Math.round((scored.score - baseline.score) * sign * 100) / 100;
+    const rank = CLOSE_ORDER.indexOf(role);
     if (
       !best ||
-      scored.score > best.score ||
-      (scored.score === best.score && rank < best.rank)
-    )
-      best = { role, rank, ...scored };
+      score > best.score ||
+      (score === best.score && rank < best.rank)
+    ) {
+      best = {
+        role,
+        rank,
+        score,
+        reasons: reasonsFor(baseline.signals, scored.signals, side, champion),
+      };
+    }
   }
   return best;
 }
@@ -268,7 +218,27 @@ function picksBefore(session, side) {
   return pick === -1 ? 99 : pick;
 }
 
+let adviceCache = null;
+
+function adviceKey(session, knowledge) {
+  return [
+    knowledge?.version ?? "",
+    session.userSide,
+    session.log.length,
+    JSON.stringify(session.bans),
+    JSON.stringify(session.picks),
+  ].join("|");
+}
+
 export function advise(session, knowledge, { limit = 5 } = {}) {
+  const key = adviceKey(session, knowledge);
+  if (!adviceCache || adviceCache.key !== key)
+    adviceCache = { key, advice: rankAdvice(session, knowledge) };
+  const advice = adviceCache.advice;
+  return { ...advice, options: advice.options.slice(0, limit) };
+}
+
+function rankAdvice(session, knowledge) {
   const step = currentStep(session);
   if (!step) {
     const draft = { blue: { ...session.picks.blue }, red: { ...session.picks.red } };
@@ -284,10 +254,7 @@ export function advise(session, knowledge, { limit = 5 } = {}) {
   const available = Object.keys(knowledge.champions)
     .filter((name) => !unavailable.has(name))
     .sort();
-  const firstBluePick =
-    step.action === "pick" &&
-    step.side === "blue" &&
-    openRoles(session, "blue").length === 5;
+  const baseline = scorePartial(boardFrom(session), knowledge);
   const options = [];
   if (step.action === "ban") {
     const opponent = other(step.side);
@@ -296,10 +263,14 @@ export function advise(session, knowledge, { limit = 5 } = {}) {
     const valuedByUs = available
       .map((champion) => ({
         champion,
-        placed: bestPlacement(session, knowledge, step.side, champion, {
-          firstBluePick:
-            step.side === "blue" && openRoles(session, "blue").length === 5,
-        }),
+        placed: placeChampion(
+          session,
+          knowledge,
+          step.side,
+          champion,
+          baseline,
+          false,
+        ),
       }))
       .filter((entry) => entry.placed)
       .sort((a, b) => b.placed.score - a.placed.score);
@@ -308,14 +279,22 @@ export function advise(session, knowledge, { limit = 5 } = {}) {
     );
     for (const champion of available) {
       if (keep.has(champion)) continue;
-      const threat = bestPlacement(session, knowledge, opponent, champion);
+      const threat = placeChampion(
+        session,
+        knowledge,
+        opponent,
+        champion,
+        baseline,
+        false,
+      );
       if (!threat) continue;
+      const sideName = opponent === "blue" ? "le bleu" : "le rouge";
       options.push({
         champion,
         role: null,
         score: threat.score,
         reasons: [
-          `fort pour ${opponent === "blue" ? "le bleu" : "le rouge"} en ${ROLE_NAME[threat.role]}`,
+          `le calculateur le valorise pour ${sideName} en ${ROLE_NAME[threat.role]} (${threat.score > 0 ? "+" : ""}${threat.score})`,
           wePickFirst
             ? "tu peux encore prendre tes priorités au pick"
             : "il peut le prendre avant toi",
@@ -325,18 +304,21 @@ export function advise(session, knowledge, { limit = 5 } = {}) {
     }
   } else {
     for (const champion of available) {
-      const placed = bestPlacement(session, knowledge, step.side, champion, {
-        firstBluePick,
+      const placed = placeChampion(
+        session,
+        knowledge,
+        step.side,
+        champion,
+        baseline,
+        true,
+      );
+      if (!placed) continue;
+      options.push({
+        champion,
+        role: placed.role,
+        score: placed.score,
+        reasons: placed.reasons,
       });
-      if (placed)
-        options.push({
-          champion,
-          role: placed.role,
-          score: placed.score,
-          reasons: placed.reasons.length
-            ? placed.reasons
-            : ["complète le plan déjà lock"],
-        });
     }
   }
   let target = step.action === "pick" ? closeTarget(session, step.side) : null;
@@ -368,14 +350,23 @@ export function advise(session, knowledge, { limit = 5 } = {}) {
         : target
           ? `Aucun blind ouvert. Prochain rôle : ${ROLE_NAME[target.role]} (ADC, jungle, mid, support, top).`
           : "";
+  const best = options[0];
+  const proposal = !best
+    ? ""
+    : step.action === "pick"
+      ? `Le calculateur propose ${best.champion} en ${ROLE_NAME[best.role]} (${best.score > 0 ? "+" : ""}${best.score}) : ${best.reasons[0]}.`
+      : `Le calculateur propose de bannir ${best.champion} (${best.score > 0 ? "+" : ""}${best.score}).`;
+  const turn = step.ours
+    ? "Suggestion pour ton tour."
+    : "Tour adverse. Le calculateur indique le choix le plus fort pour eux, pas ce que l’équipe va jouer.";
   return {
     done: false,
     step,
-    options: options.slice(0, limit),
+    options,
     result: null,
-    note: step.ours
-      ? `${roleNote} Suggestion pour ton tour. Elle suit l’ordre de draft, le rôle habituel du champion et les profils du moteur. Ce n’est pas une probabilité de victoire.`.trim()
-      : `${roleNote} Tour adverse. Le modèle indique seulement le choix structurel le plus fort, pas ce que l’équipe va jouer.`.trim(),
+    note: `${roleNote} ${turn} ${proposal} L’ordre des rôles suit les règles de draft. Le classement vient du calculateur. Ce n’est pas une probabilité de victoire.`
+      .replace(/\s+/g, " ")
+      .trim(),
   };
 }
 

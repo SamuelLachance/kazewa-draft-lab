@@ -42,6 +42,21 @@ test("a one-role support keeps support when a flex tank is also listed", () => {
   assert.notEqual(draft.picks.top, "");
 });
 
+test("a short name and a one-letter swap still find Xin Zhao", () => {
+  const short = compositionFromText("Xin", knowledge);
+  assert.deepEqual(short.champions, ["Xin Zhao"]);
+  assert.equal(short.picks.jng, "Xin Zhao");
+  assert.equal(short.unknown.length, 0);
+  const swapped = compositionFromText("Xin Zaho, Azir", knowledge);
+  assert.deepEqual(swapped.champions, ["Xin Zhao", "Azir"]);
+  assert.equal(swapped.unknown.length, 0);
+  const spelled = compositionFromText("Xin Zhao", knowledge);
+  assert.deepEqual(spelled.champions, ["Xin Zhao"]);
+  const ambiguous = compositionFromText("Mal, NotAChamp", knowledge);
+  assert.deepEqual(ambiguous.unknown, ["Mal", "NotAChamp"]);
+  assert.equal(ambiguous.champions.length, 0);
+});
+
 test("duplicates and a sixth champion are reported instead of entering the score", () => {
   const draft = compositionFromText(
     "Ahri, Ahri, Orianna, Syndra, Viktor, Zoe, Annie",

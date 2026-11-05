@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { analyzeDraft, normalizeChampion, ROLES } from "../src/engine.mjs";
+import { analyzeDraft, normalizeChampion, ROLES, scorePartial } from "../src/engine.mjs";
 const knowledge = JSON.parse(
   await readFile(new URL("../data/knowledge.json", import.meta.url), "utf8"),
 );
@@ -38,6 +38,36 @@ test("the knowledge build covers every official champion and keeps source distin
   assert.ok(knowledge.champions.Gangplank._provenance.warnings.length);
   assert.ok(knowledge.rules.every((r) => r.sources.length && r.weight > 0));
 });
+test("a partial board uses the same verdict as the finished calculator", () => {
+  const full = analyzeDraft(draft, knowledge);
+  const same = scorePartial(draft, knowledge);
+  assert.equal(same.status, "complete");
+  assert.equal(same.score, full.score);
+  assert.deepEqual(
+    same.signals.map((signal) => [signal.id, signal.side, signal.weight]),
+    full.signals.map((signal) => [signal.id, signal.side, signal.weight]),
+  );
+  const partial = scorePartial(
+    {
+      blue: { top: "Sion", jng: null, mid: null, bot: null, sup: null },
+      red: { top: null, jng: null, mid: null, bot: null, sup: null },
+    },
+    knowledge,
+  );
+  assert.equal(partial.status, "partial");
+  assert.equal(Number.isFinite(partial.score), true);
+  assert.equal(
+    analyzeDraft(
+      {
+        blue: { top: "Sion", jng: null, mid: null, bot: null, sup: null },
+        red: {},
+      },
+      knowledge,
+    ).status,
+    "incomplete",
+  );
+});
+
 test("a structural tank-DPS-protection block beats the low-DPS fragile example", () => {
   const r = analyzeDraft(draft, knowledge);
   assert.equal(r.status, "complete");

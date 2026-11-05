@@ -9,6 +9,7 @@ import {
   currentStep,
   undo,
 } from "../src/draft-coach.mjs";
+import { scorePartial } from "../src/engine.mjs";
 import { LANES } from "../src/lanes.mjs";
 
 const knowledge = JSON.parse(
@@ -78,6 +79,30 @@ test("every modeled champion has a usual lane and early picks stay on it", () =>
   assert.equal(roleOf("Thresh"), "sup");
   assert.equal(roleOf("Briar"), "jng");
   assert.ok(options.slice(0, 5).every((option) => LANES[option.champion].includes(option.role)));
+});
+
+test("the top pick is the calculator's best champion on the role the draft rules chose", () => {
+  let session = afterOpeningBans();
+  session = applyAction(session, "Caitlyn", "bot");
+  session = applyAction(session, "Jinx", "bot");
+  session = applyAction(session, "Azir", "mid");
+  const advice = advise(session, knowledge, { limit: 40 });
+  assert.equal(currentStep(session).side, "blue");
+  assert.equal(advice.options[0].role, "mid");
+  assert.match(advice.note, /calculateur/);
+  const tristana = advice.options.find((option) => option.champion === "Tristana");
+  assert.equal(tristana.role, "mid");
+  assert.match(tristana.reasons.join(" "), /Azir/);
+  const board = {
+    blue: { ...session.picks.blue, mid: "Tristana" },
+    red: { ...session.picks.red },
+  };
+  const withTristana = scorePartial(board, knowledge);
+  assert.ok(
+    withTristana.signals.some(
+      (signal) => signal.id === "named_lane_counter" && signal.side === "blue",
+    ),
+  );
 });
 
 test("a documented partner raises the paired champion above the same champion alone", () => {
