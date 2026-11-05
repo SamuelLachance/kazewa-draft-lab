@@ -137,7 +137,45 @@
                 </button>
               </div>
             </div>
-            <div class="draft-grid">
+            <div class="lab-mode view-switch" role="group" aria-label="Façon de saisir la draft">
+              <button type="button" data-lab-mode="roles" class="is-active" aria-pressed="true">
+                Par rôle
+              </button>
+              <button type="button" data-lab-mode="quick" aria-pressed="false">
+                Saisie rapide
+              </button>
+            </div>
+            <div id="quick-draft" class="quick-draft" hidden>
+              <p class="quick-help">
+                Écris ou colle les champions de chaque côté, séparés par des
+                virgules. Le score apparaît dès que les deux comps sont
+                reconnues. Les rôles suivent le rôle habituel de chaque
+                champion.
+              </p>
+              <div class="quick-columns">
+                <label class="quick-side blue-team">
+                  <span>Côté bleu</span>
+                  <textarea
+                    id="quick-blue"
+                    rows="4"
+                    spellcheck="false"
+                    placeholder="Sion, Maokai, Azir, Jinx, Lulu"
+                  ></textarea>
+                  <div id="quick-blue-readout"></div>
+                </label>
+                <label class="quick-side red-team">
+                  <span>Côté rouge</span>
+                  <textarea
+                    id="quick-red"
+                    rows="4"
+                    spellcheck="false"
+                    placeholder="Jax, Viego, Ahri, Kai'Sa, Nautilus"
+                  ></textarea>
+                  <div id="quick-red-readout"></div>
+                </label>
+              </div>
+            </div>
+            <div id="draft-grid" class="draft-grid">
               <div class="team-panel blue-team" id="blue-team"></div>
               <div class="versus" aria-hidden="true">
                 <span>VS</span><i></i>

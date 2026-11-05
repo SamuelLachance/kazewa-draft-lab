@@ -402,6 +402,81 @@ h1 span {
 .small-button span {
   margin-left: 5px;
 }
+.lab-mode {
+  width: fit-content;
+  margin: 0 0 16px;
+}
+.quick-draft {
+  margin: 0 0 16px;
+}
+.quick-help {
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 68ch;
+  margin-bottom: 12px;
+}
+.quick-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.quick-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 14px;
+}
+.quick-side.blue-team {
+  border-top: 2px solid #77adcd;
+}
+.quick-side.red-team {
+  border-top: 2px solid #ba796c;
+}
+.quick-side > span {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.quick-side textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 88px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 10px 12px;
+}
+.quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.quick-chips span {
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+.quick-chips em {
+  font-style: normal;
+  color: var(--muted);
+  margin-right: 4px;
+  font-size: 10px;
+}
+.quick-chips .is-offlane {
+  border-color: #ba796c;
+}
+.quick-side p,
+.quick-empty {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0;
+}
 .draft-grid {
   display: grid;
   grid-template-columns: 1fr 50px 1fr;
@@ -1508,6 +1583,9 @@ footer > .mono {
   .icon-button {
     height: 28px;
     width: 28px;
+  }
+  .quick-columns {
+    grid-template-columns: 1fr;
   }
   .draft-grid {
     grid-template-columns: 1fr 1fr;

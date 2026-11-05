@@ -1,4 +1,5 @@
 import { analyzeDraft, normalizeChampion, ROLES } from "./src/engine.mjs";
+import { compositionFromText } from "./src/quick-draft.mjs";
 import {
   DRAFT_STEPS,
   advise,
@@ -50,9 +51,11 @@ let knowledge,
   championAssets,
   config = fallbackConfig;
 let view = "lab",
+  labMode = "roles",
   coach = createSession("first"),
   coachFocus = "self",
   draft = emptyDraft(),
+  quickParsed = { blue: null, red: null },
   origin = "",
   snapshot = null,
   selectedMatchId = null;
@@ -268,8 +271,77 @@ function renderResult(result, { blocked = null, names = SIDE_LABEL } = {}) {
     .map((w) => `<li>${esc(w)}</li>`)
     .join("");
 }
+function draftLine(side) {
+  return ROLES.map((role) => draft[side][role]).filter(Boolean).join(", ");
+}
+function refreshQuickFields() {
+  for (const side of ["blue", "red"]) {
+    const field = $(`#quick-${side}`);
+    if (!field || document.activeElement === field) continue;
+    field.value = draftLine(side);
+    quickParsed[side] = null;
+  }
+}
+function renderQuickReadout() {
+  for (const side of ["blue", "red"]) {
+    const node = $(`#quick-${side}-readout`);
+    if (!node) return;
+    const parsed = quickParsed[side];
+    const rows = parsed
+      ? parsed.placements
+      : ROLES.filter((role) => draft[side][role]).map((role) => ({
+          role,
+          champion: draft[side][role],
+          usual: true,
+        }));
+    const chips = rows.length
+      ? rows
+          .map(
+            (row) =>
+              `<span class="${row.usual ? "" : "is-offlane"}"><em>${ROLE_LABEL[row.role]}</em>${esc(row.champion)}</span>`,
+          )
+          .join("")
+      : `<span class="quick-empty">Aucun champion reconnu</span>`;
+    const notes = [];
+    if (parsed?.unknown.length) notes.push(`Inconnu : ${parsed.unknown.join(", ")}`);
+    if (parsed?.duplicates.length)
+      notes.push(`Déjà saisi : ${parsed.duplicates.join(", ")}`);
+    if (parsed?.overflow.length)
+      notes.push(`Au-delà de cinq : ${parsed.overflow.join(", ")}`);
+    const off = rows
+      .filter((row) => !row.usual)
+      .map((row) => `${row.champion} en ${ROLE_LABEL[row.role]}`);
+    if (off.length) notes.push(`Hors rôle habituel : ${off.join(", ")}`);
+    node.innerHTML = `<div class="quick-chips">${chips}</div>${notes.length ? `<p>${esc(notes.join(" · "))}</p>` : ""}`;
+  }
+}
+function setLabMode(mode) {
+  labMode = mode === "quick" ? "quick" : "roles";
+  for (const button of document.querySelectorAll("[data-lab-mode]")) {
+    const active = button.dataset.labMode === labMode;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
+  $("#quick-draft").hidden = labMode !== "quick";
+  $("#draft-grid").hidden = labMode === "quick";
+  if (labMode === "quick") refreshQuickFields();
+  analyzeManual();
+}
+function applyQuick(side) {
+  const parsed = compositionFromText($(`#quick-${side}`).value, knowledge);
+  quickParsed[side] = parsed;
+  draft[side] = { ...parsed.picks };
+  origin =
+    "Saisie rapide · les rôles suivent le rôle habituel de chaque champion.";
+  analyzeManual();
+}
 function analyzeManual() {
-  renderTeams();
+  if (labMode === "quick") renderQuickReadout();
+  else renderTeams();
+  const note = $("#draft-origin");
+  if (note)
+    note.textContent =
+      origin || "Analyse fondée uniquement sur les dix champions et leurs rôles.";
   renderResult(analyzeDraft(draft, knowledge));
 }
 function setView(next, { scroll = false } = {}) {
@@ -661,6 +733,10 @@ function loadExample() {
       "Exemple pédagogique : ces compositions ne représentent pas un match en direct.";
   }
   setView("lab");
+  if (labMode === "quick") {
+    refreshQuickFields();
+    analyzeManual();
+  }
 }
 function bindEvents() {
   document.addEventListener("click", (event) => {
@@ -710,6 +786,12 @@ function bindEvents() {
     coachFocus = "self";
     renderCoach();
   });
+  $("#lab-view").addEventListener("click", (event) => {
+    const mode = event.target.closest("[data-lab-mode]");
+    if (mode && mode.dataset.labMode !== labMode) setLabMode(mode.dataset.labMode);
+  });
+  for (const side of ["blue", "red"])
+    $(`#quick-${side}`).addEventListener("input", () => applyQuick(side));
   $("#lab-view").addEventListener("change", (event) => {
     const select = event.target.closest("[data-role]");
     if (!select) return;
@@ -725,11 +807,13 @@ function bindEvents() {
   $("#swap-button").addEventListener("click", () => {
     draft = { blue: { ...draft.red }, red: { ...draft.blue } };
     origin = "Équipes inversées · le raisonnement suit les compositions.";
+    if (labMode === "quick") refreshQuickFields();
     analyzeManual();
   });
   $("#clear-button").addEventListener("click", () => {
     draft = emptyDraft();
     origin = "Sélectionnez les champions par rôle pour lancer l’analyse.";
+    if (labMode === "quick") refreshQuickFields();
     analyzeManual();
   });
   $("#share-button").addEventListener("click", async () => {
@@ -792,6 +876,10 @@ function bindEvents() {
       draft = canonicalDraft(fromHash);
       origin = "Draft chargée depuis un lien partagé.";
       setView("lab");
+      if (labMode === "quick") {
+        refreshQuickFields();
+        analyzeManual();
+      }
     }
   });
   document.addEventListener("visibilitychange", () => {
