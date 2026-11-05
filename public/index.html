@@ -150,11 +150,12 @@
                 Écris ou colle les champions de chaque côté, séparés par des
                 virgules. Le score apparaît dès que les deux comps sont
                 reconnues. Les rôles suivent le rôle habituel de chaque
-                champion.
+                champion. Clique deux rôles du même côté pour échanger leurs
+                champions.
               </p>
               <div class="quick-columns">
-                <label class="quick-side blue-team">
-                  <span>Côté bleu</span>
+                <div class="quick-side blue-team">
+                  <label for="quick-blue">Côté bleu</label>
                   <textarea
                     id="quick-blue"
                     rows="4"
@@ -162,9 +163,9 @@
                     placeholder="Sion, Maokai, Azir, Jinx, Lulu"
                   ></textarea>
                   <div id="quick-blue-readout"></div>
-                </label>
-                <label class="quick-side red-team">
-                  <span>Côté rouge</span>
+                </div>
+                <div class="quick-side red-team">
+                  <label for="quick-red">Côté rouge</label>
                   <textarea
                     id="quick-red"
                     rows="4"
@@ -172,7 +173,7 @@
                     placeholder="Jax, Viego, Ahri, Kai'Sa, Nautilus"
                   ></textarea>
                   <div id="quick-red-readout"></div>
-                </label>
+                </div>
               </div>
             </div>
             <div id="draft-grid" class="draft-grid">

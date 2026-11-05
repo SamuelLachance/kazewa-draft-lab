@@ -1,5 +1,5 @@
 import { analyzeDraft, normalizeChampion, ROLES } from "./src/engine.mjs";
-import { compositionFromText } from "./src/quick-draft.mjs";
+import { compositionFromText, swapRoles } from "./src/quick-draft.mjs";
 import {
   advise,
   applyAction,
@@ -58,6 +58,7 @@ let view = "lab",
   coachLane = "all",
   draft = emptyDraft(),
   quickParsed = { blue: null, red: null },
+  quickSwap = null,
   origin = "",
   snapshot = null,
   selectedMatchId = null;
@@ -284,24 +285,35 @@ function refreshQuickFields() {
     quickParsed[side] = null;
   }
 }
+function usualLane(champion, role) {
+  const lanes = LANES[champion] || [];
+  return !lanes.length || lanes.includes(role);
+}
 function renderQuickReadout() {
   for (const side of ["blue", "red"]) {
     const node = $(`#quick-${side}-readout`);
     if (!node) return;
     const parsed = quickParsed[side];
-    const rows = parsed
-      ? parsed.placements
-      : ROLES.filter((role) => draft[side][role]).map((role) => ({
-          role,
-          champion: draft[side][role],
-          usual: true,
-        }));
+    const filled = ROLES.some((role) => draft[side][role]);
+    const rows = filled
+      ? ROLES.map((role) => {
+          const champion = draft[side][role] || "";
+          return {
+            role,
+            champion,
+            usual: !champion || usualLane(champion, role),
+          };
+        })
+      : parsed
+        ? parsed.placements
+        : [];
     const chips = rows.length
       ? rows
-          .map(
-            (row) =>
-              `<span class="${row.usual ? "" : "is-offlane"}"><em>${ROLE_LABEL[row.role]}</em>${esc(row.champion)}</span>`,
-          )
+          .map((row) => {
+            const selected =
+              quickSwap?.side === side && quickSwap.role === row.role;
+            return `<button type="button" class="${row.usual ? "" : "is-offlane"}${selected ? " is-selected" : ""}" data-quick-side="${side}" data-quick-role="${row.role}" aria-pressed="${selected}"><em>${ROLE_LABEL[row.role]}</em>${row.champion ? esc(row.champion) : "—"}</button>`;
+          })
           .join("")
       : `<span class="quick-empty">Aucun champion reconnu</span>`;
     const notes = [];
@@ -333,8 +345,24 @@ function applyQuick(side) {
   const parsed = compositionFromText($(`#quick-${side}`).value, knowledge);
   quickParsed[side] = parsed;
   draft[side] = { ...parsed.picks };
+  if (quickSwap?.side === side) quickSwap = null;
   origin =
     "Saisie rapide · les rôles suivent le rôle habituel de chaque champion.";
+  analyzeManual();
+}
+function chooseQuickRole(side, role) {
+  if (!ROLES.includes(role)) return;
+  if (!quickSwap || quickSwap.side !== side || quickSwap.role === role) {
+    quickSwap =
+      quickSwap?.side === side && quickSwap.role === role
+        ? null
+        : { side, role };
+    renderQuickReadout();
+    return;
+  }
+  draft[side] = swapRoles(draft[side], quickSwap.role, role);
+  quickSwap = null;
+  origin = "Saisie rapide · les champions ont été échangés de rôle.";
   analyzeManual();
 }
 function analyzeManual() {
@@ -853,6 +881,11 @@ function bindEvents() {
   });
   for (const side of ["blue", "red"])
     $(`#quick-${side}`).addEventListener("input", () => applyQuick(side));
+  $("#quick-draft").addEventListener("click", (event) => {
+    const chip = event.target.closest("[data-quick-role]");
+    if (!chip) return;
+    chooseQuickRole(chip.dataset.quickSide, chip.dataset.quickRole);
+  });
   $("#lab-view").addEventListener("change", (event) => {
     const select = event.target.closest("[data-role]");
     if (!select) return;
@@ -867,12 +900,14 @@ function bindEvents() {
   $("#example-button").addEventListener("click", loadExample);
   $("#swap-button").addEventListener("click", () => {
     draft = { blue: { ...draft.red }, red: { ...draft.blue } };
+    quickSwap = null;
     origin = "Équipes inversées · le raisonnement suit les compositions.";
     if (labMode === "quick") refreshQuickFields();
     analyzeManual();
   });
   $("#clear-button").addEventListener("click", () => {
     draft = emptyDraft();
+    quickSwap = null;
     origin = "Sélectionnez les champions par rôle pour lancer l’analyse.";
     if (labMode === "quick") refreshQuickFields();
     analyzeManual();

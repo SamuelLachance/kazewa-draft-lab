@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { compositionFromText } from "../src/quick-draft.mjs";
+import { compositionFromText, swapRoles } from "../src/quick-draft.mjs";
 
 const knowledge = JSON.parse(
   await readFile(new URL("../data/knowledge.json", import.meta.url), "utf8"),
@@ -55,6 +55,22 @@ test("a short name and a one-letter swap still find Xin Zhao", () => {
   const ambiguous = compositionFromText("Mal, NotAChamp", knowledge);
   assert.deepEqual(ambiguous.unknown, ["Mal", "NotAChamp"]);
   assert.equal(ambiguous.champions.length, 0);
+});
+
+test("swapping two roles exchanges the champions and leaves the others", () => {
+  const picks = compositionFromText("Sion, Maokai, Azir, Jinx, Lulu", knowledge).picks;
+  const swapped = swapRoles(picks, "top", "sup");
+  assert.equal(swapped.top, "Lulu");
+  assert.equal(swapped.sup, "Sion");
+  assert.equal(swapped.jng, picks.jng);
+  assert.equal(swapped.mid, picks.mid);
+  assert.equal(swapped.bot, picks.bot);
+  assert.equal(picks.top, "Sion");
+  const same = swapRoles(picks, "mid", "mid");
+  assert.equal(same.mid, "Azir");
+  const moved = swapRoles({ ...picks, sup: "" }, "bot", "sup");
+  assert.equal(moved.bot, "");
+  assert.equal(moved.sup, "Jinx");
 });
 
 test("duplicates and a sixth champion are reported instead of entering the score", () => {

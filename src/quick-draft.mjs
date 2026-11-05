@@ -205,6 +205,16 @@ export function assignRoles(champions) {
   return { picks, placements };
 }
 
+export function swapRoles(picks, roleA, roleB) {
+  if (!ROLES.includes(roleA) || !ROLES.includes(roleB) || roleA === roleB)
+    return { ...picks };
+  const next = { ...picks };
+  const held = next[roleA] || "";
+  next[roleA] = next[roleB] || "";
+  next[roleB] = held;
+  return next;
+}
+
 export function compositionFromText(text, knowledge) {
   const parsed = parseChampions(text, knowledge);
   const used = parsed.champions.slice(0, 5);

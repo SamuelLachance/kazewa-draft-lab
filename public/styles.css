@@ -435,7 +435,7 @@ h1 span {
 .quick-side.red-team {
   border-top: 2px solid #ba796c;
 }
-.quick-side > span {
+.quick-side > label {
   font-size: 10px;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -456,11 +456,17 @@ h1 span {
   flex-wrap: wrap;
   gap: 6px;
 }
-.quick-chips span {
+.quick-chips button {
   border: 1px solid var(--line);
   border-radius: 99px;
   padding: 2px 8px;
   font-size: 12px;
+  background: transparent;
+  line-height: 1.4;
+}
+.quick-chips button.is-selected {
+  border-color: var(--lime);
+  background: color-mix(in srgb, var(--lime) 16%, transparent);
 }
 .quick-chips em {
   font-style: normal;
