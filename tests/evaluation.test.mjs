@@ -488,6 +488,14 @@ test("shipped scorer agrees with Kazewa on at least 70 percent of decided drafts
       { blue: { ...record.red }, red: { ...record.blue } },
       realKnowledge,
     );
+    const signed = (result) =>
+      result.signals.reduce(
+        (total, signal) =>
+          total + (signal.side === "blue" ? 1 : -1) * signal.weight,
+        0,
+      );
+    assert.equal(signed(forward), forward.score);
+    assert.equal(signed(backward), backward.score);
     assert.equal(forward.score + backward.score, 0);
     assert.equal(forward.margin, backward.margin);
     const opposite =

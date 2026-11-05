@@ -1131,11 +1131,6 @@ export function analyzeDraft(draft, knowledge) {
       });
     }
   }
-  const familyScores = {};
-  for (const signal of signals)
-    familyScores[signal.family] =
-      (familyScores[signal.family] ?? 0) +
-      (signal.side === "blue" ? 1 : -1) * signal.weight;
   const axes = [
     ["frontline", "Frontline"],
     ["dps", "DPS soutenu"],
@@ -1151,17 +1146,57 @@ export function analyzeDraft(draft, knowledge) {
     red: teams.red.axes[id],
     max: 10,
   }));
-  signals.push(...readingLaws(normalized));
-  let cents = 0;
-  for (const signal of signals) {
+  const published = [];
+  for (const signal of [...signals, ...readingLaws(normalized)]) {
     const polarity = READING[signal.id];
     if (!polarity) continue;
-    const direction = signal.side === "blue" ? 1 : -1;
-    cents += polarity * direction * Math.round(signal.weight * 100);
+    const credited =
+      polarity < 0
+        ? {
+            ...signal,
+            side: other(signal.side),
+            evidence: `${signal.evidence} Ce constat de bloc papier est compté pour l’autre côté.`,
+          }
+        : signal;
+    published.push(credited);
   }
-  const score = cents / 100;
+  // Biggest reasons first. The signed weights of this array are the score.
+  published.sort(
+    (a, b) => b.weight - a.weight || a.id.localeCompare(b.id),
+  );
+  const signOf = (signal) => (signal.side === "blue" ? 1 : -1);
+  const cents = published.reduce(
+    (total, signal) => total + signOf(signal) * Math.round(signal.weight * 100),
+    0,
+  );
+  // Cent arithmetic swaps sign exactly when the sides swap. Binary addition
+  // of the same weights can leave a 1-ulp residue. When that residue is
+  // large enough to move the last weight, the weight absorbs it. The
+  // returned score is always the signed sum of the returned weights.
+  const target = cents / 100;
+  const signedSum = () =>
+    published.reduce(
+      (total, signal) => total + signOf(signal) * signal.weight,
+      0,
+    );
+  let drift = target - signedSum();
+  if (published.length && drift !== 0 && Math.abs(drift) < 0.005) {
+    const adjusted = {
+      ...published[published.length - 1],
+    };
+    published[published.length - 1] = adjusted;
+    for (let attempt = 0; attempt < 4 && drift !== 0; attempt++) {
+      adjusted.weight += drift * signOf(adjusted);
+      drift = target - signedSum();
+    }
+  }
+  const familyScores = {};
+  for (const signal of published)
+    familyScores[signal.family] =
+      (familyScores[signal.family] ?? 0) + signOf(signal) * signal.weight;
+  const score = signedSum();
   const margin = Math.abs(score);
-  const winner = cents === 0 ? "even" : cents > 0 ? "blue" : "red";
+  const winner = score === 0 ? "even" : score > 0 ? "blue" : "red";
   const warnings = [
     "Lecture des familles, compteurs et synergies ; trois règles de bloc « sur le papier » sont comptées à l’envers. La marge n’est pas une probabilité de victoire.",
     "Lanes limitées aux matchups nommés ; dégâts AD/AP, portée exacte et méta actuelle non modélisés.",
@@ -1220,9 +1255,7 @@ export function analyzeDraft(draft, knowledge) {
           : margin >= 2.5
             ? "moyenne"
             : "faible",
-    signals: signals.sort(
-      (a, b) => b.weight - a.weight || a.id.localeCompare(b.id),
-    ),
+    signals: published,
     axes,
     teams: publicTeams,
     warnings,

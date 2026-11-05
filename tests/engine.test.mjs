@@ -146,19 +146,17 @@ test("the confidence is qualitative and exposes no uncalibrated win probability"
   assert.equal("winProbability" in r, false);
   assert.ok(r.warnings.some((s) => s.includes("pas une probabilité")));
 });
-test("family saturation bounds duplicate damage evidence", () => {
+test("published signals sum to the score and still show the damage gap", () => {
   const r = analyzeDraft(draft, knowledge);
+  const signed = r.signals.reduce(
+    (n, s) => n + (s.side === "blue" ? 1 : -1) * s.weight,
+    0,
+  );
+  assert.equal(signed, r.score);
   const damage = r.signals
     .filter((s) => s.family === "damage")
     .reduce((n, s) => n + (s.side === "blue" ? 1 : -1) * s.weight, 0);
   assert.ok(damage >= 3);
-  assert.ok(
-    r.score <
-      r.signals.reduce(
-        (n, s) => n + (s.side === "blue" ? 1 : -1) * s.weight,
-        0,
-      ),
-  );
 });
 test("frozen deterministic evaluation does not mutate caller data", () => {
   const frozen = structuredClone(draft);
