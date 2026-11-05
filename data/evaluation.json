@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "evaluatedAt": "2026-11-05T16:06:13.248Z",
+  "evaluatedAt": "2026-11-05T16:20:09.494Z",
   "modelVersion": "1.2.0",
   "benchmarkVersion": "1.0.0",
   "benchmarkDesign": "Frozen retrospective benchmark; no supervised fitting or rule tuning on these labels.",
@@ -5157,7 +5157,7 @@
     ]
   },
   "sourceHashes": {
-    "engine": "bed6d9361500569672c9004ebc4d5da57084ee8980bbcdfff9e968d5fab954ee",
+    "engine": "313f975832d6f1964dee3b183008708016f085e2a6bf104078904ed5b4877b73",
     "knowledge": "e4a3eaba80b4258e150d54623db4c2116c01d4d7c26146feb8415f98feda9471",
     "benchmark": "13a51c2d21643b2c4831d2379095e049a2ed257094f8e7ad2d8aa723e237db62"
   }

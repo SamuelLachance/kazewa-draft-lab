@@ -1764,6 +1764,155 @@ footer > .mono {
 .signal-title {
   margin: 0;
 }
+.coach-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+#coach-side-note {
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.coach-rail {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.coach-rail li {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 6px;
+  min-height: 62px;
+  background: var(--surface);
+}
+.coach-rail li span,
+.coach-rail li em {
+  display: block;
+  color: var(--muted);
+  font: 8px var(--mono);
+  font-style: normal;
+  letter-spacing: 0.4px;
+}
+.coach-rail li strong {
+  display: block;
+  font-family: var(--heading);
+  font-size: 13px;
+  letter-spacing: 0.4px;
+}
+.coach-rail li.is-ours {
+  border-color: #3d5230;
+}
+.coach-rail li.is-now {
+  border-color: var(--lime);
+  background: #1c2618;
+}
+.coach-rail li.is-done em {
+  color: var(--text);
+}
+.coach-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 14px;
+}
+#coach-board {
+  display: grid;
+  gap: 10px;
+}
+.coach-bans {
+  color: var(--muted);
+  font-size: 12px;
+  padding: 0 16px 12px;
+}
+.coach-picks {
+  display: grid;
+  gap: 6px;
+  padding: 0 16px 16px;
+}
+.coach-picks div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 6px;
+}
+.coach-picks span {
+  color: var(--muted);
+  font: 9px var(--mono);
+  letter-spacing: 1px;
+}
+.advice-list {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+}
+.advice-card {
+  text-align: left;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.advice-card:hover {
+  border-color: var(--lime);
+}
+.advice-card strong {
+  font-family: var(--heading);
+  font-size: 20px;
+  letter-spacing: 0.3px;
+}
+.advice-card span {
+  margin-left: 8px;
+  color: var(--lime);
+  font: 9px var(--mono);
+  letter-spacing: 1px;
+}
+.advice-card p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.coach-manual {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.coach-manual select {
+  flex: 1;
+  min-width: 140px;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 8px;
+}
+.coach-pro {
+  margin-top: 18px;
+}
+.coach-pro h3 {
+  font-family: var(--heading);
+  letter-spacing: 0.4px;
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+.match-edge {
+  color: var(--lime);
+  font-size: 11px;
+}
+@media (max-width: 800px) {
+  .coach-rail {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .coach-layout,
+  .coach-toolbar {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

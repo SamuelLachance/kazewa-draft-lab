@@ -319,7 +319,7 @@ const FAMILY_CAPS = {
   lane: 2.5,
   grid: 3,
 };
-const SYNERGIES = [
+export const SYNERGIES = [
   {
     pair: ["Azir", "Maokai"],
     sources: ["VGCwjESeWeg", "XZYVApZ2_Ts", "eEsCZhA3H0Q", "pF03MSD80-c"],

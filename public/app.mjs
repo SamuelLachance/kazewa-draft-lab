@@ -1,5 +1,12 @@
 import { analyzeDraft, normalizeChampion, ROLES } from "./src/engine.mjs";
 import {
+  DRAFT_STEPS,
+  advise,
+  applyAction,
+  createSession,
+  undo,
+} from "./src/draft-coach.mjs";
+import {
   emptyDraft,
   validateEndpoint,
   draftFromHash,
@@ -43,6 +50,8 @@ let knowledge,
   championAssets,
   config = fallbackConfig;
 let view = "lab",
+  coach = createSession("first"),
+  coachFocus = "self",
   draft = emptyDraft(),
   origin = "",
   snapshot = null,
@@ -213,9 +222,13 @@ function renderResult(result, { blocked = null, names = SIDE_LABEL } = {}) {
   const even = result.winner === "even",
     winner = result.winner;
   $("#verdict-card").dataset.side = winner;
+  const proRead =
+    view === "live" || (view === "coach" && coachFocus !== "self");
   $("#verdict-title").textContent = even
     ? "Deux drafts, un équilibre."
-    : `${names[winner] || SIDE_LABEL[winner]} prend l’avantage.`;
+    : proRead
+      ? `Meilleure draft : ${names[winner] || SIDE_LABEL[winner]}.`
+      : `${names[winner] || SIDE_LABEL[winner]} prend l’avantage.`;
   $("#confidence-badge").textContent = even
     ? "Pas de préférence nette"
     : `Intensité du signal : ${result.confidence}`;
@@ -268,22 +281,30 @@ function setView(next, { scroll = false } = {}) {
       button.setAttribute("aria-pressed", String(active));
   }
   $("#lab-view").hidden = next !== "lab";
+  $("#coach-view").hidden = next !== "coach";
   $("#live-view").hidden = next !== "live";
   $("#method-view").hidden = next !== "method";
   $("#workspace-title").textContent =
     next === "live"
       ? "La scène pro, sous la loupe."
-      : next === "method"
-        ? "De l’intuition aux règles."
-        : "Au cœur de la draft.";
+      : next === "coach"
+        ? "Ton tour, dans l’ordre."
+        : next === "method"
+          ? "De l’intuition aux règles."
+          : "Au cœur de la draft.";
   $("#workspace-eyebrow").textContent =
     next === "live"
       ? "02 / LE DIRECT"
-      : next === "method"
-        ? "03 / LA MÉTHODE"
-        : "01 / L’ATELIER";
+      : next === "coach"
+        ? "04 / LE COACH"
+        : next === "method"
+          ? "03 / LA MÉTHODE"
+          : "01 / L’ATELIER";
   if (next === "lab") analyzeManual();
-  else if (next === "live") {
+  else if (next === "coach") {
+    renderCoach();
+    refreshFeed();
+  } else if (next === "live") {
     renderLive();
     refreshFeed();
   } else {
@@ -332,6 +353,136 @@ function renderValidation() {
   }
 }
 
+function liveVerdictLine(match) {
+  const readiness = getLiveReadiness(feedError ? null : snapshot, match, {
+    staleAfterMs: config.staleAfterMs,
+  });
+  if (!readiness.ready) return readiness.reason;
+  const result = analyzeDraft(
+    { blue: match.blue.picks, red: match.red.picks },
+    knowledge,
+  );
+  if (result.status !== "complete")
+    return result.warnings?.[0] || "Verdict indisponible.";
+  if (result.winner === "even") return "Les deux drafts sont à l’équilibre.";
+  return `Meilleure draft : ${match[result.winner]?.name || SIDE_LABEL[result.winner]}.`;
+}
+function coachTaken() {
+  return new Set([
+    ...coach.bans.blue,
+    ...coach.bans.red,
+    ...ROLES.flatMap((role) => [coach.picks.blue[role], coach.picks.red[role]]),
+  ].filter(Boolean));
+}
+function renderCoachPro() {
+  const node = $("#coach-pro");
+  if (!node || !knowledge) return;
+  let body;
+  if (!endpoint)
+    body =
+      "<p>Le flux LoL Esports public se branche quand cette page est servie par le serveur du projet. Sur GitHub Pages, indique l’URL du proxy dans Direct pro. Aucune partie n’est inventée.</p>";
+  else if (feedError)
+    body = `<p>${esc(feedError)}</p>`;
+  else if (!snapshot || snapshot.status === "not_configured")
+    body = "<p>Connexion au flux professionnel…</p>";
+  else if (snapshot.status !== "ok")
+    body = "<p>Le flux professionnel ne répond pas. Le verdict live est suspendu.</p>";
+  else if (!snapshot.matches.length)
+    body =
+      "<p>Aucune partie professionnelle couverte en ce moment. Le site redemande le flux tout seul. Ta draft continue pendant ce temps.</p>";
+  else
+    body = snapshot.matches
+      .map(
+        (match) =>
+          `<button type="button" class="match-card${coachFocus === match.id ? " is-selected" : ""}" data-pro-match="${esc(match.id)}"><span class="match-league">${esc(match.league || "PRO")}${match.gameNumber ? ` · G${esc(match.gameNumber)}` : ""}</span><span class="match-teams">${esc(match.blue.name)} <span>VS</span> ${esc(match.red.name)}</span><span class="match-edge">${esc(liveVerdictLine(match))}</span></button>`,
+      )
+      .join("");
+  node.innerHTML = `<h3>Games pros en direct</h3>${body}<p class="fine-print">Le flux public donne les champions par rôle quand la partie est lisible. Il ne donne pas les bans ni l’ordre des picks. Le modèle dit alors quel côté a la meilleure draft. Ce n’est pas une probabilité de victoire.</p>`;
+}
+function renderCoach() {
+  if (view !== "coach" || !knowledge) return;
+  const advice = advise(coach, knowledge);
+  for (const button of document.querySelectorAll("[data-seat]")) {
+    const active = button.dataset.seat === coach.seat;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
+  $("#coach-undo").disabled = coach.log.length === 0;
+  $("#coach-side-note").textContent =
+    coach.seat === "first"
+      ? "Tu es first pick, côté bleu. Tu bannis en premier, puis tu prends le premier pick."
+      : "Tu es second pick, côté rouge. Le bleu ouvre. Tu réponds ensuite avec deux picks d’affilée.";
+  $("#coach-rail").innerHTML = DRAFT_STEPS.map((step, index) => {
+    const done = coach.log[index];
+    const now = index === coach.log.length;
+    const ours = step.side === coach.userSide;
+    return `<li class="${now ? "is-now" : ""} ${done ? "is-done" : ""} ${ours ? "is-ours" : ""}"><span>${String(index + 1).padStart(2, "0")}</span><strong>${step.action === "ban" ? "Ban" : "Pick"} ${step.side === "blue" ? "bleu" : "rouge"}</strong><em>${done ? esc(done.champion) : now ? (ours ? "À toi" : "À eux") : ours ? "Toi" : "Eux"}</em></li>`;
+  }).join("");
+  $("#coach-board").innerHTML = ["blue", "red"]
+    .map((side) => {
+      const picks = ROLES.map(
+        (role) =>
+          `<div><span>${ROLE_LABEL[role]}</span><strong>${esc(coach.picks[side][role] || "—")}</strong></div>`,
+      ).join("");
+      return `<section class="team-panel ${side}-team"><div class="team-heading"><div><span class="team-side">${side === "blue" ? "BLUE SIDE" : "RED SIDE"}</span><h3 class="team-name">${side === coach.userSide ? "Ton côté" : "Côté adverse"}</h3></div></div><p class="coach-bans">Bans : ${esc(coach.bans[side].join(", ") || "aucun")}</p><div class="coach-picks">${picks}</div></section>`;
+    })
+    .join("");
+  const taken = coachTaken();
+  const pool = Object.keys(knowledge.champions)
+    .filter((name) => !taken.has(name))
+    .sort((a, b) => a.localeCompare(b, "fr"));
+  const step = advice.step;
+  const roleSelect =
+    step?.action === "pick"
+      ? `<select id="coach-role" aria-label="Rôle du pick">${ROLES.filter((role) => !coach.picks[step.side][role]).map((role) => `<option value="${role}"${advice.options[0]?.role === role ? " selected" : ""}>${ROLE_LABEL[role]}</option>`).join("")}</select>`
+      : "";
+  $("#coach-advice").innerHTML = advice.done
+    ? `<p class="eyebrow">DRAFT COMPLÈTE</p><h3>Les dix picks sont lock.</h3><p>${esc(advice.note)}</p>`
+    : `<p class="eyebrow">${esc(step.phase)} · tour ${step.index + 1}/20</p><h3>${step.ours ? (step.action === "ban" ? "À toi de bannir." : "À toi de pick.") : step.action === "ban" ? "Ban adverse." : "Pick adverse."}</h3><p>${esc(advice.note)}</p><div class="advice-list">${advice.options.map((option) => `<button type="button" class="advice-card" data-advice-champion="${esc(option.champion)}" data-advice-role="${esc(option.role || "")}"><strong>${esc(option.champion)}</strong>${option.role ? `<span>${ROLE_LABEL[option.role]}</span>` : ""}<p>${esc(option.reasons.join(" · ") || "Choix structurel")}</p></button>`).join("")}</div><form class="coach-manual" id="coach-manual"><select id="coach-champion" aria-label="Autre champion">${pool.map((name) => `<option value="${esc(name)}">${esc(name)}</option>`).join("")}</select>${roleSelect}<button class="primary-button" type="submit">Enregistrer ce tour</button></form>`;
+  renderCoachPro();
+  if (coachFocus !== "self") {
+    const match = snapshot?.matches?.find((item) => item.id === coachFocus);
+    if (!match) {
+      coachFocus = "self";
+      renderResult(advice.done ? advice.result : { status: "incomplete", warnings: [] });
+      if (!advice.done) {
+        $("#result-section").hidden = true;
+        $("#empty-result").hidden = true;
+      }
+      return;
+    }
+    const readiness = getLiveReadiness(feedError ? null : snapshot, match, {
+      staleAfterMs: config.staleAfterMs,
+    });
+    renderResult(
+      analyzeDraft({ blue: match.blue.picks, red: match.red.picks }, knowledge),
+      {
+        blocked: readiness.ready ? null : readiness.reason,
+        names: { blue: match.blue.name, red: match.red.name },
+      },
+    );
+    return;
+  }
+  if (advice.done) renderResult(advice.result);
+  else {
+    $("#result-section").hidden = true;
+    $("#empty-result").hidden = true;
+  }
+}
+function acceptCoachAction(champion, role) {
+  const name = normalizeChampion(champion, knowledge);
+  if (!name) {
+    toast("Ce champion n’est pas dans le modèle.");
+    return;
+  }
+  try {
+    coach = applyAction(coach, name, role || null);
+    coachFocus = "self";
+    renderCoach();
+  } catch (error) {
+    toast(error.message);
+  }
+}
 function liveMessage(title, message, { configure = false } = {}) {
   return `<div class="live-empty"><span class="live-empty-icon" aria-hidden="true">⌁</span><div><h3>${esc(title)}</h3><p>${esc(message)}</p>${configure ? '<button class="primary-button" data-open-settings>Connecter une source live <span aria-hidden="true">↗</span></button>' : ""}<p class="fine-print">L’atelier reste disponible pour analyser une composition manuellement.</p></div></div>`;
 }
@@ -386,7 +537,7 @@ function renderLive() {
       html = snapshot.matches
         .map(
           (m) =>
-            `<button class="match-card${m.id === selectedMatchId ? " is-selected" : ""}" data-match="${esc(m.id)}" aria-pressed="${m.id === selectedMatchId}"><span class="match-league">${esc(m.league || "PRO")}${m.gameNumber ? ` · G${esc(m.gameNumber)}` : ""}</span><span class="match-teams">${esc(m.blue.name)} <span>VS</span> ${esc(m.red.name)}</span><span class="match-state">${esc(STATUS_LABEL[m.status])}${m.stale ? " · DIFFÉRÉ" : ""}</span><span class="match-chevron" aria-hidden="true">↗</span></button>`,
+            `<button class="match-card${m.id === selectedMatchId ? " is-selected" : ""}" data-match="${esc(m.id)}" aria-pressed="${m.id === selectedMatchId}"><span class="match-league">${esc(m.league || "PRO")}${m.gameNumber ? ` · G${esc(m.gameNumber)}` : ""}</span><span class="match-teams">${esc(m.blue.name)} <span>VS</span> ${esc(m.red.name)}</span><span class="match-edge">${esc(liveVerdictLine(m))}</span><span class="match-state">${esc(STATUS_LABEL[m.status])}${m.stale ? " · DIFFÉRÉ" : ""}</span><span class="match-chevron" aria-hidden="true">↗</span></button>`,
         )
         .join("");
   }
@@ -470,6 +621,7 @@ async function refreshFeed() {
     if (fetchController === controller) fetchController = null;
     $("#refresh-button").disabled = false;
     if (view === "live") renderLive();
+    if (view === "coach") renderCoachPro();
     pollTimer = setTimeout(
       refreshFeed,
       generation !== requestGeneration
@@ -526,6 +678,37 @@ function bindEvents() {
       $("#feed-settings").hidden = false;
       $("#feed-url").focus();
     }
+  });
+  $("#coach-view").addEventListener("click", (event) => {
+    const seat = event.target.closest("[data-seat]");
+    if (seat && seat.dataset.seat !== coach.seat) {
+      coach = createSession(seat.dataset.seat);
+      coachFocus = "self";
+      renderCoach();
+    }
+    const adviceButton = event.target.closest("[data-advice-champion]");
+    if (adviceButton)
+      acceptCoachAction(
+        adviceButton.dataset.adviceChampion,
+        adviceButton.dataset.adviceRole,
+      );
+    const pro = event.target.closest("[data-pro-match]");
+    if (pro) {
+      coachFocus = pro.dataset.proMatch;
+      selectedMatchId = coachFocus;
+      renderCoach();
+    }
+  });
+  $("#coach-view").addEventListener("submit", (event) => {
+    const form = event.target.closest("#coach-manual");
+    if (!form) return;
+    event.preventDefault();
+    acceptCoachAction($("#coach-champion").value, $("#coach-role")?.value);
+  });
+  $("#coach-undo").addEventListener("click", () => {
+    coach = undo(coach);
+    coachFocus = "self";
+    renderCoach();
   });
   $("#lab-view").addEventListener("change", (event) => {
     const select = event.target.closest("[data-role]");
@@ -669,7 +852,9 @@ async function init() {
     } else loadExample();
     refreshFeed();
     freshnessTimer = setInterval(() => {
-      if (view === "live" && !document.hidden) renderLive();
+      if (document.hidden) return;
+      if (view === "live") renderLive();
+      if (view === "coach") renderCoachPro();
     }, 10000);
   } catch (error) {
     $("#validation-text").textContent = "Le moteur n’a pas pu démarrer.";

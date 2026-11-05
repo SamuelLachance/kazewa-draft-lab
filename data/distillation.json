@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "createdAt": "2026-11-05T16:06:32.702Z",
+  "createdAt": "2026-11-05T16:20:10.007Z",
   "status": "experimental_distillation_not_main_engine",
   "modelVersion": "1.2.0",
   "design": "Fixed-lambda ridge logistic preference classifier; five-fold connected video/draft-group out-of-fold evaluation on clean labels only.",
@@ -29,7 +29,7 @@
     "rawExcludedDueToTrainingVideoOrDraftGroup": 55
   },
   "sourceHashes": {
-    "src/engine.mjs": "bed6d9361500569672c9004ebc4d5da57084ee8980bbcdfff9e968d5fab954ee",
+    "src/engine.mjs": "313f975832d6f1964dee3b183008708016f085e2a6bf104078904ed5b4877b73",
     "src/distillation.mjs": "6c5b05f990c5f6f7ab5d90c2c37ba3d0ff81ea1dada2dfd969282c9a66b2b77f",
     "scripts/distill.mjs": "9339146d91bf1e5dd48329e3325dbea4fad9b46706dd610e2798078853e541b6",
     "data/knowledge.json": "e4a3eaba80b4258e150d54623db4c2116c01d4d7c26146feb8415f98feda9471",
