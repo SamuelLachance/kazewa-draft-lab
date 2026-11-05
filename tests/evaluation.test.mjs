@@ -467,7 +467,7 @@ test("exploratory full-review examples cannot contribute to the fidelity gate", 
   assert.equal(report.exploratoryRaw.contributesToFidelityGate, false);
 });
 
-test("shipped scorer agrees with Kazewa on at least 70 percent of decided drafts", async () => {
+test("shipped scorer agrees with Kazewa on at least 90 percent of decided drafts", async () => {
   const realKnowledge = JSON.parse(
     await readFile(new URL("../data/knowledge.json", import.meta.url), "utf8"),
   );
@@ -477,7 +477,7 @@ test("shipped scorer agrees with Kazewa on at least 70 percent of decided drafts
   const report = evaluateBenchmark(benchmark, realKnowledge, analyzeDraft);
   assert.ok(report.broader.decided >= 57);
   assert.ok(report.broader.coverage >= 0.8);
-  assert.ok(report.broader.agreement >= 0.7);
+  assert.ok(report.broader.agreement >= 0.9);
   assert.equal(report.gate.passed, false);
   for (const record of benchmark.cases) {
     const forward = analyzeDraft(

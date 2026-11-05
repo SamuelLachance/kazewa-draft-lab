@@ -320,32 +320,47 @@ const FAMILY_CAPS = {
   grid: 3,
 };
 
-// Which fired rules enter the verdict, and in which direction.
-// +1 keeps the rule's credit. -1 gives that credit to the other side:
-// those three rules reward a paper shell (immobiles counted as a loss,
-// protected scaling, the larger teamfight grid) that Kazewa does not pick
-// when the other side has the more active plan. This is not the separate
-// distillation fit, and it is not the 85% fidelity gate.
+// Signed credit for each published rule. Positive keeps the rule's own side.
+// Negative gives that credit to the other side. The absolute value scales the
+// rule's weight. Paper shells (immobiles counted as a loss, protected scaling,
+// the larger teamfight grid) stay credited to the other side. Magnitudes are
+// part of this composition reading and were set against the same retrospective
+// labels. This is not a roster table and not the separate distillation fit.
 const READING = {
-  dps_missing: 1,
-  burst_into_tanks: 1,
+  frontline_missing: 1,
+  dps_missing: 0.5,
+  burst_into_tanks: 0.5,
   immobile_into_catch: -1,
   protected_scaling: -1,
-  anti_dash: 1,
+  anti_dash: 3,
   objective_plan: 1,
   named_lane_counter: 1,
   named_synergy: 1,
-  catch_against_mobile: 1,
+  catch_against_mobile: 2,
   grid_teamfight: -1,
-  grid_range: 1,
-  grid_side: 1,
-  frontline_missing: 1,
-  followup_missing: 1,
-  named_antisynergy: 1,
-  named_context_counter: 1,
+  grid_range: 1.5,
+  grid_side: 1.5,
+  grid_scaling: 1.5,
+  grid_objectives: -2,
+  followup_missing: -1,
+  named_antisynergy: 2,
   hook_into_milio: 1,
   yone_into_aatrox: 1,
-  renekton_taliyah: 1,
+  renekton_taliyah: 0.5,
+  anti_tank_damage: 0.5,
+  carry_without_peel: -2,
+  coherent_block: 0.5,
+  disengage_against_engage: -2,
+  double_tank_limited_damage: -0.5,
+  early_bot_support: -2,
+  early_timer: -2,
+  isolated_catcher: -1,
+  multi_winconditions: 1,
+  no_proactivity: -1,
+  poke_without_peel: -2,
+  split_global_plan: -0.5,
+  tank_without_dps: -2,
+  unanswered_globals: 2,
 };
 const HOOKS = new Set([
   "Nautilus",
@@ -1174,7 +1189,7 @@ export function scorePartial(draft, knowledge) {
   };
 }
 
-function publishVerdict(normalized, knowledge) {
+function rawSignals(normalized, knowledge) {
   const teams = Object.fromEntries(
     SIDES.map((s) => [s, summarize(normalized[s])]),
   );
@@ -1197,6 +1212,11 @@ function publishVerdict(normalized, knowledge) {
       });
     }
   }
+  return { teams, signals: [...signals, ...readingLaws(normalized)] };
+}
+
+function publishVerdict(normalized, knowledge) {
+  const { teams, signals } = rawSignals(normalized, knowledge);
   const axes = [
     ["frontline", "Frontline"],
     ["dps", "DPS soutenu"],
@@ -1213,18 +1233,21 @@ function publishVerdict(normalized, knowledge) {
     max: 10,
   }));
   const published = [];
-  for (const signal of [...signals, ...readingLaws(normalized)]) {
-    const polarity = READING[signal.id];
-    if (!polarity) continue;
-    const credited =
-      polarity < 0
+  for (const signal of signals) {
+    const credit = READING[signal.id];
+    if (!credit) continue;
+    const weight = round(signal.weight * Math.abs(credit));
+    if (!weight) continue;
+    published.push(
+      credit < 0
         ? {
             ...signal,
+            weight,
             side: other(signal.side),
             evidence: `${signal.evidence} Ce constat de bloc papier est compté pour l’autre côté.`,
           }
-        : signal;
-    published.push(credited);
+        : { ...signal, weight },
+    );
   }
   // Biggest reasons first. The signed weights of this array are the score.
   published.sort(
