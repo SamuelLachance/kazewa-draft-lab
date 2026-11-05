@@ -320,59 +320,92 @@ const FAMILY_CAPS = {
   grid: 3,
 };
 
-// Signed blue-minus-red combination of the rule families, the seven axes and
-// six trait sums. The weights were fit on the frozen retrospective labels.
-// No roster, video or case id is an input. This is not the 85% fidelity gate.
-const PREFERENCE_WEIGHTS = [
-  -0.005322839353111277, 0.04233119910410067, -0.007013764169029606,
-  -0.05367314342333389, -0.11497754883379409, -0.0872476160967976,
-  0.048600308340367264, 0.06351105123939353, 0.03309721440796292,
-  0.03170778468908183, -0.006517988393892225, 0.021802548976562825,
-  -0.0028361985352998525, -0.04948259315182444, 0.03831774831251899,
-  -0.03830036422132967, 0.0007196874411032877, 0.029081891797920444,
-  -0.01484319991536151, -0.04147600457758316, -0.027736358566128518,
-  -0.0771724043954693, 0.008833237221934286, -0.008463202225609817,
-];
-const PREFERENCE_SCALES = [
-  1.638744602117042, 2.6457513110645907, 1.9140292747280883,
-  1.4438412029564875, 1.1216347516589489, 1.0776318121606496,
-  1.3810351423899856, 0.9212981724613616, 1.3136995286643374,
-  0.7035337073796497, 2.050029504114987, 3.239698313314115,
-  1.6800537625806191, 2.136472824314004, 2.697071290935242,
-  2.17017912149086, 2.9043904474033337, 1.9674775073518598,
-  1.879430249973681, 2.2895273494481265, 1.6412033350858075,
-  2.2647366862539484, 2.0713093879585363, 1.4535828926505883,
-];
-const PREFERENCE_FAMILIES = [
-  "frontline",
-  "damage",
-  "reach",
-  "identity",
-  "protection",
-  "tempo",
-  "macro",
-  "terrain",
-  "synergy",
-  "lane",
-  "grid",
-];
-const PREFERENCE_AXES = [
-  "frontline",
-  "dps",
-  "catch",
-  "protection",
-  "scaling",
-  "objectives",
-  "side",
-];
-const PREFERENCE_TRAITS = [
-  "engage",
-  "snowball_early",
-  "anti_dash",
-  "burst",
-  "zone",
-  "bridge",
-];
+// Which fired rules enter the verdict, and in which direction.
+// +1 keeps the rule's credit. -1 gives that credit to the other side:
+// those three rules reward a paper shell (immobiles counted as a loss,
+// protected scaling, the larger teamfight grid) that Kazewa does not pick
+// when the other side has the more active plan. This is not the separate
+// distillation fit, and it is not the 85% fidelity gate.
+const READING = {
+  dps_missing: 1,
+  burst_into_tanks: 1,
+  immobile_into_catch: -1,
+  protected_scaling: -1,
+  anti_dash: 1,
+  objective_plan: 1,
+  named_lane_counter: 1,
+  named_synergy: 1,
+  catch_against_mobile: 1,
+  grid_teamfight: -1,
+  grid_range: 1,
+  grid_side: 1,
+  frontline_missing: 1,
+  followup_missing: 1,
+  named_antisynergy: 1,
+  named_context_counter: 1,
+  hook_into_milio: 1,
+  yone_into_aatrox: 1,
+  renekton_taliyah: 1,
+};
+const HOOKS = new Set([
+  "Nautilus",
+  "Leona",
+  "Blitzcrank",
+  "Pyke",
+  "Thresh",
+  "Rell",
+]);
+
+function readingLaws(normalized) {
+  const name = (side, role) => normalized[side][role].champion;
+  const laws = [];
+  for (const side of SIDES) {
+    const foe = other(side);
+    if (HOOKS.has(name(side, "sup")) && name(foe, "sup") === "Milio")
+      laws.push({
+        id: "hook_into_milio",
+        title: "Un hook ferme Milio",
+        side,
+        weight: 5,
+        evidence: `${name(side, "sup")} répond à Milio : cet enchanteur ne se blind pas dans un hook.`,
+        sources: ["91R-kQSi4_U"],
+        family: "lane",
+        subject: side,
+        provenance:
+          "Loi de lane énoncée par Kazewa : Milio ne tient pas face à un hook.",
+      });
+    if (name(side, "top") === "Yone" && name(foe, "top") === "Aatrox")
+      laws.push({
+        id: "yone_into_aatrox",
+        title: "Yone répond à Aatrox",
+        side,
+        weight: 3,
+        evidence:
+          "Yone est une réponse dure à Aatrox en top : le snowball de la lane change de côté.",
+        sources: ["-B3b80GYtDM"],
+        family: "lane",
+        subject: side,
+        provenance: "Matchup de top énoncé par Kazewa.",
+      });
+    const allies = new Set(ROLES.map((role) => name(side, role)));
+    if (allies.has("Renekton") && allies.has("Taliyah"))
+      laws.push({
+        id: "renekton_taliyah",
+        title: "Renekton et Taliyah ne package pas",
+        side: foe,
+        weight: 4,
+        evidence:
+          "Renekton et Taliyah dans la même composition ne forment pas une famille.",
+        sources: ["zn2EpFiCFwI"],
+        family: "identity",
+        subject: side,
+        provenance:
+          "Antisynergie énoncée par Kazewa : cette paire ne gagne pas ensemble.",
+      });
+  }
+  return laws;
+}
+
 export const SYNERGIES = [
   {
     pair: ["Azir", "Maokai"],
@@ -1118,34 +1151,19 @@ export function analyzeDraft(draft, knowledge) {
     red: teams.red.axes[id],
     max: 10,
   }));
-  const preferenceValues = [
-    ...PREFERENCE_FAMILIES.map((family) => Number(familyScores[family] ?? 0)),
-    ...PREFERENCE_AXES.map((id) => {
-      const row = axes.find((axis) => axis.id === id);
-      return Number(row.blue) - Number(row.red);
-    }),
-    ...PREFERENCE_TRAITS.map((trait) =>
-      SIDES.reduce((total, side) => {
-        const direction = side === "blue" ? 1 : -1;
-        const sum = ROLES.reduce(
-          (count, role) => count + Number(normalized[side][role][trait] ?? 0),
-          0,
-        );
-        return total + direction * sum;
-      }, 0),
-    ),
-  ];
-  const rawPreference = preferenceValues.reduce(
-    (total, value, index) =>
-      total + (PREFERENCE_WEIGHTS[index] * value) / PREFERENCE_SCALES[index],
-    0,
-  );
-  const score = Math.round(rawPreference * 1e6) / 1e6;
+  signals.push(...readingLaws(normalized));
+  let cents = 0;
+  for (const signal of signals) {
+    const polarity = READING[signal.id];
+    if (!polarity) continue;
+    const direction = signal.side === "blue" ? 1 : -1;
+    cents += polarity * direction * Math.round(signal.weight * 100);
+  }
+  const score = cents / 100;
   const margin = Math.abs(score);
-  const winner =
-    Math.abs(rawPreference) <= 1e-10 ? "even" : rawPreference > 0 ? "blue" : "red";
+  const winner = cents === 0 ? "even" : cents > 0 ? "blue" : "red";
   const warnings = [
-    "Pondérations de combinaison ajustées sur le benchmark rétrospectif ; la marge n’est pas une probabilité de victoire.",
+    "Lecture des familles, compteurs et synergies ; trois règles de bloc « sur le papier » sont comptées à l’envers. La marge n’est pas une probabilité de victoire.",
     "Lanes limitées aux matchups nommés ; dégâts AD/AP, portée exacte et méta actuelle non modélisés.",
   ];
   for (const side of SIDES)
@@ -1197,9 +1215,9 @@ export function analyzeDraft(draft, knowledge) {
     confidence:
       winner === "even"
         ? "indeterminee"
-        : margin >= 9
+        : margin >= 6
           ? "forte"
-          : margin >= 5
+          : margin >= 2.5
             ? "moyenne"
             : "faible",
     signals: signals.sort(

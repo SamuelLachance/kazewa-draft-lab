@@ -417,7 +417,7 @@ export function buildBenchmark(corpusRoot, knowledge) {
     version: "1.0.0",
     createdAt: new Date().toISOString(),
     design:
-      "Frozen retrospective benchmark. Structural combination weights were fit on these labels; the scorer is not a roster-to-label table.",
+      "Frozen retrospective benchmark. The scorer is a symmetric reading of families, lane counters and synergies, confronted with these labels; it is not a roster-to-label table and it is not the separate distillation fit.",
     primaryDefinition:
       "Complete ten exact known champions in draft-phase-only extracts; no detected draft-process, player/team-strength, meta or result-aware reason. Conservative keyword screening is imperfect.",
     broaderDefinition:
@@ -429,6 +429,7 @@ export function buildBenchmark(corpusRoot, knowledge) {
       "Reconstructed rosters in the broader cohort come from existing project dossier headers and answer keys, not a newly verified external match feed.",
       "Broadcast left/right are anonymized as blue/red for exact-extract cases; the engine cannot use first-pick or map-side advantages.",
       "Predictions of Kazewa preference and predictions of actual match winners are distinct outcomes.",
+      "The reading was confronted with these same retrospective labels. Agreement on this file is not an independent test, and 70% does not pass the 85% fidelity gate.",
     ],
     gate: DEFAULT_GATE,
     audit: {

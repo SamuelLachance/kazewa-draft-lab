@@ -15,7 +15,7 @@ Le corpus d’apprentissage contient 62 drafts nettoyées issues de 42 vidéos. 
 | Transfert sur les 46 cas exploratoires sans groupe d’apprentissage commun | **19/46 — 41,3 %** | 25/42 — 59,5 % |
 | Couverture de ce transfert | 100 % | 91,3 % |
 
-Les taux à des couvertures différentes ne sont pas directement équivalents. Sur les 57 cas nettoyés où les deux modèles décident, le modèle distillé a 30 accords et l’heuristique d’alors 23 ; il corrige 22 erreurs de l’heuristique mais introduit 15 erreurs sur ses bonnes décisions. Cela n’établit pas une amélioration statistiquement fiable. Depuis cette expérience, le moteur principal reprend la même combinaison structurelle dans son score. Le chiffre courant du laboratoire est celui de `data/evaluation.json`, pas la colonne heuristique de ce tableau.
+Les taux à des couvertures différentes ne sont pas directement équivalents. Sur les 57 cas nettoyés où les deux modèles décident, le modèle distillé a 30 accords et l’heuristique d’alors 23 ; il corrige 22 erreurs de l’heuristique mais introduit 15 erreurs sur ses bonnes décisions. Cela n’établit pas une amélioration statistiquement fiable. Ce modèle reste une expérience séparée : il ne fournit pas le verdict du moteur. Le chiffre courant du laboratoire est celui de `data/evaluation.json`, pas l’accord d’entraînement de ce tableau.
 
 L’intervalle de Wilson à 95 % de l’accord hors groupe est **39,4–63,6 %**. Il porte sur les cas et ne corrige pas leur corrélation entre groupes. Les accords des cinq plis varient de **41,7 % à 75 %**. L’écart entre 82,3 % en apprentissage et 51,6 % hors groupe révèle un surapprentissage important. Le recul sur le transfert exploratoire empêche de considérer le gain du corpus nettoyé comme une amélioration générale.
 
