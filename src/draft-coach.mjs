@@ -100,20 +100,29 @@ function closeTarget(session, side) {
   const blinds = [];
   for (const role of ROLES) {
     const champion = session.picks[other(side)][role];
-    if (!champion) continue;
-    const roles = (LANES[champion] || []).filter((lane) => open.has(lane));
-    if (roles.length) blinds.push({ champion, roles });
+    // A blind is the slot that was actually filled. Ashe locked ADC is an ADC
+    // blind even though she can also play support.
+    if (!champion || !open.has(role)) continue;
+    const lanes = (LANES[champion] || []).filter((lane) => open.has(lane));
+    const roles = lanes.includes(role) ? lanes : [role];
+    blinds.push({ champion, seat: role, roles });
   }
-  const rank = (roles) =>
-    Math.min(...roles.map((role) => CLOSE_ORDER.indexOf(role)));
   blinds.sort(
-    (a, b) => rank(a.roles) - rank(b.roles) || a.champion.localeCompare(b.champion, "fr"),
+    (a, b) =>
+      CLOSE_ORDER.indexOf(a.seat) - CLOSE_ORDER.indexOf(b.seat) ||
+      a.champion.localeCompare(b.champion, "fr"),
   );
   if (blinds.length) {
-    const roles = blinds[0].roles;
-    return roles.length > 1
-      ? { kind: "flex", roles, closing: true }
-      : { kind: "role", role: roles[0], closing: true };
+    const blind = blinds[0];
+    return blind.roles.length > 1
+      ? {
+          kind: "flex",
+          champion: blind.champion,
+          roles: blind.roles,
+          seat: blind.seat,
+          closing: true,
+        }
+      : { kind: "role", role: blind.seat, closing: true };
   }
   const role = CLOSE_ORDER.find((item) => open.has(item));
   return role ? { kind: "role", role, closing: false } : null;
@@ -163,7 +172,9 @@ function offroleRole(session, side, champion, open, knowledge) {
     target?.kind === "role" && open.includes(target.role)
       ? target.role
       : target?.kind === "flex"
-        ? earliestRole(target.roles.filter((role) => open.includes(role)))
+        ? open.includes(target.seat)
+          ? target.seat
+          : earliestRole(target.roles.filter((role) => open.includes(role)))
         : earliestRole(open);
   if (!dump) return null;
   const names = remainingNames(session, knowledge);
@@ -178,9 +189,11 @@ function candidateRoles(session, side, champion, followDraft, knowledge = null) 
   if (followDraft) {
     const target = closeTarget(session, side);
     if (target?.kind === "role" && lanes.includes(target.role)) return [target.role];
-    if (target?.kind === "flex") {
-      const covered = target.roles.filter((role) => lanes.includes(role));
-      if (covered.length) return covered;
+    if (target?.kind === "flex" && coversRoles(champion, target.roles)) {
+      const seat = lanes.includes(target.seat)
+        ? target.seat
+        : earliestRole(target.roles.filter((role) => lanes.includes(role)));
+      return seat ? [seat] : [];
     }
   }
   if (lanes.length) return lanes;
@@ -574,7 +587,7 @@ function rankAdvice(session, knowledge) {
   );
   const roleNote =
     target?.kind === "flex"
-      ? "L’autre côté a blind un flex. Réponds avec un champion qui couvre les mêmes rôles encore ouverts."
+      ? `L’autre côté a blind ${target.champion} en ${ROLE_NAME[target.seat]} (${target.roles.map((role) => ROLE_NAME[role]).join("/")}). Ferme ce poste avec un champion qui couvre les mêmes rôles.`
       : target?.closing
         ? `Ferme le blind sur ${ROLE_NAME[target.role]}.`
         : target
@@ -611,6 +624,12 @@ export function inferPickRole(session, champion, knowledge = null) {
   const lanes = (LANES[champion] || []).filter((role) => open.has(role));
   const target = closeTarget(session, step.side);
   if (target?.kind === "role" && lanes.includes(target.role)) return target.role;
+  if (
+    target?.kind === "flex" &&
+    coversRoles(champion, target.roles) &&
+    lanes.includes(target.seat)
+  )
+    return target.seat;
   if (target?.kind === "flex") {
     const covered = target.roles.filter((role) => lanes.includes(role));
     if (covered.length) {

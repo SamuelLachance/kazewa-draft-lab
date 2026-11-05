@@ -416,8 +416,19 @@ test("the drafter opens on ADC and closes blinds before the next role", () => {
 
   const flexBlind = applyAction(afterOpeningBans(), "Sett", "top");
   const flex = advise(flexBlind, knowledge).options[0];
+  assert.equal(flex.role, "top");
   assert.ok(LANES[flex.champion].includes("top"), flex.champion);
   assert.ok(LANES[flex.champion].includes("sup"), flex.champion);
+
+  const asheBlind = applyAction(afterOpeningBans(), "Ashe", null, knowledge);
+  assert.equal(asheBlind.picks.blue.bot, "Ashe");
+  const ashe = advise(asheBlind, knowledge, { limit: 8 });
+  assert.equal(ashe.options[0].role, "bot");
+  assert.ok(LANES[ashe.options[0].champion].includes("bot"));
+  assert.ok(LANES[ashe.options[0].champion].includes("sup"));
+  assert.match(ashe.note, /Ferme ce poste/);
+  assert.match(ashe.note, /en ADC/);
+  assert.doesNotMatch(ashe.note, /propose .+ en support/);
 
   let session = applyAction(afterOpeningBans(), "Caitlyn", "bot");
   session = applyAction(session, "Jinx", "bot");
