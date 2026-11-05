@@ -2,6 +2,10 @@
 
 Le moteur applique des règles fixées à partir de la méthode et de la taxonomie du projet. Il ne reçoit que deux objets de cinq champions, avec leurs rôles. Aucun vainqueur réel, nom d’équipe, joueur, patch, ordre de sélection, ban ou label de Kazewa ne lui est transmis.
 
+## Résultat du modèle 1.2.0
+
+La version 1.2.0 ajoute Briar, seul champion du catalogue Data Dragon 16.21.1 absent de la 1.1.0. Son profil est déduit du guide gameplay et des notes de cours ajoutées dans `data/`. Il n’est pas attribué à Kazewa. Aucune draft du benchmark figé ne la contient : les accords ci-dessous restent ceux de la 1.1.0.
+
 ## Résultat du modèle 1.1.0
 
 Le corpus contient 309 extractions limitées à la phase de draft, dont 269 avec une préférence exprimée. Seulement 44 décrivent dix champions certains et connus. Après ajout de 18 compositions de dossiers dont les picks déjà connus concordent, le benchmark élargi compte **62 cas**. Les 11 doublons ont été retirés. Parmi 51 rapprochements possibles avec la clé de dossiers, 22 sont exclus car la correspondance de côtés ou de picks connus est ambiguë ou contradictoire.

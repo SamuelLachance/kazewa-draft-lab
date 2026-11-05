@@ -1,8 +1,8 @@
 {
   "version": "1.0.0",
-  "createdAt": "2026-10-29T18:16:14.329Z",
+  "createdAt": "2026-11-05T16:06:32.702Z",
   "status": "experimental_distillation_not_main_engine",
-  "modelVersion": "1.1.0",
+  "modelVersion": "1.2.0",
   "design": "Fixed-lambda ridge logistic preference classifier; five-fold connected video/draft-group out-of-fold evaluation on clean labels only.",
   "configuration": {
     "lambda": 1,
@@ -29,11 +29,11 @@
     "rawExcludedDueToTrainingVideoOrDraftGroup": 55
   },
   "sourceHashes": {
-    "src/engine.mjs": "424fab9b5ca829f4ed97b0aead262f5ad499d7449bb90d72f2d1eb1770e8517d",
-    "src/distillation.mjs": "fecf2d2fcd49c39de98e8950154f127e65567681d78e3428402993590c8d4377",
-    "scripts/distill.mjs": "ef77ac54010a24a2ae8070e11dcd244048c859952ce92f2737b9ca6c5b79114a",
-    "data/knowledge.json": "2a52dba951c47a6bce636df058f1d0b8065c25ad90ad0a2b6e853f9d28c7f865",
-    "data/benchmark.json": "16db80b1cc247e543a569ed63207ffee6f9436035fe5b3ebbeebfa75f00efbfa"
+    "src/engine.mjs": "bed6d9361500569672c9004ebc4d5da57084ee8980bbcdfff9e968d5fab954ee",
+    "src/distillation.mjs": "6c5b05f990c5f6f7ab5d90c2c37ba3d0ff81ea1dada2dfd969282c9a66b2b77f",
+    "scripts/distill.mjs": "9339146d91bf1e5dd48329e3325dbea4fad9b46706dd610e2798078853e541b6",
+    "data/knowledge.json": "e4a3eaba80b4258e150d54623db4c2116c01d4d7c26146feb8415f98feda9471",
+    "data/benchmark.json": "13a51c2d21643b2c4831d2379095e049a2ed257094f8e7ad2d8aa723e237db62"
   },
   "baseline": {
     "clean": {

@@ -606,7 +606,7 @@ function evaluateRules(t, o) {
     );
   if (
     o.split &&
-    t.has("Nocturne", "Twisted Fate", "Shen", "Pantheon") &&
+    t.has("Nocturne", "Twisted Fate", "Shen", "Pantheon", "Briar") &&
     t.globals > o.globals
   )
     hit(

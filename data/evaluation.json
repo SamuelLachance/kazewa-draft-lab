@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "evaluatedAt": "2026-10-29T18:16:12.144Z",
-  "modelVersion": "1.1.0",
+  "evaluatedAt": "2026-11-05T16:06:13.248Z",
+  "modelVersion": "1.2.0",
   "benchmarkVersion": "1.0.0",
   "benchmarkDesign": "Frozen retrospective benchmark; no supervised fitting or rule tuning on these labels.",
   "sourceOverlap": true,
@@ -5157,8 +5157,8 @@
     ]
   },
   "sourceHashes": {
-    "engine": "424fab9b5ca829f4ed97b0aead262f5ad499d7449bb90d72f2d1eb1770e8517d",
-    "knowledge": "2a52dba951c47a6bce636df058f1d0b8065c25ad90ad0a2b6e853f9d28c7f865",
-    "benchmark": "16db80b1cc247e543a569ed63207ffee6f9436035fe5b3ebbeebfa75f00efbfa"
+    "engine": "bed6d9361500569672c9004ebc4d5da57084ee8980bbcdfff9e968d5fab954ee",
+    "knowledge": "e4a3eaba80b4258e150d54623db4c2116c01d4d7c26146feb8415f98feda9471",
+    "benchmark": "13a51c2d21643b2c4831d2379095e049a2ed257094f8e7ad2d8aa723e237db62"
   }
 }

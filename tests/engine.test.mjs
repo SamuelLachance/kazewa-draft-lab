@@ -15,8 +15,25 @@ const draft = {
     sup: "Pyke",
   },
 };
-test("the knowledge build preserves the complete source taxonomy and source distinction", () => {
-  assert.equal(Object.keys(knowledge.champions).length, 172);
+test("the knowledge build covers every official champion and keeps source distinctions", async () => {
+  const assets = JSON.parse(
+    await readFile(
+      new URL("../data/champion-assets.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const names = Object.keys(knowledge.champions);
+  assert.equal(names.length, assets.champions.length);
+  assert.equal(names.length, 173);
+  for (const champion of assets.champions)
+    assert.equal(names.includes(champion.name), true, champion.name);
+  assert.equal(knowledge.champions.Briar.global, 1);
+  assert.equal(knowledge.champions.Briar.dps, 2);
+  assert.equal(knowledge.champions.Briar.source.global, "déduit");
+  assert.equal(
+    knowledge.champions.Briar.note.includes("jamais attribués à Kazewa"),
+    true,
+  );
   assert.equal(knowledge.champions.Gangplank.dashs, 1);
   assert.ok(knowledge.champions.Gangplank._provenance.warnings.length);
   assert.ok(knowledge.rules.every((r) => r.sources.length && r.weight > 0));
@@ -61,6 +78,18 @@ test("partial drafts abstain even when one side has a complete stronger-looking 
   assert.equal(r.winner, null);
   assert.equal(r.score, 0);
   assert.deepEqual(r.missing, ["red.bot"]);
+});
+test("Briar is judged from her deduced profile instead of abstaining", () => {
+  const r = analyzeDraft(
+    {
+      ...draft,
+      blue: { ...draft.blue, jng: "Briar" },
+    },
+    knowledge,
+  );
+  assert.equal(r.status, "complete");
+  assert.equal(normalizeChampion("Briar", knowledge), "Briar");
+  assert.ok(r.signals.length > 0);
 });
 test("unknown champions abstain and do not inherit a made-up neutral profile", () => {
   const r = analyzeDraft(

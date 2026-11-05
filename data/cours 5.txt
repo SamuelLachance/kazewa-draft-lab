@@ -1,0 +1,53 @@
+
+
+
+
+
+
+1 : liste des champs pools 
+
+2 : on fait les compos types 
+
+3 : on trouve les compos / champions interchangeables
+
+4 : stuffs 
+
+5 : gameplan général
+
+6: bans / logiques de drafts
+
+7: définis un shotcaller / shotcalls simples
+
+8: on joue et on voit ou ca int
+
+
+
+
+
+Types de compos hypercarrys
+
+adc
+kog / jinx / twitch / zeri / 
+enchanteur
+lulu / milio / yuumi / karma / janna etc
+tank jgl
+
+
+jungle
+belveth / yi / kindred / 
+enchanteur supp
+tank mid
+galio / nautlius / cho / sion  = lane stable + temporiser la game
+adc waveclear ou utilitaire ou ap bot 
+
+
+
+
+
+top 
+kayle / fiora / gwen / camille 
+
+enchanteur supp et/ou enchanteur jungle 
+mid controle mage 
+
+

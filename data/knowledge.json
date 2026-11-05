@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "champions": {
     "Aatrox": {
       "champion": "Aatrox",
@@ -709,6 +709,49 @@
         "sources": [
           "9rZFhLUPbHQ",
           "poke_zone_0"
+        ],
+        "warnings": []
+      }
+    },
+    "Briar": {
+      "champion": "Briar",
+      "catch": 1,
+      "catch_type": "court",
+      "engage": 2,
+      "engage_type": "long",
+      "follow_up": 0,
+      "immobile": 0,
+      "dashs": 2,
+      "anti_dash": 0,
+      "frontline": 0,
+      "peel": 0,
+      "disengage": 1,
+      "scaling": 2,
+      "snowball_early": 1,
+      "bridge": 0,
+      "dps": 2,
+      "burst": 1,
+      "global": 1,
+      "split": 1,
+      "poke": 0,
+      "zone": 0,
+      "source": {
+        "catch": "déduit",
+        "engage": "déduit",
+        "dashs": "déduit",
+        "disengage": "déduit",
+        "scaling": "déduit",
+        "snowball_early": "déduit",
+        "dps": "déduit",
+        "burst": "déduit",
+        "global": "déduit",
+        "split": "déduit"
+      },
+      "note": "Absente du corpus Kazewa. Le guide gameplay décrit un Q ciblé qui étourdit, un W de frénésie en dégâts soutenus, un E de recul et un R à portée de carte. Les notes ajoutées la classent parmi les globals et les hypercarries jungle, pas parmi les catcheurs nommés. Tous les traits sont déduits de ces fichiers, jamais attribués à Kazewa.",
+      "_provenance": {
+        "file": "data/lol-champions-gameplay.md",
+        "sources": [
+          "data/COMBOS DE CHAMPIONS.txt"
         ],
         "warnings": []
       }
@@ -7776,7 +7819,7 @@
       "kb/KAZEWA_METHOD.md": "3f746d119651f1d3073152dd46a1fd48136054c555da2e12af7ae5bae80e9b2d"
     },
     "sourceNoteCount": 613,
-    "championCount": 172,
+    "championCount": 173,
     "ruleCount": 42,
     "weights": "Heuristiques figées ; non calibrées sur des résultats de matchs. Révision 1.1 guidée par les définitions, profils et règles du corpus sans ajustement aux labels du benchmark.",
     "operationalContext": "Les profils originaux sont conservés. Les résumés tiennent compte du rôle, du DPS de niveau 1, des faux immobiles, des gardiens et des combos nommés ; les seuils restent des choix d’implémentation.",
