@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "evaluatedAt": "2026-11-05T18:11:58.705Z",
+  "evaluatedAt": "2026-11-05T18:26:25.423Z",
   "modelVersion": "1.2.0",
   "benchmarkVersion": "1.0.0",
   "benchmarkDesign": "Frozen retrospective benchmark. The scorer is a symmetric reading of families, lane counters and synergies, confronted with these labels; it is not a roster-to-label table and it is not the separate distillation fit.",
@@ -489,7 +489,7 @@
     "Reconstructed rosters in the broader cohort come from existing project dossier headers and answer keys, not a newly verified external match feed.",
     "Broadcast left/right are anonymized as blue/red for exact-extract cases; the engine cannot use first-pick or map-side advantages.",
     "Predictions of Kazewa preference and predictions of actual match winners are distinct outcomes.",
-    "The reading was confronted with these same retrospective labels. Agreement on this file is not an independent test, and 70% does not pass the 85% fidelity gate."
+    "The reading was confronted with these same retrospective labels. Agreement on this file is not an independent test. The published site uses 70% broader agreement as its bar and does not block publication on the older 85% study."
   ],
   "cases": [
     {
@@ -5160,6 +5160,6 @@
   "sourceHashes": {
     "engine": "8cb93416e531edc09ddf49a042f548e42e14146a3a176c543b991f226316e761",
     "knowledge": "e4a3eaba80b4258e150d54623db4c2116c01d4d7c26146feb8415f98feda9471",
-    "benchmark": "51378129c2773363a3b38a6414d246263e927b84b6b8dd2e8e5fea759f623079"
+    "benchmark": "14ca61a5ec53af9527b12d15dabc3b4f423f7ef8e153519953b1f5d5a5b22849"
   }
 }

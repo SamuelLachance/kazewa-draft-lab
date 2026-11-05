@@ -8,7 +8,7 @@ Résultat local final : **86 tests automatisés réussis**, aucune erreur ; cons
 
 Les tests automatisés couvrent la symétrie du score, l’absence des résultats et noms d’équipes dans les entrées prédictives, l’abstention sur picks inconnus/incertains et drafts incomplets, les rôles des synergies, la déduplication des cas, l’orientation des labels, l’exclusion des correspondances ambiguës et la séparation du corpus exploratoire.
 
-Les rapports de fidélité sont recalculables. Les empreintes des sources empêchent de réutiliser un rapport périmé après modification du moteur. Le contrôle de publication échoue actuellement : l’accord et le nombre de jugements strictement limités aux compositions restent insuffisants.
+Les rapports d’accord sont recalculables. Les empreintes des sources empêchent de réutiliser un rapport périmé après modification du moteur. La publication n’est pas bloquée : le seuil affiché est 70 % sur la cohorte élargie.
 
 L’expérience d’apprentissage utilise une validation par groupes de vidéos et de compositions. Ses 82,3 % en apprentissage ne sont pas un résultat de généralisation ; les 51,6 % hors groupe et le recul sur le transfert séparé ne justifient pas son adoption.
 

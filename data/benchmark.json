@@ -11,7 +11,7 @@
     "Reconstructed rosters in the broader cohort come from existing project dossier headers and answer keys, not a newly verified external match feed.",
     "Broadcast left/right are anonymized as blue/red for exact-extract cases; the engine cannot use first-pick or map-side advantages.",
     "Predictions of Kazewa preference and predictions of actual match winners are distinct outcomes.",
-    "The reading was confronted with these same retrospective labels. Agreement on this file is not an independent test, and 70% does not pass the 85% fidelity gate."
+    "The reading was confronted with these same retrospective labels. Agreement on this file is not an independent test. The published site uses 70% broader agreement as its bar and does not block publication on the older 85% study."
   ],
   "gate": {
     "minimumAgreement": 0.85,

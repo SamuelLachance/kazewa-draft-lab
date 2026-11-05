@@ -262,10 +262,48 @@
               </button>
             </div>
             <p id="coach-side-note"></p>
-            <ol id="coach-rail" class="coach-rail"></ol>
-            <div class="coach-layout">
-              <div id="coach-board"></div>
-              <section id="coach-advice" aria-live="polite"></section>
+            <div class="draft-room">
+              <section
+                id="coach-blue"
+                class="draft-side blue-team"
+                aria-label="Côté bleu"
+              ></section>
+              <section class="draft-pool" aria-label="Grille des champions">
+                <div class="draft-pool-head">
+                  <p id="coach-turn" class="coach-turn"></p>
+                  <label class="coach-search">
+                    <span class="visually-hidden">Chercher un champion</span>
+                    <input
+                      id="coach-search"
+                      type="search"
+                      placeholder="Chercher un champion"
+                      autocomplete="off"
+                      spellcheck="false"
+                    />
+                  </label>
+                  <div
+                    class="lane-filters"
+                    role="group"
+                    aria-label="Filtrer la grille par rôle"
+                  >
+                    <button type="button" data-lane="all" class="is-active" aria-pressed="true">
+                      Tous
+                    </button>
+                    <button type="button" data-lane="top" aria-pressed="false">Top</button>
+                    <button type="button" data-lane="jng" aria-pressed="false">Jungle</button>
+                    <button type="button" data-lane="mid" aria-pressed="false">Mid</button>
+                    <button type="button" data-lane="bot" aria-pressed="false">ADC</button>
+                    <button type="button" data-lane="sup" aria-pressed="false">Supp</button>
+                  </div>
+                </div>
+                <div id="coach-grid" class="champion-grid"></div>
+                <p id="coach-note" class="coach-note"></p>
+              </section>
+              <section
+                id="coach-red"
+                class="draft-side red-team"
+                aria-label="Côté rouge"
+              ></section>
             </div>
             <section id="coach-pro" class="coach-pro" aria-label="Matchs professionnels"></section>
           </section>

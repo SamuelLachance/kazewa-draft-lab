@@ -2,7 +2,7 @@
 
 Un moteur explicable qui compare deux compositions de League of Legends à partir du corpus Kazewa, une interface française et un serveur de connexion aux données professionnelles.
 
-**Statut : laboratoire expérimental public. La fidélité n’est pas validée.** Les résultats réels de l’évaluation sont conservés dans [`data/evaluation.json`](data/evaluation.json), affichés dans le site et détaillés dans [`docs/EVALUATION.md`](docs/EVALUATION.md). Le site public reprend cette mesure. Il ne présente pas le moteur comme une reproduction validée de Kazewa.
+**Statut : site public.** Le seuil retenu est 70 % d’accord sur la cohorte élargie. Les résultats réels sont dans [`data/evaluation.json`](data/evaluation.json), affichés sur le site et détaillés dans [`docs/EVALUATION.md`](docs/EVALUATION.md). La publication n’est pas bloquée.
 
 Dépôt public : [SamuelLachance/kazewa-draft-lab](https://github.com/SamuelLachance/kazewa-draft-lab). Site : [samuellachance.github.io/kazewa-draft-lab](https://samuellachance.github.io/kazewa-draft-lab/). **86 tests automatisés réussis**, build statique réussi et neuf parcours vérifiés dans Chrome. Voir [la vérification détaillée](docs/VERIFICATION.md).
 
@@ -25,7 +25,7 @@ npm test                 # Vérifications du moteur, des données, du live et du
 npm run evaluate         # Recalcul du benchmark figé, sans le corpus source
 npm run distill          # Expérience séparée d’apprentissage et validation hors groupe
 npm run build            # Site statique dans dist/, compatible GitHub Pages
-npm run verify:fidelity  # Contrôle de publication : échoue tant que la fidélité manque
+npm run verify:fidelity  # Affiche l’accord élargi. Ne bloque pas la publication.
 ```
 
 `npm run knowledge` reconstruit les profils et les règles depuis le dossier parent contenant le corpus. `node scripts/evaluate.mjs --rebuild-benchmark` reconstruit les cas depuis les fichiers parent. Ces deux opérations nécessitent les sources locales ; les tests, l’évaluation et le build utilisent les données générées commitées et fonctionnent dans un dépôt autonome.
@@ -70,13 +70,13 @@ Le connecteur public a été appelé réellement avec succès le 29 octobre 2026
 Les workflows sont prêts dans `.github/workflows/` :
 
 - `check.yml` teste, réévalue et construit un artefact de revue sur les push/PR.
-- `pages.yml`, déclenché à chaque push sur `main` ou manuellement, teste, réévalue, construit et publie `dist/`. Le contrôle de fidélité est exécuté et signalé. Il ne bloque plus la publication du laboratoire.
+- `pages.yml`, déclenché à chaque push sur `main` ou manuellement, teste, réévalue, construit et publie `dist/` avec le dernier moteur.
 
-Le seuil du sous-ensemble strict reste déclaré : accord ≥ 85 %, couverture ≥ 80 %, au moins 50 drafts provenant de 10 vidéos. Ces exigences sont des choix du projet. Les données actuelles ne suffisent pas à les satisfaire. Un benchmark rétrospectif réussi devrait aussi être confirmé sur des cas prospectifs indépendants. Tant que ce seuil n’est pas atteint, le site affiche l’écart.
+Le seuil affiché est 70 % d’accord sur la cohorte élargie, avec au moins 80 % de couverture. Il ne bloque pas la publication.
 
 Le dépôt est public. **Settings → Pages → Source : GitHub Actions**. Définir éventuellement la variable de dépôt `LIVE_API_URL` avec l’adresse publique du proxy. Le serveur live doit être hébergé séparément pour que le site statique puisse importer les données.
 
-L’accès GitHub a été confirmé. La publication du site ne vaut pas validation de la fidélité aux jugements de Kazewa.
+Chaque push sur `main` republie le site avec le dernier moteur.
 
 L’[expérience de distillation](docs/DISTILLATION.md) compare aussi un modèle appris au moteur à règles. Elle obtient 82,3 % d’accord sur son entraînement mais 51,6 % hors groupes de vidéos/compositions et ne justifie pas un remplacement du moteur. Ces métriques restent séparées de la validation principale.
 

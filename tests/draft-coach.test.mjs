@@ -132,6 +132,24 @@ function afterOpeningBans() {
   return session;
 }
 
+test("a clicked champion receives a role without a manual choice", () => {
+  const opened = afterOpeningBans();
+  const adc = applyAction(opened, "Caitlyn");
+  assert.equal(adc.picks.blue.bot, "Caitlyn");
+  const mid = applyAction(opened, "Azir");
+  assert.equal(mid.picks.blue.mid, "Azir");
+  assert.equal(mid.picks.blue.bot, null);
+  const topBlind = applyAction(opened, "Renekton", "top");
+  const answer = applyAction(topBlind, "Darius");
+  assert.equal(answer.picks.red.top, "Darius");
+  const flexBlind = applyAction(opened, "Sett", "top");
+  const flex = applyAction(flexBlind, "Shen");
+  assert.equal(flex.picks.red.top, "Shen");
+  const elsewhere = applyAction(flexBlind, "Azir");
+  assert.equal(elsewhere.picks.red.mid, "Azir");
+  assert.equal(elsewhere.picks.red.top, null);
+});
+
 test("the drafter opens on ADC and closes blinds before the next role", () => {
   assert.equal(advise(afterOpeningBans(), knowledge).options[0].role, "bot");
 

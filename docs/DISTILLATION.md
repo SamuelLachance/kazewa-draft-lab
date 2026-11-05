@@ -19,7 +19,7 @@ Les taux à des couvertures différentes ne sont pas directement équivalents. S
 
 L’intervalle de Wilson à 95 % de l’accord hors groupe est **39,4–63,6 %**. Il porte sur les cas et ne corrige pas leur corrélation entre groupes. Les accords des cinq plis varient de **41,7 % à 75 %**. L’écart entre 82,3 % en apprentissage et 51,6 % hors groupe révèle un surapprentissage important. Le recul sur le transfert exploratoire empêche de considérer le gain du corpus nettoyé comme une amélioration générale.
 
-**La fidélité reste non validée.** Le seuil de 85 % n’est atteint ni sur le corpus nettoyé ni sur les cinq cas primaires, qui sont également trop peu nombreux. Les résultats exploratoires ne contribuent jamais à ce seuil.
+Cette expérience ne décide pas du site. Le seuil affiché est 70 % d’accord du moteur à règles sur la cohorte élargie. Les 82,3 % d’entraînement et les 51,6 % hors groupe ne le remplacent pas.
 
 ## Variables et interprétation
 

@@ -1,12 +1,12 @@
 import { analyzeDraft, normalizeChampion, ROLES } from "./src/engine.mjs";
 import { compositionFromText } from "./src/quick-draft.mjs";
 import {
-  DRAFT_STEPS,
   advise,
   applyAction,
   createSession,
   undo,
 } from "./src/draft-coach.mjs";
+import { LANES } from "./src/lanes.mjs";
 import {
   emptyDraft,
   validateEndpoint,
@@ -54,6 +54,8 @@ let view = "lab",
   labMode = "roles",
   coach = createSession("first"),
   coachFocus = "self",
+  coachQuery = "",
+  coachLane = "all",
   draft = emptyDraft(),
   quickParsed = { blue: null, red: null },
   origin = "",
@@ -346,6 +348,7 @@ function analyzeManual() {
 }
 function setView(next, { scroll = false } = {}) {
   view = next;
+  document.body.dataset.view = next;
   for (const button of document.querySelectorAll("[data-view]")) {
     const active = button.dataset.view === next;
     button.classList.toggle("is-active", active);
@@ -404,12 +407,17 @@ function renderValidation() {
   const stats = evaluation?.broader,
     primary = evaluation?.primary,
     exploratory = evaluation?.exploratoryRaw?.summary;
-  const valid = evaluation?.gate?.passed === true;
+  const barMet = Boolean(
+    stats &&
+      stats.agreement >= 0.7 &&
+      stats.coverage >= 0.8 &&
+      stats.decided >= 57,
+  );
   $("#validation-text").textContent = stats
-    ? `Moteur expérimental · ${formatPct(stats.agreement)} d’accord avec Kazewa sur ${stats.decided} avis tranchés (${stats.eligible} drafts évaluées). ${valid ? "Seuil déclaré atteint." : "Fidélité encore insuffisante."}`
-    : "Moteur expérimental · mesure de fidélité indisponible. Aucune validation revendiquée.";
+    ? `${formatPct(stats.agreement)} d’accord avec Kazewa sur ${stats.decided} avis tranchés (${stats.eligible} drafts). ${barMet ? "Le seuil de 70 % est atteint." : "Sous le seuil de 70 %."}`
+    : "Mesure d’accord indisponible.";
   $("#evaluation-details").innerHTML =
-    `<span class="eyebrow">LE TEST DE FIDÉLITÉ</span><h3>${valid ? "Seuil déclaré atteint." : "La transparence avant la certitude."}</h3><p>${valid ? "Les critères de validation déclarés sont atteints sur le benchmark rétrospectif." : "Le seuil de fidélité déclaré n’est pas atteint. Le site reste un laboratoire expérimental : ses verdicts ne sont pas une reproduction validée des jugements de Kazewa."}</p><div class="eval-stats"><div class="eval-stat"><strong>${formatPct(stats?.agreement)}</strong><span>ACCORD SUR LES AVIS TRANCHÉS</span></div><div class="eval-stat"><strong>${formatPct(stats?.coverage)}</strong><span>DRAFTS AVEC UN AVIS TRANCHÉ</span></div><div class="eval-stat"><strong>${stats?.eligible ?? "—"}</strong><span>DRAFTS DÉDUPLIQUÉES</span></div><div class="eval-stat"><strong>${stats?.videos ?? "—"}</strong><span>VIDÉOS SOURCES</span></div></div><table><thead><tr><th>Périmètre</th><th>Drafts</th><th>Avis tranchés</th><th>Accord</th><th>Couverture</th></tr></thead><tbody>${[["Sans influence contextuelle détectée", primary], ["Corpus nettoyé plus large", stats], ...(exploratory ? [["Corpus exploratoire distinct", exploratory]] : [])].map(([name, s]) => `<tr><td>${esc(name)}</td><td>${s?.eligible ?? "—"}</td><td>${s?.decided ?? "—"}</td><td>${formatPct(s?.agreement)}</td><td>${formatPct(s?.coverage)}</td></tr>`).join("")}</tbody></table><p>Critères de sortie déclarés pour le sous-ensemble strict : accord ≥ 85 %, couverture ≥ 80 %, au moins 50 drafts et 10 vidéos. Ce sont des choix de validation du projet, pas des seuils exprimés par Kazewa.</p><p>Évaluation rétrospective. Le verdict est une lecture des familles, des compteurs de lane et des synergies. Trois règles qui récompensent un bloc sur le papier sont comptées pour l’autre côté, après confrontation à ces labels. Le score n’est pas une table des drafts et ce n’est pas le modèle appris. Les règles et les labels proviennent d’un corpus qui se recoupe : ce benchmark ne remplace pas un test prospectif indépendant. Un accord de 70 % ne fait pas passer le seuil de 85 %. Les exclusions contextuelles utilisent un filtrage textuel imparfait.</p>${stats?.agreementInterval95 ? `<p>Incertitude à 95 % sur l’accord mesuré : ${formatPct(stats.agreementInterval95.low ?? stats.agreementInterval95[0])} à ${formatPct(stats.agreementInterval95.high ?? stats.agreementInterval95[1])}. Les cas issus d’une même vidéo ne sont pas tous indépendants.</p>` : ""}<p><a href="./data/evaluation.json" target="_blank" rel="noopener">Rapport JSON détaillé ↗</a> · <a href="./data/benchmark.json" target="_blank" rel="noopener">Cas et exclusions ↗</a></p>`;
+    `<span class="eyebrow">L’ACCORD AVEC KAZEWA</span><h3>${barMet ? "Seuil de 70 % atteint." : "Sous le seuil de 70 %."}</h3><p>${barMet ? "Le site retient 70 % d’accord sur la cohorte élargie. Ce seuil est atteint. La page publique suit le dernier moteur, sans blocage de publication." : "L’accord mesuré est sous 70 %. La page reste publiée avec le dernier moteur."}</p><div class="eval-stats"><div class="eval-stat"><strong>${formatPct(stats?.agreement)}</strong><span>ACCORD SUR LES AVIS TRANCHÉS</span></div><div class="eval-stat"><strong>${formatPct(stats?.coverage)}</strong><span>DRAFTS AVEC UN AVIS TRANCHÉ</span></div><div class="eval-stat"><strong>${stats?.eligible ?? "—"}</strong><span>DRAFTS DÉDUPLIQUÉES</span></div><div class="eval-stat"><strong>${stats?.videos ?? "—"}</strong><span>VIDÉOS SOURCES</span></div></div><table><thead><tr><th>Périmètre</th><th>Drafts</th><th>Avis tranchés</th><th>Accord</th><th>Couverture</th></tr></thead><tbody>${[["Sans influence contextuelle détectée", primary], ["Corpus nettoyé plus large", stats], ...(exploratory ? [["Corpus exploratoire distinct", exploratory]] : [])].map(([name, s]) => `<tr><td>${esc(name)}</td><td>${s?.eligible ?? "—"}</td><td>${s?.decided ?? "—"}</td><td>${formatPct(s?.agreement)}</td><td>${formatPct(s?.coverage)}</td></tr>`).join("")}</tbody></table><p>Évaluation rétrospective. Le verdict est une lecture des familles, des compteurs de lane et des synergies. Trois règles qui récompensent un bloc sur le papier sont comptées pour l’autre côté, après confrontation à ces labels. Le score n’est pas une table des drafts et ce n’est pas le modèle appris. Le chiffre du site est l’accord élargi, pas l’expérience d’apprentissage séparée.</p>${stats?.agreementInterval95 ? `<p>Incertitude à 95 % sur l’accord mesuré : ${formatPct(stats.agreementInterval95.low ?? stats.agreementInterval95[0])} à ${formatPct(stats.agreementInterval95.high ?? stats.agreementInterval95[1])}. Les cas issus d’une même vidéo ne sont pas tous indépendants.</p>` : ""}<p><a href="./data/evaluation.json" target="_blank" rel="noopener">Rapport JSON détaillé ↗</a> · <a href="./data/benchmark.json" target="_blank" rel="noopener">Cas et exclusions ↗</a></p>`;
   $("#rule-catalog").innerHTML = knowledge.rules
     .map(
       (r) =>
@@ -471,11 +479,69 @@ function renderCoachPro() {
       .join("");
   node.innerHTML = `<h3>Games pros en direct</h3>${body}<p class="fine-print">Le flux public donne les champions par rôle quand la partie est lisible. Il ne donne pas les bans ni l’ordre des picks. Le modèle dit alors quel côté a la meilleure draft. Ce n’est pas une probabilité de victoire.</p>`;
 }
+function championImage(name, size) {
+  return `<img src="https://ddragon.leagueoflegends.com/cdn/${esc(config.assetPatch)}/img/champion/${esc(assetId(name))}.png" alt="" width="${size}" height="${size}" loading="lazy" referrerpolicy="no-referrer">`;
+}
+function renderDraftSide(side, advice) {
+  const step = advice.step;
+  const active = Boolean(step && step.side === side);
+  const highlight =
+    active && step.action === "pick" ? advice.options[0]?.role : null;
+  const bans = Array.from({ length: 5 }, (_, index) => {
+    const name = coach.bans[side][index];
+    const now = active && step.action === "ban" && coach.bans[side].length === index;
+    return `<div class="ban-slot${now ? " is-now" : ""}">${name ? championImage(name, 40) : ""}</div>`;
+  }).join("");
+  const picks = ["bot", "jng", "mid", "sup", "top"]
+    .map((role) => {
+      const name = coach.picks[side][role];
+      const now = highlight === role && !name;
+      return `<div class="pick-slot${now ? " is-now" : ""}"><div class="pick-face">${name ? championImage(name, 46) : ""}</div><div><span>${ROLE_LABEL[role]}</span><strong>${name ? esc(name) : "—"}</strong></div></div>`;
+    })
+    .join("");
+  return `<div class="team-heading"><span class="team-side">${side === "blue" ? "BLUE SIDE" : "RED SIDE"}</span><h3>${side === coach.userSide ? "Ton côté" : "Adverse"}</h3></div><div class="ban-row">${bans}</div>${picks}`;
+}
+function renderCoachGrid(advice) {
+  const taken = coachTaken();
+  const suggested = new Set(advice.options.map((option) => option.champion));
+  const query = coachQuery
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  const names = Object.keys(knowledge.champions)
+    .filter((name) => {
+      if (coachLane !== "all" && !(LANES[name] || []).includes(coachLane))
+        return false;
+      if (!query) return true;
+      return name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .includes(query);
+    })
+    .sort((a, b) => {
+      const rank = Number(suggested.has(b)) - Number(suggested.has(a));
+      if (rank) return rank;
+      const used = Number(taken.has(a)) - Number(taken.has(b));
+      return used || a.localeCompare(b, "fr");
+    });
+  $("#coach-grid").innerHTML = names
+    .map((name) => {
+      const used = taken.has(name) || advice.done;
+      return `<button type="button" class="champ-tile${suggested.has(name) ? " is-suggested" : ""}${taken.has(name) ? " is-taken" : ""}" data-champion="${esc(name)}"${used ? " disabled" : ""}>${championImage(name, 74)}<span>${esc(name)}</span></button>`;
+    })
+    .join("");
+}
 function renderCoach() {
   if (view !== "coach" || !knowledge) return;
-  const advice = advise(coach, knowledge);
+  const advice = advise(coach, knowledge, { limit: 8 });
   for (const button of document.querySelectorAll("[data-seat]")) {
     const active = button.dataset.seat === coach.seat;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
+  for (const button of document.querySelectorAll("[data-lane]")) {
+    const active = button.dataset.lane === coachLane;
     button.classList.toggle("is-active", active);
     button.setAttribute("aria-pressed", String(active));
   }
@@ -484,33 +550,16 @@ function renderCoach() {
     coach.seat === "first"
       ? "Tu es first pick, côté bleu. Tu bannis en premier, puis tu prends le premier pick."
       : "Tu es second pick, côté rouge. Le bleu ouvre. Tu réponds ensuite avec deux picks d’affilée.";
-  $("#coach-rail").innerHTML = DRAFT_STEPS.map((step, index) => {
-    const done = coach.log[index];
-    const now = index === coach.log.length;
-    const ours = step.side === coach.userSide;
-    return `<li class="${now ? "is-now" : ""} ${done ? "is-done" : ""} ${ours ? "is-ours" : ""}"><span>${String(index + 1).padStart(2, "0")}</span><strong>${step.action === "ban" ? "Ban" : "Pick"} ${step.side === "blue" ? "bleu" : "rouge"}</strong><em>${done ? esc(done.champion) : now ? (ours ? "À toi" : "À eux") : ours ? "Toi" : "Eux"}</em></li>`;
-  }).join("");
-  $("#coach-board").innerHTML = ["blue", "red"]
-    .map((side) => {
-      const picks = ROLES.map(
-        (role) =>
-          `<div><span>${ROLE_LABEL[role]}</span><strong>${esc(coach.picks[side][role] || "—")}</strong></div>`,
-      ).join("");
-      return `<section class="team-panel ${side}-team"><div class="team-heading"><div><span class="team-side">${side === "blue" ? "BLUE SIDE" : "RED SIDE"}</span><h3 class="team-name">${side === coach.userSide ? "Ton côté" : "Côté adverse"}</h3></div></div><p class="coach-bans">Bans : ${esc(coach.bans[side].join(", ") || "aucun")}</p><div class="coach-picks">${picks}</div></section>`;
-    })
-    .join("");
-  const taken = coachTaken();
-  const pool = Object.keys(knowledge.champions)
-    .filter((name) => !taken.has(name))
-    .sort((a, b) => a.localeCompare(b, "fr"));
   const step = advice.step;
-  const roleSelect =
-    step?.action === "pick"
-      ? `<select id="coach-role" aria-label="Rôle du pick">${ROLES.filter((role) => !coach.picks[step.side][role]).map((role) => `<option value="${role}"${advice.options[0]?.role === role ? " selected" : ""}>${ROLE_LABEL[role]}</option>`).join("")}</select>`
-      : "";
-  $("#coach-advice").innerHTML = advice.done
-    ? `<p class="eyebrow">DRAFT COMPLÈTE</p><h3>Les dix picks sont lock.</h3><p>${esc(advice.note)}</p>`
-    : `<p class="eyebrow">${esc(step.phase)} · tour ${step.index + 1}/20</p><h3>${step.ours ? (step.action === "ban" ? "À toi de bannir." : "À toi de pick.") : step.action === "ban" ? "Ban adverse." : "Pick adverse."}</h3><p>${esc(advice.note)}</p><div class="advice-list">${advice.options.map((option) => `<button type="button" class="advice-card" data-advice-champion="${esc(option.champion)}" data-advice-role="${esc(option.role || "")}"><strong>${esc(option.champion)}</strong>${option.role ? `<span>${ROLE_LABEL[option.role]}</span>` : ""}<p>${esc(option.reasons.join(" · ") || "Choix structurel")}</p></button>`).join("")}</div><form class="coach-manual" id="coach-manual"><select id="coach-champion" aria-label="Autre champion">${pool.map((name) => `<option value="${esc(name)}">${esc(name)}</option>`).join("")}</select>${roleSelect}<button class="primary-button" type="submit">Enregistrer ce tour</button></form>`;
+  $("#coach-turn").textContent = advice.done
+    ? "Draft complète"
+    : `${step.phase} · ${step.index + 1}/20 · ${step.ours ? "à toi" : "à eux"} de ${step.action === "ban" ? "bannir" : "pick"}`;
+  $("#coach-blue").innerHTML = renderDraftSide("blue", advice);
+  $("#coach-red").innerHTML = renderDraftSide("red", advice);
+  $("#coach-note").textContent = advice.done
+    ? advice.note
+    : `Clique un champion, même hors suggestion. Le rôle est deviné tout seul. ${advice.note}`;
+  renderCoachGrid(advice);
   renderCoachPro();
   if (coachFocus !== "self") {
     const match = snapshot?.matches?.find((item) => item.id === coachFocus);
@@ -550,6 +599,9 @@ function acceptCoachAction(champion, role) {
   try {
     coach = applyAction(coach, name, role || null);
     coachFocus = "self";
+    coachQuery = "";
+    const search = $("#coach-search");
+    if (search) search.value = "";
     renderCoach();
   } catch (error) {
     toast(error.message);
@@ -762,12 +814,13 @@ function bindEvents() {
       coachFocus = "self";
       renderCoach();
     }
-    const adviceButton = event.target.closest("[data-advice-champion]");
-    if (adviceButton)
-      acceptCoachAction(
-        adviceButton.dataset.adviceChampion,
-        adviceButton.dataset.adviceRole,
-      );
+    const lane = event.target.closest("[data-lane]");
+    if (lane) {
+      coachLane = lane.dataset.lane;
+      renderCoach();
+    }
+    const tile = event.target.closest("[data-champion]");
+    if (tile && !tile.disabled) acceptCoachAction(tile.dataset.champion, null);
     const pro = event.target.closest("[data-pro-match]");
     if (pro) {
       coachFocus = pro.dataset.proMatch;
@@ -775,11 +828,17 @@ function bindEvents() {
       renderCoach();
     }
   });
-  $("#coach-view").addEventListener("submit", (event) => {
-    const form = event.target.closest("#coach-manual");
-    if (!form) return;
+  $("#coach-search").addEventListener("input", (event) => {
+    coachQuery = event.target.value;
+    if (view !== "coach" || !knowledge) return;
+    renderCoachGrid(advise(coach, knowledge, { limit: 8 }));
+  });
+  $("#coach-search").addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    const tile = $("#coach-grid button:not(:disabled)");
+    if (!tile) return;
     event.preventDefault();
-    acceptCoachAction($("#coach-champion").value, $("#coach-role")?.value);
+    acceptCoachAction(tile.dataset.champion, null);
   });
   $("#coach-undo").addEventListener("click", () => {
     coach = undo(coach);

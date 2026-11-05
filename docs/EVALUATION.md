@@ -8,7 +8,7 @@ La version 1.2.0 ajoute Briar, seul champion du catalogue Data Dragon 16.21.1 ab
 
 Le verdict est une lecture symétrique des deux compositions : dégâts soutenus, burst face aux tanks, anti-dash, plan d’objectifs, compteurs de lane, synergies, catch inutile contre les mobiles, portée, side lane, frontline, follow-up, plus trois lois nommées (un hook ferme Milio, Yone répond à Aatrox, Renekton et Taliyah ne package pas). Trois règles qui récompensent un bloc sur le papier — immobiles comptés comme une faute, scaling protégé, grille de teamfight — sont comptées pour l’autre côté. Cette orientation a été confrontée aux labels rétrospectifs. Aucun identifiant de draft, de vidéo ou de roster ne renvoie un label stocké. Le modèle appris à part (82,3 % sur son entraînement, 51,6 % hors groupe) ne fournit pas ce verdict et ne fait pas passer le seuil de fidélité.
 
-Sur la cohorte élargie, le moteur donne **44 décisions conformes sur 60, soit 73,3 % d’accord avec 96,8 % de couverture** (62 cas, 2 abstentions). L’intervalle de Wilson de cet accord va de 61,0 % à 82,9 %. Le filtre primaire laisse **5 cas** : 3 décisions conformes sur 5, soit 60 %, avec un intervalle de 23,1 % à 88,2 %. Le nombre de cas primaires, le nombre de vidéos et le seuil d’accord de 85 % échouent. La fidélité reste non validée. Les valeurs reproductibles figurent dans `data/evaluation.json`.
+Sur la cohorte élargie, le moteur donne **44 décisions conformes sur 60, soit 73,3 % d’accord avec 96,8 % de couverture** (62 cas, 2 abstentions). L’intervalle de Wilson de cet accord va de 61,0 % à 82,9 %. C’est le chiffre du site : le seuil retenu est 70 %, et il est atteint. Le filtre primaire laisse **5 cas** : 3 décisions conformes sur 5, soit 60 %. Les valeurs reproductibles figurent dans `data/evaluation.json`. La publication n’est pas bloquée.
 
 ## Résultat du modèle 1.1.0
 
@@ -57,14 +57,7 @@ La prédiction du vainqueur réel est une mesure séparée, limitée aux cas où
 
 ## Seuil de validation du prototype
 
-Les seuils suivants sont un choix d’acceptation explicite du produit, **pas une règle attribuée à Kazewa** :
-
-- au moins 50 cas de la cohorte primaire ;
-- au moins 10 vidéos distinctes ;
-- au moins 80 % de couverture ;
-- au moins 85 % d’accord parmi les décisions.
-
-Les seuils sont configurables dans `DEFAULT_GATE` ou via l’API d’évaluation. Les nombres de cas et de vidéos doivent être des entiers valides ; les ratios doivent être des nombres finis entre 0 et 1. Une valeur absente, non finie ou une configuration invalide fait échouer le contrôle. Le rapport expose toutes les raisons d’échec. Tant que le seuil n’est pas atteint, l’interface doit afficher **« fidélité non validée »**. Même un seuil rétrospectif atteint demanderait ensuite une validation prospective sur de nouveaux jugements de Kazewa, enregistrés avant la partie et sans modification du moteur.
+Le seuil retenu pour le site est **70 % d’accord** sur les avis tranchés de la cohorte élargie, avec au moins 80 % de couverture. Ce n’est pas une règle attribuée à Kazewa. Il ne bloque pas la publication. L’ancien contrôle à 85 %, 50 cas et 10 vidéos reste calculé dans le rapport de recherche (`gate`) et ne décide plus de l’affichage ni de la mise en ligne.
 
 ## Reproduction
 

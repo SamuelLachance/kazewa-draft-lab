@@ -89,6 +89,10 @@ function openRoles(session, side) {
   return ROLES.filter((role) => !session.picks[side][role]);
 }
 
+function earliestRole(roles) {
+  return CLOSE_ORDER.find((role) => roles.includes(role)) || null;
+}
+
 // Course 3: ADC, jungle, mid, support, top. Close an open blind before opening the next role.
 const CLOSE_ORDER = ["bot", "jng", "mid", "sup", "top"];
 
@@ -375,6 +379,36 @@ export function advise(session, knowledge, { limit = 5 } = {}) {
   };
 }
 
+// The click does not ask for a role. Answer the open blind when the champion
+// plays it; otherwise use that champion's earliest usual lane still open.
+export function inferPickRole(session, champion) {
+  const step = currentStep(session);
+  if (!step || step.action !== "pick") return null;
+  const open = new Set(openRoles(session, step.side));
+  if (!open.size) return null;
+  const lanes = (LANES[champion] || []).filter((role) => open.has(role));
+  const target = closeTarget(session, step.side);
+  if (target?.kind === "role" && lanes.includes(target.role)) return target.role;
+  if (target?.kind === "flex") {
+    const covered = target.roles.filter((role) => lanes.includes(role));
+    if (covered.length) {
+      const foe = session.picks[other(step.side)];
+      const answered = covered.filter((role) => {
+        const name = foe[role];
+        return (
+          name && (LANES[name] || []).some((lane) => target.roles.includes(lane))
+        );
+      });
+      return earliestRole(answered.length ? answered : covered);
+    }
+  }
+  if (lanes.length) return earliestRole(lanes);
+  if (target?.kind === "role" && open.has(target.role)) return target.role;
+  if (target?.kind === "flex")
+    return earliestRole(target.roles.filter((role) => open.has(role)));
+  return earliestRole([...open]);
+}
+
 export function applyAction(session, champion, role = null) {
   const step = currentStep(session);
   if (!step) throw new Error("La draft est déjà complète.");
@@ -397,10 +431,19 @@ export function applyAction(session, champion, role = null) {
     next.log.push({ action: "ban", side: step.side, champion: name, role: null });
     return next;
   }
-  if (!ROLES.includes(role) || next.picks[step.side][role])
-    throw new Error("Choisis un rôle encore libre pour ce pick.");
-  next.picks[step.side][role] = name;
-  next.log.push({ action: "pick", side: step.side, champion: name, role });
+  const assigned =
+    ROLES.includes(role) && !next.picks[step.side][role]
+      ? role
+      : inferPickRole(next, name);
+  if (!assigned || next.picks[step.side][assigned])
+    throw new Error("Aucun rôle libre pour ce pick.");
+  next.picks[step.side][assigned] = name;
+  next.log.push({
+    action: "pick",
+    side: step.side,
+    champion: name,
+    role: assigned,
+  });
   return next;
 }
 
