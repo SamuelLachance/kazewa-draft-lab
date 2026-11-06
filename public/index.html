@@ -175,6 +175,7 @@
                   <div id="quick-red-readout"></div>
                 </div>
               </div>
+              <p id="quick-verdict" class="quick-verdict" hidden></p>
             </div>
             <div id="draft-grid" class="draft-grid">
               <div class="team-panel blue-team" id="blue-team"></div>
@@ -272,6 +273,7 @@
               <section class="draft-pool" aria-label="Grille des champions">
                 <div class="draft-pool-head">
                   <p id="coach-turn" class="coach-turn"></p>
+                  <p id="coach-best" class="coach-best" aria-live="polite"></p>
                   <label class="coach-search">
                     <span class="visually-hidden">Chercher un champion</span>
                     <input
@@ -327,7 +329,7 @@
                 </div>
                 <div class="score-display">
                   <strong id="verdict-margin"></strong
-                  ><span>ÉCART DE DRAFT</span>
+                  ><span>SCORE · + BLEU</span>
                 </div>
               </div>
               <div class="advantage-track" aria-hidden="true">

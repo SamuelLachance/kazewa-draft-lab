@@ -483,6 +483,20 @@ h1 span {
   font-size: 12px;
   margin: 0;
 }
+.quick-verdict {
+  margin-top: 12px;
+  font-family: var(--heading);
+  font-size: 28px;
+  letter-spacing: 0.3px;
+  line-height: 1.15;
+  color: var(--text);
+}
+.quick-verdict[data-side="blue"] {
+  color: var(--blue);
+}
+.quick-verdict[data-side="red"] {
+  color: var(--red);
+}
 .draft-grid {
   display: grid;
   grid-template-columns: 1fr 50px 1fr;
@@ -752,7 +766,21 @@ h1 span {
 }
 .score-display strong {
   font: 42px/1 var(--heading);
-  color: var(--lime);
+  color: var(--text);
+}
+.verdict-card[data-side="blue"] .score-display strong {
+  color: var(--blue);
+}
+.verdict-card[data-side="red"] .score-display strong {
+  color: var(--red);
+}
+.verdict-card[data-side="even"] .score-display strong {
+  color: var(--muted);
+}
+.signal-sum {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text);
 }
 .score-display span {
   font: 7px var(--mono);
@@ -1995,6 +2023,14 @@ body[data-view="coach"] .principles-strip {
   letter-spacing: 0.4px;
   line-height: 1;
 }
+.coach-best {
+  margin: 0;
+  color: var(--lime);
+  font-family: var(--heading);
+  font-size: 22px;
+  letter-spacing: 0.3px;
+  line-height: 1.15;
+}
 .coach-search input,
 .lane-filters button {
   background: #121612;
@@ -2036,13 +2072,16 @@ body[data-view="coach"] .principles-strip {
   overflow: hidden;
   text-align: center;
 }
+.champ-face {
+  position: relative;
+  display: block;
+}
 .champ-tile img {
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
   display: block;
 }
-.champ-tile .champ-score,
 .champ-tile .champ-role,
 .champ-tile .champ-name {
   display: block;
@@ -2051,18 +2090,30 @@ body[data-view="coach"] .principles-strip {
   text-overflow: ellipsis;
 }
 .champ-tile .champ-score {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
-  padding: 3px 2px 0;
-  color: var(--muted);
+  padding: 2px 3px;
+  border-radius: 3px;
+  background: #080b08f2;
+  color: #edf0e8;
+  text-align: center;
+  white-space: nowrap;
 }
 .champ-tile .champ-score.is-up {
   color: var(--lime);
 }
 .champ-tile .champ-score.is-down {
   color: var(--red);
+}
+.champ-tile .champ-score.is-moved {
+  box-shadow: 0 0 0 1px var(--lime);
 }
 .champ-tile .champ-role {
   font-size: 9px;
@@ -2082,6 +2133,17 @@ body[data-view="coach"] .principles-strip {
 }
 .champ-tile.is-taken {
   opacity: 0.28;
+}
+.champ-tile.is-unavailable {
+  opacity: 1;
+}
+.champ-tile.is-unavailable img,
+.champ-tile.is-unavailable .champ-score {
+  opacity: 0.45;
+}
+.champ-tile.is-unavailable .champ-role {
+  color: var(--text);
+  font-size: 10px;
 }
 .champ-tile:hover:not(:disabled) {
   outline: 2px solid var(--blue);

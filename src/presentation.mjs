@@ -155,3 +155,32 @@ export function getLiveReadiness(
     };
   return { ready: true, reason: null };
 }
+
+// The displayed winner is the signed sum of the published signals.
+// A positive score is the blue side. Screens must not invent another side.
+export function displayedVerdict(result) {
+  if (!result || result.status !== "complete" || !Array.isArray(result.signals))
+    return null;
+  let score = 0;
+  for (const signal of result.signals) {
+    if (signal?.side !== "blue" && signal?.side !== "red") return null;
+    if (!Number.isFinite(signal.weight)) return null;
+    score += (signal.side === "blue" ? 1 : -1) * signal.weight;
+  }
+  if (Object.is(score, -0)) score = 0;
+  const winner = score === 0 ? "even" : score > 0 ? "blue" : "red";
+  const margin = Math.abs(score);
+  return {
+    winner,
+    score,
+    margin,
+    confidence:
+      winner === "even"
+        ? "indeterminee"
+        : margin >= 6
+          ? "forte"
+          : margin >= 2.5
+            ? "moyenne"
+            : "faible",
+  };
+}

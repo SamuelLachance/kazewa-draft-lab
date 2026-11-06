@@ -91,6 +91,13 @@ test("following the advice completes a legal draft and only then asks the engine
     const advice = advise(session, knowledge);
     const choice = advice.options[0];
     assert.ok(choice);
+    assert.equal(choice.playable, true);
+    if (choice.role) {
+      assert.ok(
+        (LANES[choice.champion] || []).includes(choice.role),
+        `${choice.champion} suggested as ${choice.role}`,
+      );
+    }
     session = applyAction(session, choice.champion, choice.role);
   }
   const done = advise(session, knowledge);
@@ -228,28 +235,49 @@ test("an off-role wins when the current board scores it higher, and the click pl
   }
 });
 
-test("a tied off-role stays flexible instead of pretending one lane was chosen", () => {
+test("a champion is not dumped on an open role when every usual lane is closed", () => {
   let session = afterOpeningBans();
   session = applyAction(session, "Dr. Mundo", "top", knowledge);
   session = applyAction(session, "Jinx", "bot", knowledge);
   session = applyAction(session, "Lulu", "sup", knowledge);
   assert.equal(currentStep(session).side, "blue");
-  const advice = advise(session, knowledge, { limit: 1 });
+  const advice = advise(session, knowledge, { limit: 8 });
   const ornn = advice.pool.find((row) => row.champion === "Ornn");
-  const open = ROLES.filter((role) => !session.picks.blue[role]);
-  const scores = open.map((role) =>
-    scorePartial(
-      { blue: { ...session.picks.blue, [role]: "Ornn" }, red: { ...session.picks.red } },
-      knowledge,
-    ).score,
+  assert.equal(session.picks.blue.top, "Dr. Mundo");
+  assert.deepEqual(LANES.Ornn, ["top"]);
+  assert.equal(ornn.playable, false);
+  assert.equal(ornn.role, null);
+  assert.equal(ornn.flex, false);
+  assert.equal(ornn.score, null);
+  assert.equal(advice.options.some((row) => row.champion === "Ornn"), false);
+  assert.throws(() => applyAction(session, "Ornn", null, knowledge), /rôle/);
+});
+
+test("Elise stays a jungler and is not suggested as ADC once jungle is locked", () => {
+  let session = afterOpeningBans();
+  session = applyAction(session, "Lee Sin", "jng", knowledge);
+  session = applyAction(session, "Viego", "jng", knowledge);
+  assert.equal(currentStep(session).action, "pick");
+  assert.equal(currentStep(session).side, "red");
+  const advice = advise(session, knowledge, { limit: 400 });
+  const elise = advice.pool.find((row) => row.champion === "Elise");
+  assert.deepEqual(LANES.Elise, ["jng"]);
+  assert.equal(elise.playable, false);
+  assert.equal(elise.role, null);
+  assert.equal(elise.flex, false);
+  assert.equal(
+    advice.options.some((row) => row.champion === "Elise" && row.role === "bot"),
+    false,
   );
-  const highest = Math.max(...scores);
-  const tied = open.filter((role, index) => scores[index] === highest);
-  assert.ok(tied.length > 1);
-  assert.equal(tied.some((role) => LANES.Ornn.includes(role)), false);
-  assert.equal(ornn.flex, true);
-  assert.equal(ornn.score, highest);
-  assert.ok(tied.includes(ornn.role));
-  const placed = applyAction(session, "Ornn", null, knowledge);
-  assert.equal(placed.picks.blue[ornn.role], "Ornn");
+  assert.equal(
+    advice.pool.some((row) => row.playable && row.champion === "Elise" && row.role === "bot"),
+    false,
+  );
+  for (const row of advice.options) {
+    assert.equal(row.playable, true);
+    assert.ok((LANES[row.champion] || []).includes(row.role), `${row.champion} ${row.role}`);
+  }
+  assert.throws(() => applyAction(session, "Elise", null, knowledge), /rôle/);
+  const forced = applyAction(session, "Elise", "bot", knowledge);
+  assert.equal(forced.picks.red.bot, "Elise");
 });

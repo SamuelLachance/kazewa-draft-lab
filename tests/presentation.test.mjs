@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { analyzeDraft } from "../src/engine.mjs";
 import {
   emptyDraft,
   validateEndpoint,
@@ -7,7 +9,12 @@ import {
   buildDraftHash,
   validateClientSnapshot,
   getLiveReadiness,
+  displayedVerdict,
 } from "../src/presentation.mjs";
+
+const knowledge = JSON.parse(
+  await readFile(new URL("../data/knowledge.json", import.meta.url), "utf8"),
+);
 
 const now = Date.parse("2026-10-29T17:00:00Z");
 const match = () => ({
@@ -130,4 +137,44 @@ test("browser configuration cannot place credentials or tokens in URLs", () => {
   assert.throws(() =>
     validateEndpoint({ url: "https://feed.example/api/live" }),
   );
+});
+
+const EXAMPLE = {
+  blue: { top: "Sion", jng: "Maokai", mid: "Azir", bot: "Jinx", sup: "Lulu" },
+  red: { top: "Jayce", jng: "Nidalee", mid: "LeBlanc", bot: "Jhin", sup: "Pyke" },
+};
+
+test("the displayed winner is the signed sum of the calculator signals", () => {
+  const result = analyzeDraft(EXAMPLE, knowledge);
+  const shown = displayedVerdict(result);
+  const sum = result.signals.reduce(
+    (total, signal) => total + (signal.side === "blue" ? 1 : -1) * signal.weight,
+    0,
+  );
+  assert.equal(shown.winner, result.winner);
+  assert.equal(shown.score, result.score);
+  assert.equal(shown.score, sum);
+  assert.equal(shown.winner, "blue");
+  assert.ok(shown.score > 0);
+  const flipped = displayedVerdict(
+    analyzeDraft({ blue: EXAMPLE.red, red: EXAMPLE.blue }, knowledge),
+  );
+  assert.equal(flipped.winner, "red");
+  assert.equal(flipped.score, -shown.score);
+});
+
+test("a stale winner field cannot override the signal sum", () => {
+  const shown = displayedVerdict({
+    status: "complete",
+    winner: "blue",
+    score: 4,
+    signals: [
+      { side: "red", weight: 2 },
+      { side: "blue", weight: 0.5 },
+    ],
+  });
+  assert.equal(shown.winner, "red");
+  assert.equal(shown.score, -1.5);
+  assert.equal(shown.confidence, "faible");
+  assert.equal(displayedVerdict({ status: "incomplete", winner: "blue", score: 9, signals: [] }), null);
 });

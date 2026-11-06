@@ -122,10 +122,10 @@ function signedPartial(picks, side, knowledge) {
   return { score: Object.is(score, -0) ? 0 : score, result };
 }
 
-// Usual lanes only break ties and keep a support tank from being dumped in
-// top when the support seat is discounted. A higher score off that lane still
-// wins when the calculator adds a role-specific reason, such as a named
-// matchup.
+// The usual lane is the placement. Another role wins only when its score is
+// strictly higher and the calculator adds a role-specific reason, such as a
+// named matchup. A closed usual lane is not a free seat: Elise does not
+// become an ADC because jungle is taken.
 const ROLE_REASONS = new Set([
   "named_lane_counter",
   "hook_into_milio",
@@ -148,19 +148,38 @@ function placementBeats(current, next) {
   return next.preference < current.preference;
 }
 
+function signalKey(signal) {
+  return `${signal.id}|${signal.evidence}`;
+}
+
 function offRoleJustified(usual, off) {
   if (!usual || off.score <= usual.score) return false;
-  const seen = new Set(
-    usual.result.signals.map((signal) => `${signal.id}|${signal.evidence}`),
-  );
+  const seen = new Set(usual.result.signals.map(signalKey));
   return off.result.signals.some(
-    (signal) => ROLE_REASONS.has(signal.id) && !seen.has(`${signal.id}|${signal.evidence}`),
+    (signal) => ROLE_REASONS.has(signal.id) && !seen.has(signalKey(signal)),
+  );
+}
+
+function closedRoleJustified(board, off, offs) {
+  if (!board || !(off.score > board.score)) return false;
+  const seen = new Set(board.result.signals.map(signalKey));
+  const fresh = off.result.signals
+    .filter((signal) => ROLE_REASONS.has(signal.id) && !seen.has(signalKey(signal)))
+    .map(signalKey);
+  if (!fresh.length) return false;
+  return fresh.some((key) =>
+    offs.some(
+      (other) =>
+        other !== off &&
+        !other.result.signals.some((signal) => signalKey(signal) === key),
+    ),
   );
 }
 
 function rankSide(session, knowledge, side) {
   const open = ROLES.filter((role) => !session.picks[side][role]);
   if (!open.length) return [];
+  const board = signedPartial(session.picks, side, knowledge);
   const rows = [];
   for (const champion of remainingNames(session, knowledge)) {
     const lanes = LANES[champion] || [];
@@ -184,32 +203,48 @@ function rankSide(session, knowledge, side) {
         if (placementBeats(usualBest, candidate)) usualBest = candidate;
       } else offs.push(candidate);
     }
-    let best = usualBest;
-    if (usualBest) {
-      for (const off of offs) {
-        if (offRoleJustified(usualBest, off) && placementBeats(best, off)) best = off;
-      }
-    } else {
-      for (const off of offs) {
-        if (placementBeats(best, off)) best = off;
-      }
+    const legal = [];
+    if (usualBest) legal.push(usualBest);
+    for (const off of offs) {
+      const justified = usualBest
+        ? offRoleJustified(usualBest, off)
+        : closedRoleJustified(board, off, offs);
+      if (justified) legal.push(off);
     }
-    if (!best) continue;
-    const atBest = [...(usualBest ? [usualBest] : []), ...offs].filter(
-      (candidate) => candidate.score === best.score,
-    );
+    let best = null;
+    for (const candidate of legal) {
+      if (placementBeats(best, candidate)) best = candidate;
+    }
+    if (!best) {
+      rows.push({
+        champion,
+        role: null,
+        flex: false,
+        playable: false,
+        score: null,
+        reasons: [
+          "Aucun rôle habituel n’est libre, et aucun matchup de lane ne justifie un autre rôle.",
+        ],
+      });
+      continue;
+    }
+    const atBest = legal.filter((candidate) => candidate.score === best.score);
     const usualAtBest = atBest.some((candidate) => lanes.includes(candidate.role));
     rows.push({
       champion,
       role: best.role,
       flex: !usualAtBest && atBest.length > 1,
+      playable: true,
       score: best.score,
       reasons: reasonsFrom(best.result.signals, side, champion),
     });
   }
-  rows.sort(
-    (a, b) => b.score - a.score || a.champion.localeCompare(b.champion, "fr"),
-  );
+  rows.sort((a, b) => {
+    if (a.playable !== b.playable) return a.playable ? -1 : 1;
+    const delta = (b.score ?? 0) - (a.score ?? 0);
+    if (delta) return delta;
+    return a.champion.localeCompare(b.champion, "fr");
+  });
   return rows;
 }
 
@@ -242,6 +277,8 @@ function rankAdvice(session, knowledge) {
     const options = cachedRank(session, knowledge, foe).map((row) => ({
       champion: row.champion,
       role: null,
+      flex: false,
+      playable: row.playable,
       score: row.score,
       reasons: row.reasons,
     }));
@@ -302,7 +339,7 @@ export function advise(session, knowledge, options = {}) {
   return {
     ...advice,
     pool: advice.options,
-    options: advice.options.slice(0, limit),
+    options: advice.options.filter((row) => row.playable !== false).slice(0, limit),
   };
 }
 
@@ -342,7 +379,7 @@ export function applyAction(session, champion, role = null, knowledge = null) {
       ? role
       : inferPickRole(next, name, knowledge);
   if (!assigned || next.picks[step.side][assigned])
-    throw new Error("Aucun rôle libre pour ce pick.");
+    throw new Error("Aucun rôle habituel n’est libre pour ce champion.");
   next.picks[step.side][assigned] = name;
   next.log.push({
     action: "pick",

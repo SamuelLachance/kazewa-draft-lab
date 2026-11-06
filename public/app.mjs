@@ -14,6 +14,7 @@ import {
   buildDraftHash,
   validateClientSnapshot,
   getLiveReadiness,
+  displayedVerdict,
 } from "./src/presentation.mjs";
 
 const $ = (selector) => document.querySelector(selector);
@@ -56,6 +57,7 @@ let view = "lab",
   coachFocus = "self",
   coachQuery = "",
   coachLane = "all",
+  coachScores = new Map(),
   draft = emptyDraft(),
   quickParsed = { blue: null, red: null },
   quickSwap = null,
@@ -223,10 +225,19 @@ function renderResult(result, { blocked = null, names = SIDE_LABEL } = {}) {
       view === "live" ? "VERDICT SUSPENDU" : `${count} / 10 PICKS`;
     return;
   }
+  const verdict = displayedVerdict(result);
+  if (!verdict) {
+    $("#result-section").hidden = true;
+    $("#empty-result").hidden = false;
+    $("#empty-result h3").textContent = "Cette draft demande une vérification.";
+    $("#empty-result p").textContent =
+      "Le vainqueur affiché doit être la somme des signaux du calculateur. Cette somme est illisible.";
+    return;
+  }
   $("#result-section").hidden = false;
   $("#empty-result").hidden = true;
-  const even = result.winner === "even",
-    winner = result.winner;
+  const even = verdict.winner === "even",
+    winner = verdict.winner;
   $("#verdict-card").dataset.side = winner;
   const proRead =
     view === "live" || (view === "coach" && coachFocus !== "self");
@@ -237,25 +248,25 @@ function renderResult(result, { blocked = null, names = SIDE_LABEL } = {}) {
       : `${names[winner] || SIDE_LABEL[winner]} prend l’avantage.`;
   $("#confidence-badge").textContent = even
     ? "Pas de préférence nette"
-    : `Intensité du signal : ${result.confidence}`;
+    : `Intensité du signal : ${verdict.confidence}`;
   $("#verdict-description").textContent = even
     ? "Aucun avantage structurel assez net pour départager ces compositions."
     : `Le moteur préfère cette composition sur le papier. ${result.teams[winner]?.identity || ""}${result.teams[winner]?.timing ? ` · ${result.teams[winner].timing}.` : ""}`;
-  $("#verdict-margin").textContent =
-    `${result.margin.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} pts`;
-  // Bounded visual of a signed heuristic score, deliberately never labeled a probability.
+  $("#verdict-margin").textContent = formatSignedScore(verdict.score);
+  // Bounded visual of the same signed sum. Positive widens the blue side.
   $("#advantage-bar").style.width =
-    `${Math.max(8, Math.min(92, 50 + result.score * 2))}%`;
+    `${Math.max(8, Math.min(92, 50 + verdict.score * 2))}%`;
   $("#signal-count").textContent = `${result.signals.length} SIGNAUX`;
-  const signals = result.signals.slice(0, 6);
+  const signals = result.signals;
+  const sumLine = `<p class="signal-sum">Somme des signaux : ${esc(formatSignedScore(verdict.score))}. Ce total est le score du calculateur. Un nombre positif donne la draft au côté bleu.</p>`;
   $("#reasons").innerHTML = signals.length
     ? signals
         .map(
           (signal, i) =>
-            `<article class="signal" data-side="${esc(signal.side)}"><span class="signal-number">${String(i + 1).padStart(2, "0")}</span><div><h4 class="signal-title">${esc(signal.title)}<span class="side-tag">${signal.side === "blue" ? "BLEU" : "ROUGE"} +${esc(Math.round(signal.weight * 100) / 100)}</span></h4><p>${esc(signal.evidence)}</p><div class="source-links">${videoLinks(signal.sources, 2)}</div></div></article>`,
+            `<article class="signal" data-side="${esc(signal.side)}"><span class="signal-number">${String(i + 1).padStart(2, "0")}</span><div><h4 class="signal-title">${esc(signal.title)}<span class="side-tag">${signal.side === "blue" ? "BLEU" : "ROUGE"} +${esc(formatSignedScore(signal.weight).replace(/^\+/, ""))}</span></h4><p>${esc(signal.evidence)}</p><div class="source-links">${videoLinks(signal.sources, 2)}</div></div></article>`,
         )
-        .join("")
-    : '<p class="fine-print">Aucun signal décisif détecté par les règles actuelles.</p>';
+        .join("") + sumLine
+    : `<p class="fine-print">Aucun signal décisif détecté par les règles actuelles.</p>${sumLine}`;
   $("#axes").innerHTML = result.axes
     .map(
       (a) =>
@@ -365,14 +376,42 @@ function chooseQuickRole(side, role) {
   origin = "Saisie rapide · les champions ont été échangés de rôle.";
   analyzeManual();
 }
+function formatSignedScore(score) {
+  if (!Number.isFinite(score) || Object.is(score, -0) || score === 0) return "0";
+  const rounded = Math.round(score * 100) / 100;
+  const text = Math.abs(rounded).toLocaleString("fr-FR", {
+    maximumFractionDigits: 2,
+  });
+  return rounded > 0 ? `+${text}` : `−${text}`;
+}
+function renderQuickVerdict(result) {
+  const node = $("#quick-verdict");
+  if (!node) return;
+  const verdict = displayedVerdict(result);
+  if (labMode !== "quick" || !verdict) {
+    node.hidden = true;
+    node.textContent = "";
+    delete node.dataset.side;
+    return;
+  }
+  const sentence =
+    verdict.winner === "even"
+      ? "Les deux drafts sont à l’équilibre."
+      : `${SIDE_LABEL[verdict.winner]} prend l’avantage.`;
+  node.hidden = false;
+  node.dataset.side = verdict.winner;
+  node.textContent = `${sentence} Score du calculateur : ${formatSignedScore(verdict.score)}.`;
+}
 function analyzeManual() {
+  const result = analyzeDraft(draft, knowledge);
   if (labMode === "quick") renderQuickReadout();
   else renderTeams();
   const note = $("#draft-origin");
   if (note)
     note.textContent =
       origin || "Analyse fondée uniquement sur les dix champions et leurs rôles.";
-  renderResult(analyzeDraft(draft, knowledge));
+  renderQuickVerdict(result);
+  renderResult(result);
 }
 function setView(next, { scroll = false } = {}) {
   view = next;
@@ -470,10 +509,11 @@ function liveVerdictLine(match) {
     { blue: match.blue.picks, red: match.red.picks },
     knowledge,
   );
-  if (result.status !== "complete")
-    return result.warnings?.[0] || "Verdict indisponible.";
-  if (result.winner === "even") return "Les deux drafts sont à l’équilibre.";
-  return `Meilleure draft : ${match[result.winner]?.name || SIDE_LABEL[result.winner]}.`;
+  const verdict = displayedVerdict(result);
+  if (!verdict) return result.warnings?.[0] || "Verdict indisponible.";
+  if (verdict.winner === "even")
+    return `Les deux drafts sont à l’équilibre. Score ${formatSignedScore(verdict.score)}.`;
+  return `Meilleure draft : ${match[verdict.winner]?.name || SIDE_LABEL[verdict.winner]} (${formatSignedScore(verdict.score)}).`;
 }
 function coachTaken() {
   return new Set([
@@ -539,6 +579,8 @@ function formatCoachScore(score) {
 }
 function renderCoachGrid(advice) {
   const taken = coachTaken();
+  const previous = coachScores;
+  const nextScores = new Map();
   const ranked = advice.pool || advice.options;
   const byName = new Map(ranked.map((option) => [option.champion, option]));
   const suggested = new Set(advice.options.map((option) => option.champion));
@@ -560,7 +602,11 @@ function renderCoachGrid(advice) {
     .sort((a, b) => {
       const used = Number(taken.has(a)) - Number(taken.has(b));
       if (used) return used;
-      const score = (byName.get(b)?.score ?? -Infinity) - (byName.get(a)?.score ?? -Infinity);
+      const left = byName.get(a);
+      const right = byName.get(b);
+      const playable = Number(right?.playable !== false) - Number(left?.playable !== false);
+      if (playable) return playable;
+      const score = (right?.score ?? -Infinity) - (left?.score ?? -Infinity);
       if (score) return score;
       return a.localeCompare(b, "fr");
     });
@@ -569,14 +615,23 @@ function renderCoachGrid(advice) {
     .map((name) => {
       const used = taken.has(name) || advice.done;
       const hint = byName.get(name);
+      const unavailable = Boolean(hint && hint.playable === false);
+      const numeric = Boolean(hint && Number.isFinite(hint.score));
       const title = hint?.reasons?.[0] ? ` title="${esc(hint.reasons[0])}"` : "";
-      const score = hint ? formatCoachScore(hint.score) : "";
-      const tone = !hint || hint.score === 0 ? "" : hint.score > 0 ? " is-up" : " is-down";
-      const role = hint && picking ? (hint.flex ? "FLEX" : ROLE_LABEL[hint.role]) : "";
-      const label = [name, score, role].filter(Boolean).join(" ");
-      return `<button type="button" class="champ-tile${suggested.has(name) ? " is-suggested" : ""}${taken.has(name) ? " is-taken" : ""}" data-champion="${esc(name)}" data-score="${esc(score)}" aria-label="${esc(label)}"${title}${used ? " disabled" : ""}>${championImage(name, 74)}${score ? `<span class="champ-score${tone}">${esc(score)}</span>` : ""}${role ? `<span class="champ-role">${esc(role)}</span>` : ""}<span class="champ-name">${esc(name)}</span></button>`;
+      const score = numeric ? formatCoachScore(hint.score) : "";
+      const tone = !numeric || hint.score === 0 ? "" : hint.score > 0 ? " is-up" : " is-down";
+      const moved = numeric && previous.has(name) && previous.get(name) !== hint.score;
+      if (numeric) nextScores.set(name, hint.score);
+      const role =
+        hint && picking && !unavailable ? (hint.flex ? "FLEX" : ROLE_LABEL[hint.role]) : "";
+      const status = unavailable && picking ? "rôle pris" : "";
+      const shown = score || (hint && !used ? "—" : "");
+      const label = [name, shown, role || status].filter(Boolean).join(" ");
+      const blocked = used || (picking && unavailable);
+      return `<button type="button" class="champ-tile${suggested.has(name) ? " is-suggested" : ""}${taken.has(name) ? " is-taken" : ""}${unavailable ? " is-unavailable" : ""}" data-champion="${esc(name)}" data-score="${esc(shown)}" aria-label="${esc(label)}"${title}${blocked ? " disabled" : ""}><span class="champ-face">${championImage(name, 74)}${shown ? `<span class="champ-score${tone}${moved ? " is-moved" : ""}">${esc(shown)}</span>` : ""}</span>${role || status ? `<span class="champ-role">${esc(role || status)}</span>` : ""}<span class="champ-name">${esc(name)}</span></button>`;
     })
     .join("");
+  coachScores = nextScores;
 }
 function renderCoach() {
   if (view !== "coach" || !knowledge) return;
@@ -597,14 +652,25 @@ function renderCoach() {
       ? "Tu es first pick, côté bleu. Tu bannis en premier, puis tu prends le premier pick."
       : "Tu es second pick, côté rouge. Le bleu ouvre. Tu réponds ensuite avec deux picks d’affilée.";
   const step = advice.step;
+  const best = advice.options[0];
   $("#coach-turn").textContent = advice.done
     ? "Draft complète"
     : `${step.phase} · ${step.index + 1}/20 · ${step.ours ? "à toi" : "à eux"} de ${step.action === "ban" ? "bannir" : "pick"}`;
+  const bestLine = $("#coach-best");
+  if (bestLine) {
+    bestLine.textContent = advice.done
+      ? ""
+      : best
+        ? step.action === "ban"
+          ? `Menace la plus forte maintenant : ${best.champion} ${formatCoachScore(best.score)}`
+          : `Meilleur score maintenant : ${best.champion} ${best.flex ? "FLEX" : ROLE_LABEL[best.role]} ${formatCoachScore(best.score)}`
+        : "Aucun champion n’a encore un rôle libre qui améliore le score.";
+  }
   $("#coach-blue").innerHTML = renderDraftSide("blue", advice);
   $("#coach-red").innerHTML = renderDraftSide("red", advice);
   $("#coach-note").textContent = advice.done
     ? advice.note
-    : `Clique un champion, même hors suggestion. Le rôle est deviné tout seul. ${advice.note}`;
+    : `Le chiffre sur chaque portrait est le score du calculateur pour cette draft. Il change dès qu’un champion est lock. Un ban retire le champion, il ne réécrit pas les autres chiffres. Le rôle proposé est la lane habituelle, sauf si un matchup de lane rend un autre rôle meilleur. ${advice.note}`;
   renderCoachGrid(advice);
   renderCoachPro();
   if (coachFocus !== "self") {
@@ -858,6 +924,7 @@ function bindEvents() {
     if (seat && seat.dataset.seat !== coach.seat) {
       coach = createSession(seat.dataset.seat);
       coachFocus = "self";
+      coachScores = new Map();
       renderCoach();
     }
     const lane = event.target.closest("[data-lane]");
