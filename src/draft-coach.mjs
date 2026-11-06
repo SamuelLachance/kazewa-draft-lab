@@ -1,8 +1,8 @@
-/** Whose turn it is still follows the twenty draft steps. Which champion to
- * play is the shipped calculator on the locks already on the board: every
- * remaining champion is scored with that champion added, and the higher score
- * comes first. A ban ranks the same way for the other side. */
-import { analyzeDraft, ROLES, scorePartial } from "./engine.mjs";
+/** Whose turn it is still follows the twenty draft steps. The portrait number
+ * is the shipped calculator with that champion added. The order is the draft
+ * policy: it keeps the calculator, and refuses a blind the opponent can answer. */
+import { analyzeDraft, ROLES, laneTargets, scorePartial } from "./engine.mjs";
+import { STABLE_BOT, assessPlacement } from "./draft-policy.mjs";
 import { LANES } from "./lanes.mjs";
 
 const SIDES = ["blue", "red"];
@@ -34,6 +34,8 @@ const ROLE_NAME = {
   bot: "ADC",
   sup: "support",
 };
+const ROLE_ORDER = { bot: 0, jng: 1, mid: 2, sup: 3, top: 4 };
+const roleOrder = (role) => ROLE_ORDER[role] ?? 9;
 const emptyPicks = () => Object.fromEntries(ROLES.map((role) => [role, null]));
 
 export function createSession(seat = "first") {
@@ -144,6 +146,7 @@ function rolePreference(champion, role) {
 
 function placementBeats(current, next) {
   if (!current) return true;
+  if (next.priority !== current.priority) return next.priority > current.priority;
   if (next.score !== current.score) return next.score > current.score;
   return next.preference < current.preference;
 }
@@ -181,7 +184,8 @@ function rankSide(session, knowledge, side) {
   if (!open.length) return [];
   const board = signedPartial(session.picks, side, knowledge);
   const rows = [];
-  for (const champion of remainingNames(session, knowledge)) {
+  const remaining = new Set(remainingNames(session, knowledge));
+  for (const champion of remaining) {
     const lanes = LANES[champion] || [];
     let usualBest = null;
     const offs = [];
@@ -193,9 +197,21 @@ function rankSide(session, knowledge, side) {
       picks[side][role] = champion;
       const scored = signedPartial(picks, side, knowledge);
       if (!scored) continue;
+      const policy = assessPlacement({
+        champion,
+        role,
+        result: scored.result,
+        side,
+        picks,
+        remaining,
+        profile: knowledge.champions[champion],
+      });
       const candidate = {
         role,
         score: scored.score,
+        priority: policy.priority,
+        ordering: policy.ordering,
+        strategy: policy.strategy,
         preference: rolePreference(champion, role),
         result: scored.result,
       };
@@ -222,6 +238,8 @@ function rankSide(session, knowledge, side) {
         flex: false,
         playable: false,
         score: null,
+        priority: null,
+        ordering: null,
         reasons: [
           "Aucun rôle habituel n’est libre, et aucun matchup de lane ne justifie un autre rôle.",
         ],
@@ -230,19 +248,28 @@ function rankSide(session, knowledge, side) {
     }
     const atBest = legal.filter((candidate) => candidate.score === best.score);
     const usualAtBest = atBest.some((candidate) => lanes.includes(candidate.role));
+    const reasons = [];
+    if (best.strategy) reasons.push(best.strategy);
+    reasons.push(...reasonsFrom(best.result.signals, side, champion));
     rows.push({
       champion,
       role: best.role,
       flex: !usualAtBest && atBest.length > 1,
       playable: true,
       score: best.score,
-      reasons: reasonsFrom(best.result.signals, side, champion),
+      priority: best.priority,
+      ordering: best.ordering,
+      reasons: reasons.slice(0, 3),
     });
   }
   rows.sort((a, b) => {
     if (a.playable !== b.playable) return a.playable ? -1 : 1;
-    const delta = (b.score ?? 0) - (a.score ?? 0);
+    const delta = (b.priority ?? -Infinity) - (a.priority ?? -Infinity);
     if (delta) return delta;
+    const real = (b.ordering ?? -Infinity) - (a.ordering ?? -Infinity);
+    if (real) return real;
+    const roleDelta = roleOrder(a.role) - roleOrder(b.role);
+    if (roleDelta) return roleDelta;
     return a.champion.localeCompare(b.champion, "fr");
   });
   return rows;
@@ -261,6 +288,54 @@ function cachedRank(session, knowledge, side) {
   return byState.get(key);
 }
 
+// A symmetric board makes their best pick our best pick too. Banning it only
+// deletes the opener both sides wanted. Keep that band, and ban the next threat.
+function rankBans(theirs, ours) {
+  const oursByName = new Map(ours.map((row) => [row.champion, row]));
+  const ourBest = ours.find((row) => row.playable !== false)?.priority ?? 0;
+  const ranked = theirs.map((row) => {
+    const mine = oursByName.get(row.champion);
+    const edge = (row.priority ?? -99) - (mine?.priority ?? -99);
+    const kept =
+      mine &&
+      mine.playable !== false &&
+      edge < 1 &&
+      (STABLE_BOT.has(row.champion) || mine.priority >= ourBest - 1);
+    const priority = roundPriority((row.priority ?? 0) - (kept ? 10 : 0));
+    const reasons = kept
+      ? ["Cet ouvreur sert aussi notre côté. On le laisse dans le pool.", ...row.reasons].slice(0, 3)
+      : row.reasons;
+    return {
+      champion: row.champion,
+      role: null,
+      flex: false,
+      playable: row.playable,
+      score: row.score,
+      priority,
+      ordering: row.ordering,
+      reasons,
+    };
+  });
+  ranked.sort((a, b) => {
+    if (a.playable !== b.playable) return a.playable ? -1 : 1;
+    const delta = (b.priority ?? -Infinity) - (a.priority ?? -Infinity);
+    if (delta) return delta;
+    const threat = counterThreat(b.champion) - counterThreat(a.champion);
+    if (threat) return threat;
+    return a.champion.localeCompare(b.champion, "fr");
+  });
+  return ranked;
+}
+
+function counterThreat(champion) {
+  return ROLES.reduce((count, role) => count + laneTargets(champion, role).length, 0);
+}
+
+function roundPriority(value) {
+  const rounded = Math.round(value * 100) / 100;
+  return Object.is(rounded, -0) ? 0 : rounded;
+}
+
 function rankAdvice(session, knowledge) {
   const step = currentStep(session);
   if (!step) {
@@ -274,45 +349,60 @@ function rankAdvice(session, knowledge) {
   }
   if (step.action === "ban") {
     const foe = step.side === "blue" ? "red" : "blue";
-    const options = cachedRank(session, knowledge, foe).map((row) => ({
-      champion: row.champion,
-      role: null,
-      flex: false,
-      playable: row.playable,
-      score: row.score,
-      reasons: row.reasons,
-    }));
-    const best = options[0];
+    const options = rankBans(
+      cachedRank(session, knowledge, foe),
+      cachedRank(session, knowledge, step.side),
+    );
+    const best = options.find((row) => row.playable !== false);
+    const leader = calculatorLeader(options);
     const proposal = best
-      ? `La plus grosse menace est ${best.champion} (${formatSigned(best.score)}).`
+      ? `À retirer en premier : ${best.champion} (${formatSigned(best.score)}).`
       : "";
+    const illusion =
+      leader && best && leader.champion !== best.champion
+        ? `Le calculateur place ${leader.champion} plus haut (${formatSigned(leader.score)}), mais ce blind se fait répondre.`
+        : "";
     return {
       done: false,
       step,
       options,
       result: null,
-      note: `Classement du pool entier, du plus fort au plus faible, selon le score du calculateur si l’autre côté prenait ce champion sur la draft actuelle. ${proposal} Ce chiffre bouge quand un champion est lock.`
+      note: `Classement du pool entier pour l’autre côté. Le chiffre est le score du calculateur si cet adversaire prenait le champion sur la draft actuelle. On garde notre ouvreur et on retire d’abord un flex qui ferme des lanes. ${proposal} ${illusion}`
         .replace(/\s+/g, " ")
         .trim(),
     };
   }
   const options = cachedRank(session, knowledge, step.side);
-  const best = options[0];
+  const best = options.find((row) => row.playable !== false);
+  const leader = calculatorLeader(options);
   const turn = step.ours
     ? "Suggestion pour ton tour."
-    : "Tour adverse. Le calculateur indique le choix le plus fort pour eux.";
+    : "Tour adverse. L’ordre indique le pick le plus solide pour eux.";
   const proposal = best
     ? `${best.champion} ${best.flex ? "sur un rôle libre" : `en ${ROLE_NAME[best.role]}`} (${formatSigned(best.score)}).`
     : "";
+  const illusion =
+    leader && best && leader.champion !== best.champion
+      ? `Le calculateur place ${leader.champion} plus haut (${formatSigned(leader.score)}), mais ce blind se fait répondre.`
+      : "";
   return {
     done: false,
     step,
     options,
     result: null,
-    note: `Classement du pool entier, du plus fort au plus faible, selon le calculateur sur la draft actuelle. ${turn} ${proposal} Le chiffre ajoute ce champion à l’état en cours et change dès qu’un champion est lock. Ce n’est pas une probabilité de victoire.`
+    note: `Le chiffre de chaque champion est le score du calculateur sur la draft actuelle. L’ordre suit la draft : ADC, jungle ou mid avant un soutien réactif ou un top blind, et une réponse nommée dès que la cible est lock. ${turn} ${proposal} ${illusion} Ce n’est pas une probabilité de victoire.`
       .replace(/\s+/g, " ")
       .trim(),
   };
+}
+
+function calculatorLeader(options) {
+  let leader = null;
+  for (const row of options) {
+    if (row.playable === false || !Number.isFinite(row.score)) continue;
+    if (!leader || row.score > leader.score) leader = row;
+  }
+  return leader;
 }
 
 const adviceCache = new WeakMap();

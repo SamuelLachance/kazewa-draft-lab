@@ -363,7 +363,7 @@ const READING = {
   tank_without_dps: -2,
   unanswered_globals: 2,
 };
-const HOOKS = new Set([
+export const HOOK_SUPPORTS = new Set([
   "Nautilus",
   "Leona",
   "Blitzcrank",
@@ -377,7 +377,7 @@ function readingLaws(normalized) {
   const laws = [];
   for (const side of SIDES) {
     const foe = other(side);
-    if (HOOKS.has(name(side, "sup")) && name(foe, "sup") === "Milio")
+    if (HOOK_SUPPORTS.has(name(side, "sup")) && name(foe, "sup") === "Milio")
       laws.push({
         id: "hook_into_milio",
         title: "Un hook ferme Milio",
@@ -573,6 +573,31 @@ const LANE_MATCHUPS = [
     sources: ["zc7f2iPq7_8"],
   },
 ];
+
+export function laneCounters(champion, role) {
+  const names = [];
+  for (const matchup of LANE_MATCHUPS) {
+    if (matchup.role !== role) continue;
+    if (matchup.loser === champion && matchup.winners)
+      names.push(...matchup.winners);
+    if (matchup.winner && matchup.losers?.includes(champion))
+      names.push(matchup.winner);
+  }
+  return [...new Set(names)];
+}
+
+export function laneTargets(champion, role) {
+  const names = [];
+  for (const matchup of LANE_MATCHUPS) {
+    if (matchup.role !== role) continue;
+    if (matchup.winner === champion && matchup.losers)
+      names.push(...matchup.losers);
+    if (matchup.loser && matchup.winners?.includes(champion))
+      names.push(matchup.loser);
+  }
+  return [...new Set(names)];
+}
+
 const ANTIPAIRS = [
   {
     pair: ["Jhin", "Braum"],

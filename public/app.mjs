@@ -606,8 +606,8 @@ function renderCoachGrid(advice) {
       const right = byName.get(b);
       const playable = Number(right?.playable !== false) - Number(left?.playable !== false);
       if (playable) return playable;
-      const score = (right?.score ?? -Infinity) - (left?.score ?? -Infinity);
-      if (score) return score;
+      const order = ranked.findIndex((row) => row.champion === a) - ranked.findIndex((row) => row.champion === b);
+      if (order) return order;
       return a.localeCompare(b, "fr");
     });
   const picking = advice.step?.action === "pick";
@@ -662,15 +662,15 @@ function renderCoach() {
       ? ""
       : best
         ? step.action === "ban"
-          ? `Menace la plus forte maintenant : ${best.champion} ${formatCoachScore(best.score)}`
-          : `Meilleur score maintenant : ${best.champion} ${best.flex ? "FLEX" : ROLE_LABEL[best.role]} ${formatCoachScore(best.score)}`
+          ? `À bannir : ${best.champion} ${formatCoachScore(best.score)}`
+          : `À prendre : ${best.champion} ${best.flex ? "FLEX" : ROLE_LABEL[best.role]} ${formatCoachScore(best.score)}`
         : "Aucun champion n’a encore un rôle libre qui améliore le score.";
   }
   $("#coach-blue").innerHTML = renderDraftSide("blue", advice);
   $("#coach-red").innerHTML = renderDraftSide("red", advice);
   $("#coach-note").textContent = advice.done
     ? advice.note
-    : `Le chiffre sur chaque portrait est le score du calculateur pour cette draft. Il change dès qu’un champion est lock. Un ban retire le champion, il ne réécrit pas les autres chiffres. Le rôle proposé est la lane habituelle, sauf si un matchup de lane rend un autre rôle meilleur. ${advice.note}`;
+    : `Le chiffre sur chaque portrait reste le score du calculateur. Il change dès qu’un champion est lock. Un ban retire le champion, il ne réécrit pas les autres chiffres. Le rôle proposé est la lane habituelle, sauf si un matchup de lane rend un autre rôle meilleur. L’ordre, lui, évite le blind. ${advice.note}`;
   renderCoachGrid(advice);
   renderCoachPro();
   if (coachFocus !== "self") {

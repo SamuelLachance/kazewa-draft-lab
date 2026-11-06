@@ -42,7 +42,7 @@ test("first pick acts on the opening ban and second pick waits", () => {
   assert.equal(second.userSide ?? createSession("second").userSide, "red");
 });
 
-test("a ban ranks the whole pool by the opponent's current calculator score", () => {
+test("a ban ranks the pool by what the opponent can actually lock", () => {
   const advice = advise(createSession("first"), knowledge, { limit: 8 });
   assert.equal(advice.step.action, "ban");
   assert.equal(advice.pool.length, Object.keys(knowledge.champions).length);
@@ -51,10 +51,13 @@ test("a ban ranks the whole pool by the opponent's current calculator score", ()
   assert.ok(advice.pool.every((option) => option.role === null && Number.isFinite(option.score)));
   assert.ok(advice.pool.some((option) => option.score !== 0));
   for (let index = 1; index < advice.pool.length; index += 1)
-    assert.ok(advice.pool[index - 1].score >= advice.pool[index].score);
+    assert.ok(advice.pool[index - 1].priority >= advice.pool[index].priority);
   assert.match(advice.note, /pool entier/);
   assert.match(advice.note, /autre côté/);
   const top = advice.pool[0];
+  assert.equal(["Caitlyn", "Varus", "Aphelios", "Jinx", "Xayah", "Braum"].includes(top.champion), false);
+  const varus = advice.pool.find((row) => row.champion === "Varus");
+  assert.ok(top.priority > varus.priority);
   const next = applyAction(createSession("first"), top.champion);
   const again = advise(next, knowledge, { limit: 8 });
   assert.equal(again.pool.some((option) => option.champion === top.champion), false);
@@ -80,7 +83,9 @@ test("advice stays inside the remaining pool and pick advice names an open role"
   assert.equal(pick.step.side, "blue");
   assert.ok(pick.options.length > 0);
   assert.ok(pick.options.every((option) => ROLES.includes(option.role)));
-  assert.ok(pick.options.every((option, index, all) => index === 0 || option.score <= all[index - 1].score));
+  assert.ok(
+    pick.options.every((option, index, all) => index === 0 || option.priority <= all[index - 1].priority),
+  );
   assert.equal(pick.pool.length, Object.keys(knowledge.champions).length - 6);
   assert.match(pick.note, /draft actuelle/);
 });
@@ -92,13 +97,7 @@ test("following the advice completes a legal draft and only then asks the engine
     const choice = advice.options[0];
     assert.ok(choice);
     assert.equal(choice.playable, true);
-    if (choice.role) {
-      assert.ok(
-        (LANES[choice.champion] || []).includes(choice.role),
-        `${choice.champion} suggested as ${choice.role}`,
-      );
-    }
-    session = applyAction(session, choice.champion, choice.role);
+    session = applyAction(session, choice.champion, choice.role, knowledge);
   }
   const done = advise(session, knowledge);
   assert.equal(done.done, true);
@@ -128,7 +127,7 @@ function afterOpeningBans() {
   return session;
 }
 
-test("the whole pool is ordered by the calculator score of the current draft", () => {
+test("the portrait score stays the calculator, and the order refuses a blind", () => {
   const session = afterOpeningBans();
   const advice = advise(session, knowledge, { limit: 8 });
   const banned = new Set(["Bard", "Ivern", "Yuumi", "Nami", "Soraka", "Milio"]);
@@ -137,9 +136,11 @@ test("the whole pool is ordered by the calculator score of the current draft", (
   assert.equal(advice.pool.length, Object.keys(knowledge.champions).length - banned.size);
   assert.deepEqual(advice.options, advice.pool.slice(0, 8));
   for (let index = 1; index < advice.pool.length; index += 1)
-    assert.ok(advice.pool[index - 1].score >= advice.pool[index].score);
+    assert.ok(advice.pool[index - 1].priority >= advice.pool[index].priority);
   for (const row of advice.pool) assert.equal(banned.has(row.champion), false);
   const top = advice.pool[0];
+  assert.ok(["Caitlyn", "Varus", "Aphelios", "Jinx", "Xayah"].includes(top.champion));
+  assert.equal(top.role, "bot");
   assert.equal(
     top.score,
     scorePartial(
@@ -147,14 +148,48 @@ test("the whole pool is ordered by the calculator score of the current draft", (
       knowledge,
     ).score,
   );
+  const braum = advice.pool.find((row) => row.champion === "Braum");
+  const mundo = advice.pool.find((row) => row.champion === "Dr. Mundo");
+  assert.ok(top.priority > braum.priority);
+  assert.ok(top.priority > mundo.priority);
+  assert.ok(mundo.score > top.score);
   const placed = applyAction(session, top.champion, null, knowledge);
   assert.equal(placed.picks.blue[top.role], top.champion);
   const alistar = advice.pool.find((row) => row.champion === "Alistar");
   assert.equal(alistar.role, "sup");
   assert.deepEqual(LANES.Alistar, ["sup"]);
-  const braum = advice.pool.find((row) => row.champion === "Braum");
   assert.equal(braum.role, "sup");
   assert.equal(LANES.Braum.includes("top"), false);
+});
+
+test("Braum is not blinded before the carry exists", () => {
+  let session = afterOpeningBans();
+  session = applyAction(session, "Dr. Mundo", "top", knowledge);
+  session = applyAction(session, "Maokai", "jng", knowledge);
+  session = applyAction(session, "Jhin", "bot", knowledge);
+  assert.equal(currentStep(session).side, "blue");
+  assert.equal(currentStep(session).action, "pick");
+  const advice = advise(session, knowledge, { limit: 8 });
+  assert.notEqual(advice.options[0].champion, "Braum");
+  assert.ok(["bot", "jng", "mid"].includes(advice.options[0].role));
+  const braum = advice.pool.find((row) => row.champion === "Braum");
+  assert.equal(braum.role, "sup");
+  assert.ok(advice.options[0].priority > braum.priority);
+  assert.match(braum.reasons[0], /Blind réactif/);
+  const ready = advise(
+    {
+      ...session,
+      picks: {
+        blue: { ...session.picks.blue, bot: "Lucian" },
+        red: { ...session.picks.red },
+      },
+    },
+    knowledge,
+    { limit: 400 },
+  );
+  const braumReady = ready.pool.find((row) => row.champion === "Braum");
+  assert.ok(braumReady.priority > braum.priority);
+  assert.match(braumReady.reasons[0], /duo|Lucian|répond/);
 });
 
 test("champion values change once the draft locks a champion", () => {
