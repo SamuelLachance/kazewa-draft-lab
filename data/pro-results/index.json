@@ -1,0 +1,9 @@
+{
+ "version": "1.0.0",
+ "games": 79864,
+ "rosterPairs": 79841,
+ "files": 256,
+ "from": "2018-01-04",
+ "to": "2026-11-13",
+ "source": "Professional match data from Oracle's Elixir (oracleselixir.com). Each row: first team, second team, winner (0 or 1), date, league, game number."
+}

@@ -18,12 +18,31 @@ import { fileURLToPath } from "node:url";
 import { analyzeDraft, ROLES } from "../src/engine.mjs";
 import { applicableArguments, indexMemory } from "../src/memory.mjs";
 import { cardReading, cardRelations } from "../src/relations.mjs";
+import { playedGames, resultKey, shardOf } from "../src/results.mjs";
 import { argumentLean, chooseReading, judgeDraft } from "../src/verdict.mjs";
 import { fitLogistic } from "./lib/logistic.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (name) =>
   JSON.parse(fs.readFileSync(path.join(root, "data", name), "utf8"));
+/**
+ * The professional games already played with a draft, read from the committed
+ * results files exactly as the site reads them. Null when the files are absent.
+ */
+export function loadResults(dir = path.join(root, "data", "pro-results")) {
+  if (!fs.existsSync(path.join(dir, "index.json"))) return null;
+  const shards = new Map();
+  return (draft) => {
+    const found = resultKey(draft);
+    if (!found) return null;
+    const name = shardOf(found.key);
+    if (!shards.has(name)) {
+      const file = path.join(dir, `${name}.json`);
+      shards.set(name, fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : null);
+    }
+    return playedGames(draft, shards.get(name));
+  };
+}
 // Hashes ignore line endings, so a Windows checkout and CI agree.
 export const contentHash = (text) =>
   createHash("sha256").update(text.replaceAll("\r\n", "\n")).digest("hex");
@@ -236,7 +255,7 @@ export function buildReport(
   memory,
   knowledge,
   tuning,
-  { now = new Date(), site = null, cards = null, holdout = null } = {},
+  { now = new Date(), site = null, cards = null, holdout = null, played = null } = {},
 ) {
   const cases = memory.cases;
   const decided = cases.filter((c) => c.verdict.side !== "even");
@@ -352,9 +371,18 @@ export function buildReport(
     const draft = { blue: c.blue, red: c.red };
     const calculator = analyzeDraft(draft, knowledge);
     const cardSide = relations ? cardReading(draft, relations).side : "even";
+    // The result of the game, read the way the site reads it: every game
+    // played with these two rosters, and a side only when they all agree.
+    const wonBy = played
+      ? played(draft)?.side
+      : c.winnerSource === "match_data"
+        ? c.winner
+        : null;
     return {
       group: c.group,
       label: c.verdict.side,
+      timing: c.verdict.timing,
+      resultSide: wonBy === "blue" || wonBy === "red" ? wonBy : null,
       // The champion cards were written without this draft's videos.
       unseenByCards:
         heldOutVideos.size > 0 &&
@@ -370,11 +398,12 @@ export function buildReport(
           : null,
     };
   });
-  const cascade = (drafts) => {
+  // `withResult`: the draft is a game already played and its result is known.
+  const cascade = (drafts, withResult = false) => {
     const byReading = {};
     const all = [];
     for (const d of drafts) {
-      const reading = chooseReading(d);
+      const reading = chooseReading({ ...d, resultSide: withResult ? d.resultSide : null });
       const row = {
         group: d.group,
         credit: reading.side === "even" ? 0.5 : reading.side === d.label ? 1 : 0,
@@ -404,12 +433,41 @@ export function buildReport(
           note: "'heldOut' counts drafts from videos the cards were written without; 'writtenFrom' counts drafts from videos the cards summarise. Only 'heldOut' says what the card reading is worth on a new draft.",
         }
       : null;
+  /* 3d. A game already played: the side that won, against his verdict. No
+     fitting, so no fold: the only question is how often he prefers the winner. */
+  const resultRows = perDraft
+    .filter((d) => d.resultSide)
+    .map((d) => ({ ...d, credit: d.resultSide === d.label ? 1 : 0 }));
+  const resultBoth = resultRows.filter((d) => d.argumentSide);
+  const resultOpposed = resultBoth.filter((d) => d.argumentSide !== d.resultSide);
+  const matchResult = resultRows.length
+    ? {
+        ...grouped(resultRows),
+        groups: new Set(resultRows.map((d) => d.group)).size,
+        coverage: resultRows.length / decided.length,
+        draftTiming: grouped(resultRows.filter((d) => d.timing === "draft")),
+        afterTheGame: grouped(resultRows.filter((d) => d.timing !== "draft")),
+        heldOut: grouped(resultRows.filter((d) => d.unseenByCards)),
+        withArguments: {
+          sameSide: grouped(resultBoth.filter((d) => d.argumentSide === d.resultSide)),
+          oppositeSides: {
+            n: resultOpposed.length,
+            resultRight: resultOpposed.filter((d) => d.credit === 1).length,
+          },
+        },
+        note: "For a draft that is a professional game already played, the side that won is compared with his verdict. Nothing is fitted. 'draftTiming' keeps the verdicts he states in the draft phase of his video, before he watches the game; the videos known to be recorded with the result are marked by hand in data/memory-overrides.json and counted as late. 'afterTheGame' are review and late opinions, which can know the result. 'everyDraft.played' runs over every held-out draft: where no result is found the other readings answer, and byReading says how many used the result. 'withArguments' sets this reading next to his arguments from other groups on the drafts where both speak. It says nothing about a draft that has not been played.",
+      }
+    : null;
   const everyDraft = site
     ? {
         // Honest headline: drafts no reading has seen (arguments from other
         // groups, cards written without these videos).
         heldOut: { ...cascade(fresh), groups: new Set(fresh.map((d) => d.group)).size },
         allJudgedOptimistic: cascade(perDraft).all,
+        // Same held-out drafts, when the game was played and its result is known.
+        played: matchResult
+          ? { heldOut: { ...cascade(fresh, true), groups: new Set(fresh.map((d) => d.group)).size } }
+          : null,
         note: "Each judged draft is given the verdict the site would give it if he had not judged it: his arguments from other groups first, then his champion cards, then the structural calculator. 'heldOut' uses only drafts from videos the cards were written without, and leaves the calculator out on the drafts it was tuned on (those count as a draw at that step): no reading judges a draft it has seen. 'allJudgedOptimistic' uses every judged draft and is inflated: on most of them the cards summarise the very video being tested.",
       }
     : null;
@@ -420,7 +478,7 @@ export function buildReport(
 
   const neverSeen = { ...grouped(calc.untuned), abstained: calc.abstained };
   const evaluation = {
-    version: "2.2.0",
+    version: "2.3.0",
     evaluatedAt: now.toISOString(),
     memory: {
       cases: cases.length,
@@ -458,6 +516,7 @@ export function buildReport(
       },
       arguments: argumentsReport,
       championCards: cardsReport,
+      matchResult,
       everyDraft,
       structuralCalculator: {
         tunedOn: rate(calc.tuned[0], calc.tuned[1]),
@@ -475,6 +534,7 @@ export function buildReport(
       "The champion cards follow his verdict far more often on the videos they were written from than on the videos kept out of them. Only the second figure is shown. The same gap is to be expected for any knowledge taken from his videos.",
       "The arguments figure counts what he said in other videos. Teams that keep drafting the same pairs and that he keeps preferring can inflate it; on teams and patches he has not commented it may be lower.",
       "Review and late opinions can know the result of the game. They are kept, with their timing shown.",
+      "The result reading only exists for a game already played, and it is measured on the games he chose to comment. On a game he would not have commented, or commented differently, it may be lower. It is not an opinion on the draft: it says which team won.",
       "A new video can contradict a tendency. The memory is updated by rebuilding it from the corpus.",
     ],
     sourceHashes: {
@@ -484,10 +544,25 @@ export function buildReport(
     },
   };
   const shipped = {
-    version: "2.2.0",
+    version: "2.3.0",
     measuredAt: now.toISOString(),
-    note: "Measured agreement of each reading the site uses for a draft he did not judge. Nothing is fitted: the site counts his arguments, then his champion cards, then applies the structural calculator.",
+    note: "Measured agreement of each reading the site uses for a draft he did not judge. Nothing is fitted: when the draft is a game already played the site names the side that won; otherwise it counts his arguments, then his champion cards, then applies the structural calculator.",
     reliability: {
+      // A game already played: how often the team he preferred is the one that won.
+      result: matchResult
+        ? {
+            agreement: matchResult.agreement,
+            n: matchResult.n,
+            low: matchResult.low,
+            high: matchResult.high,
+            draftTiming: {
+              agreement: matchResult.draftTiming.agreement,
+              n: matchResult.draftTiming.n,
+              low: matchResult.draftTiming.low,
+              high: matchResult.draftTiming.high,
+            },
+          }
+        : null,
       arguments: argumentsReport
         ? {
             agreement: argumentsReport.agreement,
@@ -503,6 +578,7 @@ export function buildReport(
       cards: cardsReport?.heldOut ?? null,
       principles: { agreement: neverSeen.agreement, n: neverSeen.n, low: neverSeen.low, high: neverSeen.high },
       everyDraft: everyDraft ? everyDraft.heldOut.all : null,
+      everyDraftPlayed: everyDraft?.played ? everyDraft.played.heldOut.all : null,
     },
   };
   return { evaluation, model: shipped };
@@ -518,6 +594,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       site: read("memory-site.json"),
       cards: read("champion-cards.json"),
       holdout: read("card-holdout.json"),
+      played: loadResults(),
     },
   );
   fs.writeFileSync(path.join(root, "data", "model.json"), JSON.stringify(model, null, 1) + "\n");
@@ -536,6 +613,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     console.log(`Sur toutes les drafts jugées (gonflé par les fiches) : ${pct(u.everyDraft.allJudgedOptimistic)}`);
     if (u.championCards)
       console.log(`Fiches champion : vidéos jamais vues ${pct(u.championCards.heldOut)} ; vidéos qui ont servi à les écrire ${pct(u.championCards.writtenFrom)}`);
+  }
+  if (u.matchResult) {
+    const m = u.matchResult;
+    console.log(`Partie déjà jouée, le vainqueur : ${pct(m)} ; avis donnés pendant la draft ${pct(m.draftTiming)} ; après coup ${pct(m.afterTheGame)} ; vidéos tenues à l’écart ${pct(m.heldOut)}`);
+    console.log(`  face à ses arguments : même côté ${pct(m.withArguments.sameSide)} ; opposés : résultat juste ${m.withArguments.oppositeSides.resultRight}/${m.withArguments.oppositeSides.n}`);
+    if (u.everyDraft?.played)
+      console.log(`Toute draft d’une partie déjà jouée, vidéos tenues à l’écart : ${pct(u.everyDraft.played.heldOut.all)}`);
   }
   console.log(`Calculateur structurel : réglé sur ${pct(u.structuralCalculator.tunedOn)} ; jamais vues ${pct(u.structuralCalculator.neverSeen)}`);
   console.log(`Ordre des picks (lecture écartée), poids par lane : ${JSON.stringify(u.pickOrder.weights)}`);

@@ -1,6 +1,6 @@
 # Kazewa — Draft Lab
 
-Le verdict de Kazewa sur les drafts de League of Legends qu’il a commentées, avec ses raisons et sa vidéo. Toute autre draft reçoit un verdict estimé : d’après ses arguments sur les mêmes champions, puis ses fiches champion, puis ses principes de composition. Chaque verdict dit quelle lecture a servi et ce qu’elle vaut.
+Le verdict de Kazewa sur les drafts de League of Legends qu’il a commentées, avec ses raisons et sa vidéo. Toute autre draft reçoit un verdict estimé : d’après le résultat du match quand la partie a déjà été jouée, sinon d’après ses arguments sur les mêmes champions, puis ses fiches champion, puis ses principes de composition. Chaque verdict dit quelle lecture a servi et ce qu’elle vaut.
 
 Site : [samuellachance.github.io/kazewa-draft-lab](https://samuellachance.github.io/kazewa-draft-lab/). Dépôt : [SamuelLachance/kazewa-draft-lab](https://github.com/SamuelLachance/kazewa-draft-lab).
 
@@ -9,13 +9,16 @@ Site : [samuellachance.github.io/kazewa-draft-lab](https://samuellachance.github
 | Situation | Réponse | Fiabilité |
 | --- | --- | --- |
 | Draft que Kazewa a jugée | Son verdict, sa confiance, ses raisons en français, le lien vers le passage de la vidéo | Restitution : c’est son avis, pas une prédiction |
-| Draft inédite, ses arguments s’y appliquent | Le côté que désignent les matchups, synergies et réponses qu’il a nommés dans d’autres vidéos | Environ 60 %, mesuré en ne gardant que ses arguments venus d’autres vidéos |
+| Draft d’une partie pro déjà jouée, qu’il n’a pas commentée | La partie, l’équipe qui a gagné, et ce côté comme verdict estimé | Environ 80 % : sur les parties qu’il a commentées, il préférait le plus souvent l’équipe gagnante |
+| Draft jamais jouée, ses arguments s’y appliquent | Le côté que désignent les matchups, synergies et réponses qu’il a nommés dans d’autres vidéos | Environ 62 %, mesuré en ne gardant que ses arguments venus d’autres vidéos |
 | Ses arguments ne départagent pas (aucun, ou autant de chaque côté) | Le côté que désignent ses fiches champion (qui va bien avec qui, qui prend le dessus sur qui) | Environ 60 %, mesuré sur des vidéos que les fiches n’ont jamais vues |
 | Ses fiches ne départagent pas | Le côté que désignent ses principes de composition | Environ 50 % : une pièce lancée |
 
-Aucune draft complète n’est laissée sans verdict. Sur les drafts de vidéos tenues à l’écart de toutes les lectures, le verdict estimé coïncide avec le sien environ six fois sur dix.
+Aucune draft complète n’est laissée sans verdict. Sur les drafts de vidéos tenues à l’écart de toutes les lectures, le verdict estimé coïncide avec le sien 58,5 % du temps pour une draft jamais jouée, et 80,3 % quand la partie a été jouée et que son résultat est connu.
 
-Un constat borne tout le reste : sur les vidéos dont ses fiches champion sont tirées, les fiches retrouvent son verdict quatre fois sur cinq ; sur les vidéos qu’elles n’ont jamais vues, six fois sur dix. Ce qu’il dit d’une draft permet de retrouver son verdict ; des règles générales sur les champions ne le permettent pas.
+La lecture par le résultat n’est pas un jugement sur la draft. Elle dit qui a gagné, parce que c’est le plus souvent l’équipe dont il préférait la draft. Elle n’existe pas pour une draft qui n’a pas été jouée.
+
+Un constat borne ce que dix champions peuvent dire : sur les vidéos dont ses fiches champion sont tirées, les fiches retrouvent son verdict 78,6 % du temps ; sur les vidéos qu’elles n’ont jamais vues, 59,6 %. Ce qu’il dit d’une draft permet de retrouver son verdict ; des règles générales sur les champions ne le permettent pas.
 
 Les chiffres exacts sont dans [`data/evaluation.json`](data/evaluation.json) et expliqués dans [`docs/EVALUATION.md`](docs/EVALUATION.md). Le site les lit dans ce fichier : il n’écrit aucun pourcentage en dur.
 
@@ -28,7 +31,7 @@ Pour toute draft, le site montre aussi :
 
 ## Pourquoi pas « 100 % d’accord » sur les drafts futures
 
-Les verdicts de Kazewa s’appuient sur l’ordre des picks, les bans, les joueurs, la forme des équipes et la méta du moment. Dix champions ne portent pas cette information. Les profils de champions, leur identité, les règles structurelles et les statistiques de 44 000 matchs pros restent au niveau du hasard quand on les mesure sur des vidéos tenues à l’écart. Une lecture fait un peu mieux : ses propres arguments, repris d’une vidéo à l’autre, six fois sur dix, contre un peu plus d’une fois sur deux en répondant toujours le même côté. Cet avantage va dans le bon sens mais n’est pas encore établi statistiquement. L’ordre des picks avait paru utile sur 195 drafts ; sur 268 il ne fait pas mieux que répondre toujours le même côté, et il a été retiré. Personne ne peut promettre son avis sur une draft qu’il n’a pas encore commentée.
+Les verdicts de Kazewa s’appuient sur l’ordre des picks, les bans, les joueurs, la forme des équipes et la méta du moment. Dix champions ne portent pas cette information. Les profils de champions, leur identité, les règles structurelles et les statistiques de 44 000 matchs pros restent au niveau du hasard quand on les mesure sur des vidéos tenues à l’écart. Une lecture fait un peu mieux : ses propres arguments, repris d’une vidéo à l’autre, 61,8 % du temps, contre 54,1 % en répondant toujours le même côté. Cet avantage va dans le bon sens mais n’est pas encore établi statistiquement. La force des équipes avant la partie ne suit pas ses avis non plus. Le résultat de la partie, lui, les suit 79,8 % du temps : c’est pourquoi le site le nomme quand la partie a été jouée. L’ordre des picks avait paru utile sur 195 drafts ; sur 268 il ne fait pas mieux que répondre toujours le même côté, et il a été retiré. Personne ne peut promettre son avis sur une draft qu’il n’a pas encore commentée.
 
 L’ancienne version affichait 100 % d’accord. Ce chiffre venait de 62 drafts sur lesquelles le calculateur avait été réglé. Sur les autres drafts jugées, le même calculateur tombait à une sur deux. Ce chiffre a été retiré.
 
@@ -59,6 +62,7 @@ La mémoire se reconstruit depuis le corpus local (extractions des vidéos), qui
 ```powershell
 npm run oe:index -- --csv-dir <dossier des CSV Oracle's Elixir>[,<autre dossier>]   # index local des matchs pros, dans .cache/
 npm run memory -- --corpus <dossier du corpus>                     # data/kazewa-memory.json + data/memory-site.json
+npm run pro:results                                                # data/pro-results/ : résultat de chaque partie de l’index
 npm run evaluate
 ```
 
@@ -67,7 +71,7 @@ npm run evaluate
 1. lit les extractions de phase de draft, les extractions de revue complète et les clés de réponse ;
 2. relie chaque extraction à la partie professionnelle réelle quand elle figure dans l’index (compositions, côtés de carte, résultat), en tolérant au plus une erreur de reconnaissance vocale et en exigeant une marge nette sur toute autre partie ;
 3. garde un cas par partie réelle, avec le verdict du meilleur moment disponible : pendant la draft, puis dans la revue, puis l’avis explicitement tardif (sans l’index des matchs, il refuse d’écraser la mémoire, sauf avec `--allow-unverified`) ;
-4. applique les corrections relues de [`data/memory-overrides.json`](data/memory-overrides.json) ;
+4. applique les corrections et les rattachements relus de [`data/memory-overrides.json`](data/memory-overrides.json) : une extraction trop partielle pour un rattachement automatique est reliée à la partie qu’un relecteur a nommée et que deux contrôles indépendants ont confirmée ;
 5. joint la traduction française et les arguments structurés de `data/kazewa-enrichment.json`, liés au texte exact qu’ils traduisent.
 
 Les extractions qu’aucune partie ne permet de compléter restent hors mémoire. Elles sont comptées dans `audit` au début de `data/kazewa-memory.json`.
@@ -79,6 +83,7 @@ Les extractions qu’aucune partie ne permet de compléter restent hors mémoire
 | `src/memory.mjs` | Recherche d’une draft jugée, drafts proches, arguments applicables |
 | `src/verdict.mjs` | Réponse du site : sa mémoire d’abord, sinon la chaîne de lectures |
 | `src/relations.mjs` | Lecture d’après ses fiches champion |
+| `src/results.mjs` | Parties pro déjà jouées avec les dix champions d’une draft |
 | `src/engine.mjs` | Calculateur structurel (description des compositions) |
 | `src/draft-coach.mjs` | Coach de draft pick par pick |
 | `data/kazewa-memory.json` | Mémoire complète, avec la trace de chaque source |
@@ -87,6 +92,7 @@ Les extractions qu’aucune partie ne permet de compléter restent hors mémoire
 | `data/model.json` | Fiabilité mesurée de chaque lecture |
 | `data/card-holdout.json` | Vidéos tenues à l’écart quand les fiches ont été écrites |
 | `data/evaluation.json` | Rapport de mesure |
+| `data/pro-results/` | Résultat des parties pro, par empreinte des dix champions (données Oracle’s Elixir) |
 | `scripts/` | Construction de la mémoire, mesure, build |
 | `research/` | Banc d’essai hors groupe et modèles essayés |
 | `server/` | Proxy du flux professionnel et service HTTP local |
@@ -99,4 +105,4 @@ GitHub Pages sert des fichiers statiques ; le flux professionnel passe par un se
 
 `.github/workflows/pages.yml` teste, mesure, construit et publie `dist/` à chaque push sur `main`. **Settings → Pages → Source : GitHub Actions.**
 
-Projet indépendant. Il n’est ni affilié à Riot Games ni approuvé par Kazewa. Les assets du jeu appartiennent à Riot Games.
+Projet indépendant. Il n’est ni affilié à Riot Games ni approuvé par Kazewa. Les assets du jeu appartiennent à Riot Games. Les compositions et les résultats des parties professionnelles viennent des données de match d’[Oracle’s Elixir](https://oracleselixir.com/).

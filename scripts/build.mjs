@@ -27,6 +27,10 @@ for (const name of [
   JSON.parse(content);
   await writeFile(path.join(output, "data", name), content);
 }
+// Results of professional games, one small file per key prefix (src/results.mjs).
+await cp(path.join(root, "data", "pro-results"), path.join(output, "data", "pro-results"), {
+  recursive: true,
+});
 const config = JSON.parse(
   await readFile(path.join(root, "public", "config.json"), "utf8"),
 );

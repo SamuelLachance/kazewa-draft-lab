@@ -4,6 +4,9 @@
  * 1. Kazewa judged this exact draft: his verdict, his reasons, his video.
  * 2. He did not: the site reads the draft the way his corpus allows, from the
  *    most reliable reading to the coarsest, and says which one it used:
+ *      - the result of the game, when this draft is a professional game that
+ *        was already played: on the games he commented, the team he preferred
+ *        is most often the team that won;
  *      - the arguments he gave about the same champions in other drafts;
  *      - his champion cards (who is good with whom, who is punished by whom);
  *      - his composition principles, applied by the structural calculator.
@@ -31,12 +34,14 @@ export function argumentLean(list) {
  * The reading used for a draft he did not judge, in order of measured
  * reliability. Shared with the evaluation so that what is measured is what
  * is shown.
+ *   result      the side that won, when the draft is a game already played
  *   arguments   the side his arguments from other drafts lean to
  *   cards       his champion cards
  *   principles  his composition principles (structural calculator)
  *   balance     nothing separates the two compositions
  */
-export function chooseReading({ argumentSide, cardSide, calculatorSide }) {
+export function chooseReading({ resultSide = null, argumentSide, cardSide, calculatorSide }) {
+  if (resultSide) return { basis: "result", side: resultSide };
   if (argumentSide) return { basis: "arguments", side: argumentSide };
   if (cardSide) return { basis: "cards", side: cardSide };
   if (calculatorSide) return { basis: "principles", side: calculatorSide };
@@ -48,7 +53,9 @@ const sideOrNull = (side) => (side === "blue" || side === "red" ? side : null);
  * Full answer for a draft.
  * `memory` is the index from indexMemory(). `relations` comes from
  * cardRelations(champion cards). `model.reliability` holds the measured
- * agreement of each reading.
+ * agreement of each reading. `played` is a function that returns the
+ * professional games already played with a draft (playedGames() of
+ * src/results.mjs on the file the caller loaded), or null when it knows none.
  *
  * `lean` is the one side every screen shows, with where it comes from:
  * `memory` (his verdict), `undecided` (he commented without choosing), or one
@@ -56,7 +63,7 @@ const sideOrNull = (side) => (side === "blue" || side === "red" ? side : null);
  */
 export function judgeDraft(
   draft,
-  { knowledge, memory = null, model = null, relations = null } = {},
+  { knowledge, memory = null, model = null, relations = null, played = null } = {},
 ) {
   const structure = analyzeDraft(draft, knowledge);
   if (structure.status !== "complete")
@@ -82,7 +89,10 @@ export function judgeDraft(
   const said = applicableArguments(canonical, memory, { limit: Infinity });
   const saidLean = argumentLean(said);
   const cards = cardReading(canonical, relations);
+  const games =
+    !kazewa && typeof played === "function" ? (played(canonical) ?? null) : null;
   const estimate = chooseReading({
+    resultSide: sideOrNull(games?.side),
     argumentSide: sideOrNull(saidLean.side),
     cardSide: sideOrNull(cards.side),
     calculatorSide: sideOrNull(structure.winner),
@@ -100,6 +110,8 @@ export function judgeDraft(
     estimate,
     argumentLean: saidLean,
     cardReading: cards,
+    // Professional games already played with these ten champions, if any.
+    played: games,
     reliability: model?.reliability ?? null,
     kazewa,
     arguments: said,

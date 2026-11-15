@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
   buildReport,
+  loadResults,
   chanceLevel,
   crossValidateArguments,
   contentHash,
@@ -149,6 +150,7 @@ test("the shipped report and model are exactly what the shipped memory gives", a
     site,
     cards: await load("champion-cards.json"),
     holdout: await load("card-holdout.json"),
+    played: loadResults(),
   });
   assert.deepEqual(
     JSON.parse(JSON.stringify(fresh.evaluation)),
@@ -180,7 +182,7 @@ test("the report separates recall from prediction and keeps the bar in view", as
   assert.equal(model.process, undefined);
   assert.deepEqual(
     Object.keys(model.reliability).sort(),
-    ["arguments", "cards", "everyDraft", "principles"],
+    ["arguments", "cards", "everyDraft", "everyDraftPlayed", "principles", "result"],
   );
 
   // His arguments from other groups: counted, never fitted.

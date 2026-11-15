@@ -306,3 +306,43 @@ test("one real game is stored once, even when it was heard twice", async () => {
     seen.set(c.match.gameId, c.id);
   }
 });
+
+test("a reviewed link ties its record to the game it names, and carries a side when it states a preference", async () => {
+  const [memory, overrides] = await Promise.all([
+    load("kazewa-memory.json"),
+    load("memory-overrides.json"),
+  ]);
+  const linked = Object.entries(overrides.records).filter(([, fix]) => fix.game);
+  assert.ok(linked.length > 100);
+  assert.equal(memory.audit.reviewedLinks, linked.length);
+  assert.equal(overrides.links.kept + overrides.links.pinned, linked.length);
+  // What was left out is written down, with the reason.
+  for (const item of [...overrides.links.notLinked, ...overrides.links.setAsideOnReading]) {
+    assert.ok(item.record && item.reason);
+    assert.equal(overrides.records[item.record]?.game, undefined);
+  }
+  const bySource = new Map();
+  for (const item of memory.cases)
+    for (const evidence of item.evidence) bySource.set(evidence.source, { item, evidence });
+  for (const [ref, fix] of linked) {
+    const found = bySource.get(ref);
+    assert.ok(found, `lien sans cas : ${ref}`);
+    assert.equal(found.evidence.via, "reviewed_game");
+    assert.equal(found.item.rosterVerified, true);
+    assert.equal(found.item.match.gameId, fix.game, ref);
+    assert.ok(fix.why.length > 20);
+    // A record that states a preference needs the side it calls left.
+    if (found.evidence.side !== "even") assert.ok(["blue", "red"].includes(fix.leftIs), ref);
+  }
+  // One record, one case: nothing is counted in two games.
+  const sources = memory.cases.flatMap((item) => item.evidence.map((evidence) => evidence.source));
+  assert.equal(new Set(sources).size, sources.length);
+  // A video recorded knowing the results gives no draft-time opinion.
+  const hindsight = new Set(
+    Object.entries(overrides.videos).filter(([, value]) => value.hindsight).map(([video]) => video),
+  );
+  assert.ok(hindsight.size >= 5);
+  for (const item of memory.cases)
+    if (item.sources.every((source) => hindsight.has(source.video)) && item.verdict.side !== "even")
+      assert.equal(item.verdict.timing, "late", item.id);
+});

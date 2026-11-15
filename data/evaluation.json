@@ -1,161 +1,202 @@
 {
- "version": "2.2.0",
- "evaluatedAt": "2026-11-15T02:08:09.790Z",
+ "version": "2.3.0",
+ "evaluatedAt": "2026-11-15T03:45:07.487Z",
  "memory": {
-  "cases": 286,
-  "decided": 274,
-  "undecided": 12,
-  "rosterVerified": 280,
-  "videos": 109,
+  "cases": 314,
+  "decided": 304,
+  "undecided": 10,
+  "rosterVerified": 312,
+  "videos": 129,
   "byTiming": {
-   "draft": 192,
-   "review": 64,
-   "late": 18
+   "draft": 222,
+   "review": 34,
+   "late": 48
   },
   "selfRecall": {
-   "n": 274,
-   "agree": 274,
+   "n": 304,
+   "agree": 304,
    "agreement": 1,
-   "low": 0.9861734167957571,
-   "high": 1.0000000000000002
+   "low": 0.9875208548812116,
+   "high": 0.9999999999999998
   },
   "note": "A judged draft is answered by lookup. This 100% is a property of the lookup, not a measure of a model."
  },
  "unseen": {
   "protocol": "Leave-one-group-out. A group joins every draft that shares a video or a professional series. Ties count as half. Intervals redraw whole groups.",
-  "groups": 94,
+  "groups": 100,
   "pickOrder": {
-   "n": 269,
-   "agree": 147,
-   "agreement": 0.5464684014869888,
-   "low": 0.4881889763779528,
-   "high": 0.6049382716049383,
+   "n": 302,
+   "agree": 169,
+   "agreement": 0.5596026490066225,
+   "low": 0.5040650406504065,
+   "high": 0.6153846153846154,
    "interval": "group bootstrap",
-   "groups": 93,
+   "groups": 99,
    "chance": {
     "runs": 200,
-    "mean": 0.4951022304832713,
-    "sd": 0.05386332878789038,
-    "p": 0.19900497512437812
+    "mean": 0.5016887417218542,
+    "sd": 0.050834005274782885,
+    "p": 0.08955223880597014
    },
    "sideOnly": {
-    "n": 269,
-    "agree": 142,
-    "agreement": 0.5278810408921933,
-    "low": 0.47854785478547857,
-    "high": 0.578125,
+    "n": 302,
+    "agree": 156,
+    "agreement": 0.5165562913907285,
+    "low": 0.46296296296296297,
+    "high": 0.5675675675675675,
     "interval": "group bootstrap",
     "side": "red"
    },
    "overSideOnly": {
-    "modelRightRuleWrong": 50,
-    "ruleRightModelWrong": 45,
-    "p": 0.6817425059181856,
+    "modelRightRuleWrong": 65,
+    "ruleRightModelWrong": 52,
+    "p": 0.2671823049903962,
     "note": "Drafts where the pick-order model and the always-same-side rule disagree. Exact sign test."
    },
    "weights": {
-    "top": 0.3215,
-    "jng": 0.1444,
-    "mid": 0.2546,
-    "bot": -0.097,
-    "sup": 0.1382
+    "top": 0.259,
+    "jng": 0.1496,
+    "mid": 0.1907,
+    "bot": -0.1487,
+    "sup": 0.0958
    },
    "usedByTheSite": false,
    "note": "Set aside. Only input: for each lane, the side that locked its champion later. Fitted on the other groups, scored on the held-out group. 'chance' redraws the verdicts as coin flips; 'sideOnly' always answers the side the other groups prefer most often. On 195 drafts this reading stood at 61.5%; with 268 it does no better than 'sideOnly', and when it agrees with his arguments the result is no better than his arguments alone (see arguments.withPickOrder)."
   },
   "arguments": {
-   "n": 200,
-   "agree": 121,
-   "agreement": 0.605,
-   "low": 0.5321637426900585,
-   "high": 0.6747572815533981,
+   "n": 233,
+   "agree": 144,
+   "agreement": 0.6180257510729614,
+   "low": 0.5508474576271186,
+   "high": 0.6776556776556777,
    "interval": "group bootstrap",
-   "groups": 87,
+   "groups": 93,
    "sideOnly": {
-    "n": 200,
-    "agree": 105,
-    "agreement": 0.525,
-    "low": 0.4605809128630705,
-    "high": 0.5879396984924623,
+    "n": 233,
+    "agree": 126,
+    "agreement": 0.5407725321888412,
+    "low": 0.4805194805194805,
+    "high": 0.6019417475728155,
     "interval": "group bootstrap"
    },
    "overSideOnly": {
-    "argumentsRightRuleWrong": 49,
-    "ruleRightArgumentsWrong": 33,
-    "p": 0.09703091129729902,
+    "argumentsRightRuleWrong": 58,
+    "ruleRightArgumentsWrong": 40,
+    "p": 0.08541058911280436,
     "note": "Drafts where his arguments and the always-same-side rule disagree. Exact sign test."
    },
-   "coverage": 0.7299270072992701,
-   "judged": 274,
+   "coverage": 0.7664473684210527,
+   "judged": 304,
    "withPickOrder": {
     "sameSide": {
-     "n": 111,
-     "agree": 69,
-     "agreement": 0.6216216216216216,
-     "low": 0.5242718446601942,
-     "high": 0.7155963302752294,
+     "n": 126,
+     "agree": 83,
+     "agreement": 0.6587301587301587,
+     "low": 0.5691056910569106,
+     "high": 0.7426470588235294,
      "interval": "group bootstrap"
     },
     "oppositeSides": {
-     "n": 87,
-     "argumentsRight": 51
+     "n": 105,
+     "argumentsRight": 61
     }
    },
    "note": "No fitting. For each judged draft, the arguments he gave in other groups that still apply (same champions, same relation, same roles) are counted per side; the side with more is compared with his verdict. Drafts with no applicable argument or a tie are not counted (coverage)."
   },
   "championCards": {
    "heldOut": {
-    "n": 56,
+    "n": 57,
     "agree": 34,
-    "agreement": 0.6071428571428571,
-    "low": 0.4727272727272727,
-    "high": 0.74,
+    "agreement": 0.5964912280701754,
+    "low": 0.46296296296296297,
+    "high": 0.7321428571428571,
     "interval": "group bootstrap"
    },
    "writtenFrom": {
-    "n": 187,
-    "agree": 152,
-    "agreement": 0.8128342245989305,
-    "low": 0.7551020408163265,
-    "high": 0.8685714285714285,
+    "n": 210,
+    "agree": 165,
+    "agreement": 0.7857142857142857,
+    "low": 0.7268041237113402,
+    "high": 0.8441558441558441,
     "interval": "group bootstrap"
    },
    "heldOutVideos": 28,
    "note": "'heldOut' counts drafts from videos the cards were written without; 'writtenFrom' counts drafts from videos the cards summarise. Only 'heldOut' says what the card reading is worth on a new draft."
   },
+  "matchResult": {
+   "n": 302,
+   "agree": 241,
+   "agreement": 0.7980132450331126,
+   "low": 0.7481751824817519,
+   "high": 0.840625,
+   "interval": "group bootstrap",
+   "groups": 99,
+   "coverage": 0.993421052631579,
+   "draftTiming": {
+    "n": 220,
+    "agree": 171,
+    "agreement": 0.7772727272727272,
+    "low": 0.7232142857142857,
+    "high": 0.8348623853211009,
+    "interval": "group bootstrap"
+   },
+   "afterTheGame": {
+    "n": 82,
+    "agree": 70,
+    "agreement": 0.8536585365853658,
+    "low": 0.7777777777777778,
+    "high": 0.9180327868852459,
+    "interval": "group bootstrap"
+   },
+   "heldOut": {
+    "n": 71,
+    "agree": 57,
+    "agreement": 0.8028169014084507,
+    "low": 0.7088607594936709,
+    "high": 0.9041095890410958,
+    "interval": "group bootstrap"
+   },
+   "withArguments": {
+    "sameSide": {
+     "n": 138,
+     "agree": 118,
+     "agreement": 0.855072463768116,
+     "low": 0.7941176470588235,
+     "high": 0.9103448275862069,
+     "interval": "group bootstrap"
+    },
+    "oppositeSides": {
+     "n": 93,
+     "resultRight": 67
+    }
+   },
+   "note": "For a draft that is a professional game already played, the side that won is compared with his verdict. Nothing is fitted. 'draftTiming' keeps the verdicts he states in the draft phase of his video, before he watches the game; the videos known to be recorded with the result are marked by hand in data/memory-overrides.json and counted as late. 'afterTheGame' are review and late opinions, which can know the result. 'everyDraft.played' runs over every held-out draft: where no result is found the other readings answer, and byReading says how many used the result. 'withArguments' sets this reading next to his arguments from other groups on the drafts where both speak. It says nothing about a draft that has not been played."
+  },
   "everyDraft": {
    "heldOut": {
     "all": {
-     "n": 70,
-     "agree": 40.5,
-     "agreement": 0.5785714285714286,
-     "low": 0.4661016949152542,
-     "high": 0.6691176470588235,
+     "n": 71,
+     "agree": 41.5,
+     "agreement": 0.5845070422535211,
+     "low": 0.47794117647058826,
+     "high": 0.6818181818181818,
      "interval": "group bootstrap"
     },
     "byReading": {
      "arguments": {
-      "n": 51,
-      "agree": 31,
-      "agreement": 0.6078431372549019,
-      "low": 0.475,
+      "n": 54,
+      "agree": 33,
+      "agreement": 0.6111111111111112,
+      "low": 0.5,
       "high": 0.7142857142857143,
       "interval": "group bootstrap"
      },
      "cards": {
-      "n": 17,
-      "agree": 9,
-      "agreement": 0.5294117647058824,
+      "n": 16,
+      "agree": 8,
+      "agreement": 0.5,
       "low": 0.26666666666666666,
-      "high": 0.7647058823529411,
-      "interval": "group bootstrap"
-     },
-     "principles": {
-      "n": 1,
-      "agree": 0,
-      "agreement": 0,
-      "low": 0,
-      "high": 0,
+      "high": 0.7368421052631579,
       "interval": "group bootstrap"
      },
      "balance": {
@@ -170,12 +211,35 @@
     "groups": 27
    },
    "allJudgedOptimistic": {
-    "n": 274,
-    "agree": 174.5,
-    "agreement": 0.6368613138686131,
-    "low": 0.5796812749003984,
-    "high": 0.6933333333333334,
+    "n": 304,
+    "agree": 194.5,
+    "agreement": 0.6398026315789473,
+    "low": 0.5845588235294118,
+    "high": 0.6882352941176471,
     "interval": "group bootstrap"
+   },
+   "played": {
+    "heldOut": {
+     "all": {
+      "n": 71,
+      "agree": 57,
+      "agreement": 0.8028169014084507,
+      "low": 0.7088607594936709,
+      "high": 0.9041095890410958,
+      "interval": "group bootstrap"
+     },
+     "byReading": {
+      "result": {
+       "n": 71,
+       "agree": 57,
+       "agreement": 0.8028169014084507,
+       "low": 0.7088607594936709,
+       "high": 0.9041095890410958,
+       "interval": "group bootstrap"
+      }
+     },
+     "groups": 27
+    }
    },
    "note": "Each judged draft is given the verdict the site would give it if he had not judged it: his arguments from other groups first, then his champion cards, then the structural calculator. 'heldOut' uses only drafts from videos the cards were written without, and leaves the calculator out on the drafts it was tuned on (those count as a draw at that step): no reading judges a draft it has seen. 'allJudgedOptimistic' uses every judged draft and is inflated: on most of them the cards summarise the very video being tested."
   },
@@ -188,24 +252,24 @@
     "high": 0.974627505192356
    },
    "neverSeen": {
-    "n": 207,
-    "agree": 105,
-    "agreement": 0.5072463768115942,
-    "low": 0.4358974358974359,
-    "high": 0.5789473684210527,
+    "n": 236,
+    "agree": 120,
+    "agreement": 0.5084745762711864,
+    "low": 0.44274809160305345,
+    "high": 0.5734767025089605,
     "interval": "group bootstrap",
-    "abstained": 5
+    "abstained": 6
    },
    "note": "The calculator's weights were set against the 'tunedOn' drafts. Only 'neverSeen' says how it follows him elsewhere. It is the composition-only figure the site shows."
   }
  },
  "reference": {
   "realWinnerMatchesVerdict": {
-   "n": 274,
-   "agree": 219,
-   "agreement": 0.7992700729927007,
-   "low": 0.7478519254542024,
-   "high": 0.8424124554016521
+   "n": 304,
+   "agree": 242,
+   "agreement": 0.7960526315789473,
+   "low": 0.7471953993196709,
+   "high": 0.837520896333678
   },
   "note": "Share of judged drafts where the team he preferred won the game. Many reviews were recorded knowing the result."
  },
@@ -215,10 +279,11 @@
   "The champion cards follow his verdict far more often on the videos they were written from than on the videos kept out of them. Only the second figure is shown. The same gap is to be expected for any knowledge taken from his videos.",
   "The arguments figure counts what he said in other videos. Teams that keep drafting the same pairs and that he keeps preferring can inflate it; on teams and patches he has not commented it may be lower.",
   "Review and late opinions can know the result of the game. They are kept, with their timing shown.",
+  "The result reading only exists for a game already played, and it is measured on the games he chose to comment. On a game he would not have commented, or commented differently, it may be lower. It is not an opinion on the draft: it says which team won.",
   "A new video can contradict a tendency. The memory is updated by rebuilding it from the corpus."
  ],
  "sourceHashes": {
-  "memory": "ceea5356cc15a43cf8a92580106c65c844633335cd0af45f6c4f93777b3f44a0",
+  "memory": "17e6916252c4c7bf364936418a3c6e5440b48e473fbbed7580146fafd64d259d",
   "knowledge": "1f0e6674d048d31e9b205a2cab651d0de3ccd7eb539782aa53c429a2494a1cf8",
   "engine": "817dbe8b270043497f18ed633cc40644847e42497eaea4d643a22889aa35d5ec"
  }

@@ -1,5 +1,5 @@
 {
- "note": "Corrections to extraction records, confirmed by independent reviews of the case dossiers (audit and code review of 2026-11-14). Record keys are source references. side: replaces the preferred screen side. swapScreenSides: exchanges the left and right pick lists. picks: replaces single picks. attachTo: joins the record to the case of another record. distrustText: keeps the verdict of the record but not its label, reasons and reads. videos.<id>.hindsight: every opinion of that video is a late opinion.",
+ "note": "Corrections to extraction records, confirmed by independent reviews of the case dossiers (audit and code review of 2026-11-14). Record keys are source references. side: replaces the preferred screen side. swapScreenSides: exchanges the left and right pick lists. picks: replaces single picks. attachTo: joins the record to the case of another record. distrustText: keeps the verdict of the record but not its label, reasons and reads. videos.<id>.hindsight: every opinion of that video is a late opinion. game (+ leftIs): the record is about this professional game of the match index, and leftIs is the map side of the composition it calls left; used when too few picks were recognised for an automatic match.",
  "records": {
   "kb/clean_verdicts/C03.json#Z3ldU3XmTgs_g1": {
    "side": "even",
@@ -61,15 +61,704 @@
   "kb/clean_verdicts/C02.json#OwqthUyfFxw_g3": {
    "distrustText": true,
    "why": "Its label names Gen.G while its own verdict, the review and both answer keys all prefer the T1 composition (Cassiopeia side), and one reason gives T1 the Corki that Gen.G played."
+  },
+  "kb/clean_verdicts/C17.json#-0iJco4hUdk_g2": {
+   "game": "LOLTMNT05_89569",
+   "leftIs": "blue",
+   "why": "G2 Esports vs T1, WLDs 2024-10-11, game 2. Left is G2 Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C06.json#0Ul6yfKePWA_g3": {
+   "game": "LOLTMNT02_52104",
+   "leftIs": "blue",
+   "why": "T1 vs Nongshim RedForce, LCK 2024-02-21, game 3. Left is T1. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C10.json#0Ul6yfKePWA_g2": {
+   "game": "LOLTMNT02_52097",
+   "leftIs": "blue",
+   "why": "Nongshim RedForce vs T1, LCK 2024-02-21, game 2. Left is Nongshim RedForce. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C05.json#1R5bb_UjL90_g1": {
+   "game": "ESPORTSTMNT04_1971225",
+   "leftIs": "blue",
+   "why": "T1 vs Hanwha Life Esports, WLDs 2021-10-22, game 1. Left is T1. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/1R5bb_UjL90.json#1": {
+   "game": "ESPORTSTMNT04_1971225",
+   "leftIs": "blue",
+   "why": "T1 vs Hanwha Life Esports, WLDs 2021-10-22, game 1. Left is T1. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C03.json#1UOWdQ4EcbY_g2": {
+   "game": "LOLTMNT01_414165",
+   "leftIs": "red",
+   "why": "T1 vs Karmine Corp, MSI 2026-06-29, game 2. Left is Karmine Corp. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C11.json#1UOWdQ4EcbY_g1": {
+   "game": "LOLTMNT01_413227",
+   "leftIs": "red",
+   "why": "T1 vs Karmine Corp, MSI 2026-06-29, game 1. Left is Karmine Corp. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C04.json#1VlERsENAR8_g5": {
+   "game": "LOLTMNT02_29165",
+   "leftIs": "red",
+   "why": "KT Rolster vs Kwangdong Freecs, LCK 2024-01-24, game 3. Left is Kwangdong Freecs. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C01.json#2DVB7PhKaSA_g2": {
+   "game": "ESPORTSTMNT03_3220979",
+   "leftIs": "blue",
+   "why": "MAD Lions vs Weibo Gaming, WLDs 2023-10-26, game 2. Left is MAD Lions. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C02.json#2DVB7PhKaSA_g1": {
+   "game": "ESPORTSTMNT03_3219949",
+   "leftIs": "blue",
+   "why": "MAD Lions vs Weibo Gaming, WLDs 2023-10-26, game 1. Left is MAD Lions. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C15.json#2dRy2WJapKk_g1": {
+   "game": "ESPORTSTMNT04_1960532",
+   "why": "Galatasaray Esports vs Beyond Gaming, WLDs 2021-10-08, game 3. No preference stated, side not needed. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C17.json#3Ey0i4JQok8_g4": {
+   "game": "ESPORTSTMNT04_1961284",
+   "leftIs": "red",
+   "why": "EDward Gaming vs Royal Never Give Up, WLDs 2021-10-23, game 4. Left is Royal Never Give Up. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/4eX2ylmNL3U.json#1": {
+   "game": "ESPORTSTMNT04_1970669",
+   "leftIs": "blue",
+   "why": "Hanwha Life Esports vs Beyond Gaming, WLDs 2021-10-09, game 3. Left is Hanwha Life Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C01.json#6fAcwZGblzo_g1": {
+   "game": "ESPORTSTMNT04_1961309",
+   "leftIs": "blue",
+   "why": "Gen.G vs Cloud9, WLDs 2021-10-25, game 1. Left is Gen.G. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/6fAcwZGblzo.json#1": {
+   "game": "ESPORTSTMNT04_1961309",
+   "leftIs": "blue",
+   "why": "Gen.G vs Cloud9, WLDs 2021-10-25, game 1. Left is Gen.G. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/7270KpN9ehE.json#1": {
+   "game": "ESPORTSTMNT04_1971325",
+   "leftIs": "blue",
+   "why": "T1 vs Dplus Kia, WLDs 2021-10-30, game 5. Left is T1. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C10.json#9KsNYCUQ-xU_g1": {
+   "game": "ESPORTSTMNT04_1971236",
+   "leftIs": "blue",
+   "why": "Hanwha Life Esports vs T1, WLDs 2021-10-22, game 3. Left is Hanwha Life Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/9KsNYCUQ-xU.json#1": {
+   "game": "ESPORTSTMNT04_1971236",
+   "leftIs": "blue",
+   "why": "Hanwha Life Esports vs T1, WLDs 2021-10-22, game 3. Left is Hanwha Life Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C06.json#E2b6lsPPGHk_g2": {
+   "game": "11129-11129_game_2",
+   "why": "Ninjas in Pyjamas vs Weibo Gaming, LPL 2024-06-01, game 2. No preference stated, side not needed. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/E2b6lsPPGHk.json#1": {
+   "game": "11129-11129_game_2",
+   "leftIs": "blue",
+   "why": "Ninjas in Pyjamas vs Weibo Gaming, LPL 2024-06-01, game 2. Left is Ninjas in Pyjamas. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/ENf_B4hevcw.json#1": {
+   "game": "ESPORTSTMNT04_1961285",
+   "leftIs": "blue",
+   "why": "EDward Gaming vs Royal Never Give Up, WLDs 2021-10-23, game 5. Left is EDward Gaming. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C15.json#IXQ-mf-PHsk_g8": {
+   "game": "LOLTMNT03_257442",
+   "leftIs": "blue",
+   "why": "GAM Esports vs Bilibili Gaming, MSI 2025-06-28, game 3. Left is GAM Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C17.json#IXQ-mf-PHsk_g7": {
+   "game": "LOLTMNT03_258418",
+   "leftIs": "blue",
+   "why": "GAM Esports vs Bilibili Gaming, MSI 2025-06-28, game 2. Left is GAM Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C05.json#JZecUmvga3M_g4": {
+   "game": "LOLTMNT01_419770",
+   "leftIs": "blue",
+   "why": "G2 Esports vs T1, MSI 2026-07-08, game 4. Left is G2 Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C02.json#NueyXunR8Zk_g2": {
+   "game": "ESPORTSTMNT06/1061156",
+   "leftIs": "red",
+   "why": "FunPlus Phoenix vs Splyce, WLDs 2019-10-14, game 1. Left is Splyce. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C02.json#NueyXunR8Zk_g12": {
+   "game": "ESPORTSTMNT06/1072314",
+   "leftIs": "blue",
+   "why": "FunPlus Phoenix vs Invictus Gaming, WLDs 2019-11-02, game 3. Left is FunPlus Phoenix. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C04.json#NueyXunR8Zk_g4": {
+   "game": "ESPORTSTMNT06/1071514",
+   "leftIs": "red",
+   "why": "FunPlus Phoenix vs Splyce, WLDs 2019-10-17, game 1. Left is Splyce. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C06.json#NueyXunR8Zk_g13": {
+   "game": "ESPORTSTMNT06/1072327",
+   "leftIs": "blue",
+   "why": "Invictus Gaming vs FunPlus Phoenix, WLDs 2019-11-02, game 4. Left is Invictus Gaming. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C09.json#NueyXunR8Zk_g6": {
+   "game": "ESPORTSTMNT06/1061976",
+   "leftIs": "blue",
+   "why": "FunPlus Phoenix vs Fnatic, WLDs 2019-10-26, game 1. Left is FunPlus Phoenix. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C10.json#NueyXunR8Zk_g10": {
+   "game": "ESPORTSTMNT06/1072304",
+   "leftIs": "blue",
+   "why": "FunPlus Phoenix vs Invictus Gaming, WLDs 2019-11-02, game 1. Left is FunPlus Phoenix. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C14.json#NueyXunR8Zk_g14": {
+   "game": "ESPORTSTMNT06/1072511",
+   "leftIs": "blue",
+   "why": "FunPlus Phoenix vs G2 Esports, WLDs 2019-11-10, game 1. Left is FunPlus Phoenix. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/NueyXunR8Zk.json#5": {
+   "game": "ESPORTSTMNT06/1071502",
+   "leftIs": "blue",
+   "why": "FunPlus Phoenix vs J Team, WLDs 2019-10-17, game 1. Left is FunPlus Phoenix. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/NueyXunR8Zk.json#6": {
+   "game": "ESPORTSTMNT06/1061976",
+   "leftIs": "blue",
+   "why": "FunPlus Phoenix vs Fnatic, WLDs 2019-10-26, game 1. Left is FunPlus Phoenix. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/NueyXunR8Zk.json#12": {
+   "game": "ESPORTSTMNT06/1072314",
+   "leftIs": "blue",
+   "why": "FunPlus Phoenix vs Invictus Gaming, WLDs 2019-11-02, game 3. Left is FunPlus Phoenix. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C04.json#OwqthUyfFxw_g1": {
+   "game": "LOLTMNT01_387874",
+   "leftIs": "blue",
+   "why": "Gen.G vs T1, LCK 2026-05-16, game 1. Left is Gen.G. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C04.json#OwqthUyfFxw_g2": {
+   "game": "LOLTMNT01_387878",
+   "leftIs": "blue",
+   "why": "T1 vs Gen.G, LCK 2026-05-16, game 2. Left is T1. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C16.json#P_MxifJP614_g3": {
+   "game": "LOLTMNT01_289699",
+   "leftIs": "blue",
+   "why": "Dplus Kia vs T1, LCK 2025-09-18, game 3. Left is Dplus Kia. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C12.json#RH3oy2WKtq0_g1": {
+   "game": "ESPORTSTMNT03_3225383",
+   "why": "Gen.G vs Bilibili Gaming, WLDs 2023-11-03, game 1. No preference stated, side not needed. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/SN_Qp_esBoI.json#1": {
+   "game": "ESPORTSTMNT04_1970490",
+   "leftIs": "blue",
+   "why": "inf vs PEACE, WLDs 2021-10-06, game 1. Left is inf. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C05.json#VVisGIFn7MM_g1": {
+   "game": "ESPORTSTMNT04_1961283",
+   "leftIs": "blue",
+   "why": "Royal Never Give Up vs EDward Gaming, WLDs 2021-10-23, game 3. Left is Royal Never Give Up. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/VVisGIFn7MM.json#1": {
+   "game": "ESPORTSTMNT04_1961283",
+   "leftIs": "blue",
+   "why": "Royal Never Give Up vs EDward Gaming, WLDs 2021-10-23, game 3. Left is Royal Never Give Up. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C04.json#WM7ES_qBfP0_g1": {
+   "game": "ESPORTSTMNT04_1961268",
+   "leftIs": "red",
+   "why": "EDward Gaming vs Royal Never Give Up, WLDs 2021-10-23, game 1. Left is Royal Never Give Up. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/WM7ES_qBfP0.json#1": {
+   "game": "ESPORTSTMNT04_1961268",
+   "leftIs": "blue",
+   "why": "EDward Gaming vs Royal Never Give Up, WLDs 2021-10-23, game 1. Left is EDward Gaming. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C03.json#XL0KxTgEaRE_g1": {
+   "game": "ESPORTSTMNT04_1961307",
+   "leftIs": "blue",
+   "why": "MAD Lions KOI vs Dplus Kia, WLDs 2021-10-24, game 3. Left is MAD Lions KOI. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C01.json#XQYZMHTJTPE_g1": {
+   "game": "ESPORTSTMNT04_1961377",
+   "leftIs": "blue",
+   "why": "Dplus Kia vs T1, WLDs 2021-10-30, game 3. Left is Dplus Kia. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C10.json#XZYVApZ2_Ts_g2": {
+   "game": "LOLTMNT02_76145",
+   "leftIs": "blue",
+   "why": "T1 vs Gen.G, LCK 2024-04-14, game 2. Left is T1. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C17.json#XgihzywQGng_g4": {
+   "game": "LOLTMNT03_262054",
+   "leftIs": "blue",
+   "why": "T1 vs CTBC Flying Oyster, MSI 2025-07-04, game 4. Left is T1. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C08.json#Y1kXb5XprGo_g1": {
+   "game": "LOLTMNT05_89252",
+   "leftIs": "blue",
+   "why": "Dplus KIA vs LNG Esports, WLDs 2024-10-05, game 1. Left is Dplus KIA. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C16.json#Y1kXb5XprGo_g3": {
+   "game": "LOLTMNT05_88269",
+   "why": "Hanwha Life Esports vs Gen.G, WLDs 2024-10-05, game 1. No preference stated, side not needed. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C15.json#Z5yhZKkTf0w_g1": {
+   "game": "ESPORTSTMNT02_3232892",
+   "leftIs": "red",
+   "why": "G2 Esports vs Fnatic, LEC 2023-09-10, game 1. Left is Fnatic. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C13.json#ZaCo3Wutcj8_g1": {
+   "game": "ESPORTSTMNT04_1960826",
+   "leftIs": "blue",
+   "why": "Fnatic vs Royal Never Give Up, WLDs 2021-10-12, game 1. Left is Fnatic. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/ZaCo3Wutcj8.json#1": {
+   "game": "ESPORTSTMNT04_1960826",
+   "leftIs": "blue",
+   "why": "Fnatic vs Royal Never Give Up, WLDs 2021-10-12, game 1. Left is Fnatic. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C07.json#aEBLk-krjgU_g1": {
+   "game": "ESPORTSTMNT04_1961427",
+   "leftIs": "blue",
+   "why": "Dplus Kia vs EDward Gaming, WLDs 2021-11-06, game 2. Left is Dplus Kia. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/aEBLk-krjgU.json#1": {
+   "game": "ESPORTSTMNT04_1961427",
+   "leftIs": "blue",
+   "why": "Dplus Kia vs EDward Gaming, WLDs 2021-11-06, game 2. Left is Dplus Kia. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C00.json#aIu-hmQTRd8_g4": {
+   "game": "LOLTMNT01_422152",
+   "leftIs": "blue",
+   "why": "Hanwha Life Esports vs Bilibili Gaming, MSI 2026-07-09, game 4. Left is Hanwha Life Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C00.json#b-XG7Ja-0hY_g5": {
+   "game": "LOLTMNT02_31982",
+   "leftIs": "blue",
+   "why": "Dplus KIA vs Gen.G, LCK 2024-01-27, game 3. Left is Dplus KIA. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C01.json#b-XG7Ja-0hY_g13": {
+   "game": "LOLTMNT02_31433",
+   "leftIs": "blue",
+   "why": "KT Rolster vs T1, LCK 2024-01-26, game 3. Left is KT Rolster. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C01.json#b-XG7Ja-0hY_g9": {
+   "game": "LOLTMNT02_21295",
+   "leftIs": "blue",
+   "why": "T1 vs Gen.G, LCK 2024-01-17, game 3. Left is T1. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C04.json#b-XG7Ja-0hY_g12": {
+   "game": "LOLTMNT02_31412",
+   "leftIs": "blue",
+   "why": "T1 vs KT Rolster, LCK 2024-01-26, game 2. Left is T1. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C05.json#b-XG7Ja-0hY_g7": {
+   "game": "LOLTMNT02_31940",
+   "leftIs": "blue",
+   "why": "Gen.G vs Dplus KIA, LCK 2024-01-27, game 1. Left is Gen.G. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C06.json#b-XG7Ja-0hY_g3": {
+   "game": "LOLTMNT02_29804",
+   "leftIs": "blue",
+   "why": "OKSavingsBank BRION vs Gen.G, LCK 2024-01-25, game 1. Left is OKSavingsBank BRION. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C08.json#b-XG7Ja-0hY_g14": {
+   "game": "LOLTMNT02_33526",
+   "leftIs": "blue",
+   "why": "Hanwha Life Esports vs T1, LCK 2024-01-28, game 1. Left is Hanwha Life Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C10.json#b-XG7Ja-0hY_g1": {
+   "game": "LOLTMNT02_21273",
+   "leftIs": "blue",
+   "why": "T1 vs Gen.G, LCK 2024-01-17, game 2. Left is T1. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C11.json#b-XG7Ja-0hY_g10": {
+   "game": "LOLTMNT02_24236",
+   "leftIs": "blue",
+   "why": "T1 vs Kwangdong Freecs, LCK 2024-01-19, game 1. Left is T1. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C11.json#b-XG7Ja-0hY_g15": {
+   "game": "LOLTMNT02_34511",
+   "leftIs": "blue",
+   "why": "Hanwha Life Esports vs T1, LCK 2024-01-28, game 2. Left is Hanwha Life Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C15.json#b-XG7Ja-0hY_g4": {
+   "game": "LOLTMNT02_30776",
+   "leftIs": "blue",
+   "why": "OKSavingsBank BRION vs Gen.G, LCK 2024-01-25, game 2. Left is OKSavingsBank BRION. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/b-XG7Ja-0hY.json#5": {
+   "game": "LOLTMNT02_25120",
+   "leftIs": "blue",
+   "why": "Gen.G vs Nongshim RedForce, LCK 2024-01-20, game 2. Left is Gen.G. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/b-XG7Ja-0hY.json#9": {
+   "game": "LOLTMNT02_31940",
+   "leftIs": "blue",
+   "why": "Gen.G vs Dplus KIA, LCK 2024-01-27, game 1. Left is Gen.G. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/b-XG7Ja-0hY.json#13": {
+   "game": "LOLTMNT02_31433",
+   "leftIs": "blue",
+   "why": "KT Rolster vs T1, LCK 2024-01-26, game 3. Left is KT Rolster. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C07.json#cSQP5oImnRo_g1": {
+   "game": "LOLTMNT01_307101",
+   "leftIs": "blue",
+   "why": "KT Rolster vs T1, WLDs 2025-11-09, game 1. Left is KT Rolster. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C00.json#cXnjfe8aBxA_g4": {
+   "game": "ESPORTSTMNT04_1960539",
+   "leftIs": "blue",
+   "why": "Beyond Gaming vs Galatasaray Esports, WLDs 2021-10-08, game 4. Left is Beyond Gaming. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C10.json#d2XPHyOX1fQ_g1": {
+   "game": "ESPORTSTMNT04_1960531",
+   "leftIs": "blue",
+   "why": "Galatasaray Esports vs Beyond Gaming, WLDs 2021-10-08, game 2. Left is Galatasaray Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/d2XPHyOX1fQ.json#1": {
+   "game": "ESPORTSTMNT04_1960531",
+   "leftIs": "blue",
+   "why": "Galatasaray Esports vs Beyond Gaming, WLDs 2021-10-08, game 2. Left is Galatasaray Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C01.json#dfTTHnzJVhU_g3": {
+   "game": "LOLTMNT03_265013",
+   "leftIs": "blue",
+   "why": "Anyone's Legend vs CTBC Flying Oyster, MSI 2025-07-08, game 3. Left is Anyone's Legend. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C08.json#dfTTHnzJVhU_g2": {
+   "game": "LOLTMNT03_264414",
+   "leftIs": "red",
+   "why": "CTBC Flying Oyster vs Anyone's Legend, MSI 2025-07-08, game 2. Left is Anyone's Legend. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C06.json#gIpos4fRVw8_g2": {
+   "game": "LOLTMNT05_196635",
+   "leftIs": "blue",
+   "why": "Karmine Corp vs G2 Esports, LEC 2026-06-07, game 2. Left is Karmine Corp. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C17.json#gIpos4fRVw8_g1": {
+   "game": "LOLTMNT05_195683",
+   "leftIs": "blue",
+   "why": "G2 Esports vs Karmine Corp, LEC 2026-06-07, game 1. Left is G2 Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C01.json#hKd-qIpegGE_g1": {
+   "game": "ESPORTSTMNT04_1961306",
+   "leftIs": "blue",
+   "why": "MAD Lions KOI vs Dplus Kia, WLDs 2021-10-24, game 2. Left is MAD Lions KOI. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/hKd-qIpegGE.json#1": {
+   "game": "ESPORTSTMNT04_1961306",
+   "leftIs": "blue",
+   "why": "MAD Lions KOI vs Dplus Kia, WLDs 2021-10-24, game 2. Left is MAD Lions KOI. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C06.json#hpnGP0K-Wh0_g1": {
+   "game": "ESPORTSTMNT04_1961114",
+   "leftIs": "blue",
+   "why": "Royal Never Give Up vs Fnatic, WLDs 2021-10-17, game 1. Left is Royal Never Give Up. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C13.json#iP33gPti5XA_g3": {
+   "game": "LOLTMNT01_422614",
+   "leftIs": "blue",
+   "why": "G2 Esports vs LYON, MSI 2026-07-10, game 3. Left is G2 Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C12.json#iPioYg7tv28_g1": {
+   "game": "LOLTMNT04_52046",
+   "leftIs": "blue",
+   "why": "Rogue vs Karmine Corp, LEC 2024-06-10, game 1. Left is Rogue. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C10.json#ljxr-t9etaA_g1": {
+   "game": "ESPORTSTMNT04_1960540",
+   "leftIs": "blue",
+   "why": "Galatasaray Esports vs Beyond Gaming, WLDs 2021-10-08, game 5. Left is Galatasaray Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/ljxr-t9etaA.json#1": {
+   "game": "ESPORTSTMNT04_1960540",
+   "leftIs": "blue",
+   "why": "Galatasaray Esports vs Beyond Gaming, WLDs 2021-10-08, game 5. Left is Galatasaray Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C02.json#mtFtui6VgDc_g2": {
+   "game": "ESPORTSTMNT04_1971235",
+   "leftIs": "blue",
+   "why": "Hanwha Life Esports vs T1, WLDs 2021-10-22, game 2. Left is Hanwha Life Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/mtFtui6VgDc.json#1": {
+   "game": "ESPORTSTMNT04_1971235",
+   "leftIs": "blue",
+   "why": "Hanwha Life Esports vs T1, WLDs 2021-10-22, game 2. Left is Hanwha Life Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C16.json#nq-i0Lmx-Hw_g2": {
+   "game": "10773-10773_game_2",
+   "leftIs": "blue",
+   "why": "Bilibili Gaming vs JD Gaming, LPL 2024-02-24, game 2. Left is Bilibili Gaming. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C13.json#pBD3r-dmhFA_g1": {
+   "game": "ESPORTSTMNT04_1961428",
+   "why": "EDward Gaming vs Dplus Kia, WLDs 2021-11-06, game 3. No preference stated, side not needed. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C03.json#pF03MSD80-c_g1": {
+   "game": "LOLTMNT05_13165",
+   "leftIs": "red",
+   "why": "MAD Lions KOI vs Team BDS, LEC 2024-01-21, game 1. Left is Team BDS. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/pF03MSD80-c.json#3": {
+   "game": "LOLTMNT05_14228",
+   "leftIs": "blue",
+   "why": "Rogue vs Fnatic, LEC 2024-01-21, game 1. Left is Rogue. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C02.json#qTLiY3J7nR0_g12": {
+   "game": "TRLH4/1002490653",
+   "why": "KT Rolster vs Invictus Gaming, WLDs 2018-10-20, game 5. No preference stated, side not needed. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C03.json#qTLiY3J7nR0_g7": {
+   "game": "TRLH4/1002490617",
+   "leftIs": "blue",
+   "why": "Fnatic vs Invictus Gaming, WLDs 2018-10-17, game 1. Left is Fnatic. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C03.json#qTLiY3J7nR0_g17": {
+   "game": "TRLH4/1002520051",
+   "leftIs": "blue",
+   "why": "Fnatic vs Invictus Gaming, WLDs 2018-11-03, game 2. Left is Fnatic. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C07.json#qTLiY3J7nR0_g3": {
+   "game": "TRLH4/1002490346",
+   "leftIs": "blue",
+   "why": "Invictus Gaming vs 100 Thieves, WLDs 2018-10-13, game 1. Left is Invictus Gaming. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C09.json#qTLiY3J7nR0_g10": {
+   "game": "TRLH4/1002490650",
+   "leftIs": "red",
+   "why": "KT Rolster vs Invictus Gaming, WLDs 2018-10-20, game 3. Left is Invictus Gaming. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C09.json#qTLiY3J7nR0_g1": {
+   "game": "TRLH4/1002490224",
+   "leftIs": "blue",
+   "why": "Invictus Gaming vs G-Rex, WLDs 2018-10-11, game 1. Left is Invictus Gaming. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C09.json#qTLiY3J7nR0_g13": {
+   "game": "TRLH2/2002890034",
+   "leftIs": "red",
+   "why": "Invictus Gaming vs G2 Esports, WLDs 2018-10-27, game 1. Left is G2 Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C09.json#qTLiY3J7nR0_g15": {
+   "game": "TRLH2/2002890039",
+   "why": "Invictus Gaming vs G2 Esports, WLDs 2018-10-27, game 3. No preference stated, side not needed. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C15.json#qTLiY3J7nR0_g18": {
+   "game": "TRLH4/1002520052",
+   "leftIs": "red",
+   "why": "Invictus Gaming vs Fnatic, WLDs 2018-11-03, game 3. Left is Fnatic. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C16.json#qTLiY3J7nR0_g16": {
+   "game": "TRLH4/1002520047",
+   "leftIs": "blue",
+   "why": "Fnatic vs Invictus Gaming, WLDs 2018-11-03, game 1. Left is Fnatic. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/qTLiY3J7nR0.json#3": {
+   "game": "TRLH4/1002490346",
+   "leftIs": "blue",
+   "why": "Invictus Gaming vs 100 Thieves, WLDs 2018-10-13, game 1. Left is Invictus Gaming. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C03.json#rSBntWvE4Ls_g3": {
+   "game": "LOLTMNT05_27750",
+   "leftIs": "blue",
+   "why": "G2 Esports vs Team BDS, LEC 2024-04-07, game 3. Left is G2 Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C17.json#rSBntWvE4Ls_g4": {
+   "game": "LOLTMNT05_27752",
+   "leftIs": "blue",
+   "why": "Team BDS vs G2 Esports, LEC 2024-04-07, game 4. Left is Team BDS. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/rSBntWvE4Ls.json#3": {
+   "game": "LOLTMNT05_27750",
+   "leftIs": "blue",
+   "why": "G2 Esports vs Team BDS, LEC 2024-04-07, game 3. Left is G2 Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C11.json#t3vNRW8DMDc_g1": {
+   "game": "LOLTMNT02_127404",
+   "leftIs": "red",
+   "why": "KT Rolster vs T1, LCK 2024-06-29, game 2. Left is T1. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C10.json#uVBkakyVGSY_g1": {
+   "game": "ESPORTSTMNT04_1960519",
+   "leftIs": "blue",
+   "why": "Galatasaray Esports vs Beyond Gaming, WLDs 2021-10-08, game 1. Left is Galatasaray Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/vCQJZpX-aGU.json#1": {
+   "game": "ESPORTSTMNT04_1961282",
+   "leftIs": "blue",
+   "why": "EDward Gaming vs Royal Never Give Up, WLDs 2021-10-23, game 2. Left is EDward Gaming. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C04.json#vEK0FU9MjrY_g1": {
+   "game": "ESPORTSTMNT04_1970393",
+   "leftIs": "blue",
+   "why": "Hanwha Life Esports vs LNG Esports, WLDs 2021-10-05, game 1. Left is Hanwha Life Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/vEK0FU9MjrY.json#1": {
+   "game": "ESPORTSTMNT04_1970393",
+   "leftIs": "blue",
+   "why": "Hanwha Life Esports vs LNG Esports, WLDs 2021-10-05, game 1. Left is Hanwha Life Esports. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C09.json#vWGpKbTWA88_g4": {
+   "game": "LOLTMNT04_102322",
+   "leftIs": "red",
+   "why": "Papara SuperMassive vs Los Ratones, EM 2025-03-20, game 4. Left is Los Ratones. Named from the video (title, game position, champions heard), then checked twice: game identity and side. Side set to even: the passage, at the very start of the draft, criticises how Los Ratones draft and compares nothing; the review of the same game prefers Los Ratones.",
+   "side": "even"
+  },
+  "kb/clean_verdicts/C15.json#xG0LCW9_CxY_g3": {
+   "game": "ESPORTSTMNT04_1961321",
+   "leftIs": "red",
+   "why": "Cloud9 vs Gen.G, WLDs 2021-10-25, game 3. Left is Gen.G. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C00.json#zn2EpFiCFwI_g4": {
+   "game": "ESPORTSTMNT06_2830032",
+   "leftIs": "red",
+   "why": "PSG Talon vs Team BDS, WLDs 2023-10-15, game 4. Left is Team BDS. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C11.json#znQ0Rrq77Sw_g1": {
+   "game": "ESPORTSTMNT04_1961320",
+   "leftIs": "red",
+   "why": "Cloud9 vs Gen.G, WLDs 2021-10-25, game 2. Left is Gen.G. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "verdicts/znQ0Rrq77Sw.json#1": {
+   "game": "ESPORTSTMNT04_1961320",
+   "leftIs": "blue",
+   "why": "Cloud9 vs Gen.G, WLDs 2021-10-25, game 2. Left is Cloud9. Named from the video (title, game position, champions heard), then checked twice: game identity and side."
+  },
+  "kb/clean_verdicts/C02.json#NueyXunR8Zk_g9": {
+   "game": "ESPORTSTMNT06/1072121",
+   "leftIs": "blue",
+   "why": "FunPlus Phoenix vs Fnatic, WLDs 2019-10-26, game 4: its five picks are all there, on these sides. Matched automatically until the reviewed links widened the set of candidate games; pinned to the game it matched, which its picks single out."
+  },
+  "verdicts/b-XG7Ja-0hY.json#10": {
+   "game": "LOLTMNT02_24236",
+   "leftIs": "blue",
+   "why": "T1 vs Kwangdong Freecs, LCK 2024-01-19, game 1: teams named, its four picks are all there. Matched automatically until the reviewed links widened the set of candidate games; pinned to the game it matched, which its picks single out."
+  },
+  "kb/clean_verdicts/C11.json#rSBntWvE4Ls_g1": {
+   "game": "LOLTMNT05_28757",
+   "leftIs": "blue",
+   "why": "G2 Esports vs Team BDS, LEC 2024-04-07, game 1: nine picks out of nine, Sion top (game 3 has Zac). Matched automatically until the reviewed links widened the set of candidate games; pinned to the game it matched, which its picks single out."
+  },
+  "verdicts/rSBntWvE4Ls.json#1": {
+   "game": "LOLTMNT05_28757",
+   "leftIs": "blue",
+   "why": "G2 Esports vs Team BDS, LEC 2024-04-07, game 1: nine picks out of nine, Sion top (game 3 has Zac). Matched automatically until the reviewed links widened the set of candidate games; pinned to the game it matched, which its picks single out."
+  },
+  "kb/clean_verdicts/C06.json#ENf_B4hevcw_g1": {
+   "distrustText": true,
+   "why": "Its picks put Jarvan IV on the left and Orianna, Miss Fortune, Nautilus on the right: left is EDward Gaming, which he prefers, as the review extraction of the same game says. Its label names RNG instead."
+  },
+  "verdicts/b-XG7Ja-0hY.json#8": {
+   "attachTo": "kb/clean_verdicts/C00.json#b-XG7Ja-0hY_g5",
+   "why": "Review extraction of the same passage (Dplus KIA vs Gen.G, 2024-01-27, game 3), written with the two bot lanes exchanged."
+  },
+  "verdicts/JZecUmvga3M.json#3": {
+   "attachTo": "kb/clean_verdicts/C08.json#JZecUmvga3M_g3",
+   "why": "Review extraction of the same game, written with the two bot lanes exchanged and one jungler misheard."
   }
  },
  "videos": {
   "b-XG7Ja-0hY": {
    "hindsight": true,
    "why": "Stats-first recap recorded knowing every result: its draft-phase extractions are hindsight, like its review extractions."
+  },
+  "NueyXunR8Zk": {
+   "hindsight": true,
+   "why": "Worlds 2019 rewatched years later: its own extraction says every verdict is given with hindsight."
+  },
+  "qTLiY3J7nR0": {
+   "hindsight": true,
+   "why": "VOD review of Invictus Gaming's whole Worlds 2018 run, recorded after the tournament."
+  },
+  "lPIM3We7vE0": {
+   "hindsight": true,
+   "why": "He says in the video that he had already seen the game."
+  },
+  "2QkQYFPQF48": {
+   "hindsight": true,
+   "why": "He had not seen the game but knew its result."
   }
  },
  "withdrawn": {
   "note": "Withdrawn on 2026-11-14, once the professional match data covered these 2026 games and showed the original rosters were right: a jungler replaced in test_key T01, the same in T44 / test_key2 D23, and the attachment of test_key T33 to a review extraction whose roster was misheard. A roster is no longer corrected from what the commentary says; a complete extraction two picks away from a verified game of its own video is attached to that game."
+ },
+ "links": {
+  "note": "Reviewed links of 2026-11-14. 131 extraction records had too few recognised picks to be matched to a game. For each video a reviewer named the game from the title, the position of the game in the video and the champions heard; a second reviewer tried to refute the game; a third, without seeing the first answer, said which side the record calls left and which team he prefers. A link is kept when the game is confirmed and the two side readings agree.",
+  "kept": 114,
+  "notLinked": [
+   {
+    "record": "verdicts/0Ul6yfKePWA.json#3",
+    "reason": "orientation disagreement (finder blue, check red)"
+   },
+   {
+    "record": "kb/clean_verdicts/C09.json#EmwsQHVD-E4_g1",
+    "reason": "orientation unknown (finder unknown, check unknown)"
+   },
+   {
+    "record": "verdicts/EmwsQHVD-E4.json#1",
+    "reason": "orientation unknown (finder unknown, check unknown)"
+   },
+   {
+    "record": "kb/clean_verdicts/C07.json#NueyXunR8Zk_g5",
+    "reason": "orientation unknown (finder unknown, check unknown)"
+   },
+   {
+    "record": "kb/clean_verdicts/C10.json#SN_Qp_esBoI_g1",
+    "reason": "orientation unknown (finder blue, check unknown)"
+   },
+   {
+    "record": "verdicts/pBD3r-dmhFA.json#1",
+    "reason": "orientation unknown (finder blue, check unknown)"
+   },
+   {
+    "record": "kb/clean_verdicts/C05.json#pF03MSD80-c_g3",
+    "reason": "orientation unknown (finder blue, check unknown)"
+   },
+   {
+    "record": "kb/clean_verdicts/C12.json#qTLiY3J7nR0_g8",
+    "reason": "orientation unknown (finder unknown, check blue)"
+   }
+  ],
+  "setAsideOnReading": [
+   {
+    "record": "kb/clean_verdicts/C16.json#4eX2ylmNL3U_g1",
+    "reason": "its only pick sits on the side the link would call the other team"
+   },
+   {
+    "record": "kb/clean_verdicts/C16.json#7270KpN9ehE_g1",
+    "reason": "its label names the other team"
+   },
+   {
+    "record": "kb/clean_verdicts/C16.json#OkefBVB5D1g_g1",
+    "reason": "no pick, no team: the side rests only on another extraction"
+   },
+   {
+    "record": "kb/clean_verdicts/C10.json#g24oY7T46HU_g6",
+    "reason": "its label names the other team"
+   },
+   {
+    "record": "kb/clean_verdicts/C14.json#vCQJZpX-aGU_g2",
+    "reason": "no pick, and the teams heard point the other way"
+   },
+   {
+    "record": "kb/clean_verdicts/C16.json#xlFlfJFdXk8_g1",
+    "reason": "its label names the other team"
+   },
+   {
+    "record": "kb/clean_verdicts/C13.json#qTLiY3J7nR0_g9",
+    "reason": "its label names the other team"
+   },
+   {
+    "record": "kb/clean_verdicts/C01.json#g24oY7T46HU_g8",
+    "reason": "its label names the other team"
+   },
+   {
+    "record": "kb/clean_verdicts/C06.json#ENf_B4hevcw_g1",
+    "reason": "its label names the other team; the automatic series match ties it by its picks, and its text is not shown"
+   }
+  ],
+  "pinned": 4
  }
 }

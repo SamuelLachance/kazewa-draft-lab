@@ -249,6 +249,15 @@ for (const record of records) {
     else if (record.confidence < 1) record.confidence = 1;
   }
   if (fix.attachTo) record.attachTo = fix.attachTo;
+  // Reviewed link: the record is about this professional game. "leftIs" is the
+  // map side of the team the record calls left.
+  if (fix.game && fix.attachTo)
+    throw Error(`Correction contradictoire pour ${record.ref} : attachTo et game`);
+  if (fix.game) {
+    if (fix.leftIs != null && !SIDES.includes(fix.leftIs))
+      throw Error(`Côté invalide pour ${record.ref}: ${fix.leftIs}`);
+    record.forcedGame = { id: fix.game, leftIs: fix.leftIs ?? null };
+  }
   // The verdict of this record stands, its label and reasons name the wrong team.
   if (fix.distrustText) record.distrustText = true;
 }
@@ -416,7 +425,7 @@ const teamAlike = (name, official) => {
 
 for (const record of records) {
   audit.records[record.kind] = (audit.records[record.kind] ?? 0) + 1;
-  if (record.attachTo) continue;
+  if (record.attachTo || record.forcedGame) continue;
   const match = matchOe(record);
   if (!match) continue;
   const { game } = match;
@@ -441,6 +450,57 @@ for (const record of records) {
         leftIs: match.leftIs,
       });
   }
+}
+
+// Reviewed links (data/memory-overrides.json): too few picks were recognised
+// for an automatic match, a reviewer named the game from the video itself and
+// two independent checks agreed. The compositions come from the match data.
+const oeById = new Map(oe.map((game) => [game.id, game]));
+audit.reviewedLinks = 0;
+audit.reviewedLinkMismatches = [];
+audit.reviewedLinkTextSetAside = [];
+for (const record of records) {
+  if (!record.forcedGame) continue;
+  const game = oeById.get(record.forcedGame.id);
+  if (!game) throw Error(`Partie inconnue pour ${record.ref}: ${record.forcedGame.id}`);
+  const stated = ["left", "right"].includes(record.side) && record.confidence >= 1;
+  if (!record.forcedGame.leftIs && (stated || record.result))
+    throw Error(`Lien sans côté pour un enregistrement qui en dépend : ${record.ref}`);
+  const both = overlap(record, game.blue, game.red);
+  // No preference stated: the side is only used to place the record's picks.
+  const leftIs =
+    record.forcedGame.leftIs ?? (both.red.hits > both.blue.hits ? "red" : "blue");
+  // An automatic match may hold this game together with a rematch that used
+  // the same ten champions. A reviewer named the game: that settles it when the
+  // case was opened on that game; the other way round is not handled.
+  for (const other of cases.values())
+    if (other.twins?.some((twin) => twin.id === game.id))
+      throw Error(`Lien vers une partie jumelle d’un autre cas : ${record.ref}`);
+  const target = caseFor(`oe:${game.id}`, {
+    blue: game.blue,
+    red: game.red,
+    oe: game,
+    twins: [],
+  });
+  target.twins = [];
+  observe(target, record, leftIs, "reviewed_game");
+  audit.reviewedLinks++;
+  // Two picks or more written on the wrong team: the extraction mixed the two
+  // compositions. Its verdict was checked against the team he names; its
+  // label, reasons and reads are left to another record of the same game.
+  if (both[flip(leftIs)].hits >= 2 && !record.distrustText) {
+    record.distrustText = true;
+    // Mixed, not contradicted: still better than a text a reviewer set aside.
+    record.mixedText = true;
+    audit.reviewedLinkTextSetAside.push(record.ref);
+  }
+  if (both[leftIs].hits < record.known.length)
+    audit.reviewedLinkMismatches.push({
+      source: record.ref,
+      known: record.known.length,
+      onStatedSide: both[leftIs].hits,
+      onOtherSide: both[flip(leftIs)].hits,
+    });
 }
 
 // Second pass: a video already tied to a professional series. A partial record
@@ -631,23 +691,32 @@ for (const item of cases.values()) {
   // The record that carries the verdict may be a bare answer key. His reasons
   // then come from the best record of the same game that agrees with it.
   if (primary && (!primary.record.reasons.length || primary.record.distrustText)) {
-    const explained = views
-      .filter(
-        (v) =>
-          v.record.reasons.length &&
-          !v.record.distrustText &&
-          (verdict.side === "even" || !v.stated || v.side === verdict.side),
-      )
-      .sort((a, b) => b.rank - a.rank)[0];
+    const explains = (v) =>
+      v.record.reasons.length &&
+      (verdict.side === "even" || !v.stated || v.side === verdict.side);
+    // A record whose picks are only mixed keeps its own text unless another
+    // record states the same side, and not after the game was over.
+    const sameVerdict = (v) =>
+      explains(v) && v.rank >= 2 && (verdict.side === "even" || (v.stated && v.side === verdict.side));
+    const explained = primary.record.mixedText
+      ? views.filter((v) => sameVerdict(v) && !v.record.distrustText).sort((a, b) => b.rank - a.rank)[0]
+      : (views
+          .filter((v) => explains(v) && !v.record.distrustText)
+          .sort((a, b) => b.rank - a.rank)[0] ??
+        // Nothing clean: a text whose picks are mixed, rather than one a
+        // reviewer set aside because it names the wrong team.
+        views.filter((v) => explains(v) && v.record.mixedText).sort((a, b) => b.rank - a.rank)[0]);
     if (explained) {
-      if (!verdict.label || primary.record.distrustText)
-        verdict.label = explained.record.label;
+      // The headline of a verdict is not taken from a record that gives none.
+      const carriesVerdict = verdict.side === "even" || explained.stated;
+      if (primary.record.distrustText) verdict.label = carriesVerdict ? explained.record.label : "";
+      else if (!verdict.label && carriesVerdict) verdict.label = explained.record.label;
       primary = explained;
     }
   }
   const draftPhaseUndecided =
     verdict.timing !== "draft" &&
-    views.some((v) => v.rank === 3 && !v.stated);
+    views.some((v) => v.rank === 3 && !v.stated && v.o.how !== "reviewed_game");
   if (!primary)
     primary =
       views.find((v) => v.record.kind === "clean" && v.record.reasons.length) ??
@@ -773,6 +842,8 @@ const duplicates = [...byFingerprint.values()].filter((l) => l.length > 1);
 // Two cases of one video with eight champions in common on the same sides:
 // most likely one game heard twice. Listed for review, never merged silently.
 const nearDuplicates = [];
+const replayedDrafts = [];
+const recordByRef = new Map(records.map((record) => [record.ref, record]));
 for (let i = 0; i < out.length; i++)
   for (let j = i + 1; j < out.length; j++) {
     const a = out[i];
@@ -781,8 +852,30 @@ for (let i = 0; i < out.length; i++)
     const shared = (x, y) => ROLES.filter((r) => ROLES.some((q) => y[q] === x[r])).length;
     const straight = shared(a.blue, b.blue) + shared(a.red, b.red);
     const crossed = shared(a.blue, b.red) + shared(a.red, b.blue);
-    if (Math.max(straight, crossed) >= 8)
-      nearDuplicates.push({ cases: [a.id, b.id], shared: Math.max(straight, crossed), bothVerified: a.rosterVerified && b.rosterVerified });
+    const twoGames =
+      a.match?.gameId && b.match?.gameId && a.match.gameId !== b.match.gameId;
+    // Nine champions in common whatever the side, and at most one of the two
+    // tied to a game: one game, written once with two lanes exchanged.
+    const everyone = (x) => [...ROLES.map((r) => x.blue[r]), ...ROLES.map((r) => x.red[r])];
+    const inCommon = everyone(a).filter((name) => everyone(b).includes(name)).length;
+    if (!twoGames && inCommon >= 9 && Math.max(straight, crossed) < 8) {
+      nearDuplicates.push({ cases: [a.id, b.id], shared: inCommon, sidesMixed: true, bothVerified: false });
+      continue;
+    }
+    if (Math.max(straight, crossed) < 8) continue;
+    const pair = { cases: [a.id, b.id], shared: Math.max(straight, crossed) };
+    // Two games of the match index with nearly the same draft: a team that
+    // replays its draft. Only when a record of each case names a champion its
+    // game has and the other game has not; otherwise it stays a suspect.
+    const told = (mine, other) =>
+      mine.evidence.some((entry) =>
+        (recordByRef.get(entry.source)?.known ?? []).some(
+          (pick) => everyone(mine).includes(pick.champion) && !everyone(other).includes(pick.champion),
+        ),
+      );
+    if (twoGames && told(a, b) && told(b, a))
+      replayedDrafts.push({ ...pair, games: [a.match.gameId, b.match.gameId] });
+    else nearDuplicates.push({ ...pair, bothVerified: a.rosterVerified && b.rosterVerified });
   }
 
 // Leakage groups: cases linked by a shared video or a shared series.
@@ -839,7 +932,11 @@ const enrichmentByContext = new Map(
   Object.values(enrichment).map((value) => [storedContext(value), value]),
 );
 for (const item of out) {
-  const extra = enrichment[item.id] ?? enrichmentByContext.get(contextOf(item));
+  const byId = enrichment[item.id];
+  const extra =
+    byId && storedContext(byId) === contextOf(item)
+      ? byId
+      : (enrichmentByContext.get(contextOf(item)) ?? byId);
   if (!extra) continue;
   const same = storedContext(extra) === contextOf(item);
   if (!same) {
@@ -887,6 +984,9 @@ const memory = {
     matchedToMatchData: audit.oeMatched,
     matchedWithinSeries: audit.matchedWithinSeries,
     reviewedCorrections: appliedOverrides.length,
+    reviewedLinks: audit.reviewedLinks,
+    reviewedLinkMismatches: audit.reviewedLinkMismatches,
+    reviewedLinkTextSetAside: audit.reviewedLinkTextSetAside,
     attachedWithinVideo: audit.attachedWithinVideo,
     keptOwnCompleteRoster: audit.ownRoster,
     unresolvedRecords: audit.unresolved.length,
@@ -896,6 +996,7 @@ const memory = {
     conflicts,
     duplicateFingerprints: duplicates.map((l) => l.map((c) => c.id)),
     nearDuplicates,
+    replayedDrafts,
   },
   cases: out,
 };
