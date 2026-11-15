@@ -2241,12 +2241,6 @@ body[data-view="coach"] .principles-strip {
     margin-top: -2px;
   }
 }
-.order-role {
-  font: 8px var(--mono);
-  color: #a1ad99;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
 .card-button {
   font: 8px var(--mono);
   letter-spacing: 0.6px;
@@ -2328,8 +2322,7 @@ body[data-view="coach"] .principles-strip {
   font-size: 12px;
   line-height: 1.7;
 }
-.kazewa-panel,
-.order-panel {
+.kazewa-panel {
   margin-top: 20px;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -2391,52 +2384,6 @@ body[data-view="coach"] .principles-strip {
   font-size: 9px;
   align-items: center;
 }
-.order-panel > .fine-print {
-  margin-bottom: 12px;
-}
-.order-rows {
-  display: grid;
-  gap: 6px;
-}
-.order-row {
-  display: grid;
-  grid-template-columns: 52px 1fr 1fr;
-  gap: 8px;
-  align-items: center;
-}
-.order-row button {
-  min-height: 34px;
-  font-size: 12px;
-  text-align: left;
-  padding: 6px 12px;
-  border-radius: 4px;
-  border: 1px solid var(--line);
-  background: #151b14;
-  color: #c9d2c0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.order-row button[data-side="blue"]:hover,
-.order-row button[data-side="blue"].is-active {
-  border-color: var(--blue);
-  color: var(--blue);
-}
-.order-row button[data-side="red"]:hover,
-.order-row button[data-side="red"].is-active {
-  border-color: var(--red);
-  color: var(--red);
-}
-.order-row button.is-active {
-  background: #1d251c;
-  font-weight: 600;
-}
-.order-row button.is-active::after {
-  content: " · pick après";
-  font: 8px var(--mono);
-  letter-spacing: 0.4px;
-  opacity: 0.85;
-}
 .evidence-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2487,12 +2434,8 @@ body[data-view="coach"] .principles-strip {
     grid-template-columns: 1fr;
   }
   .kazewa-panel,
-  .order-panel,
   .champion-card {
     padding: 16px;
-  }
-  .order-row {
-    grid-template-columns: 44px 1fr 1fr;
   }
   .evaluation-details table {
     display: block;

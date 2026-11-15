@@ -180,6 +180,7 @@ export function crossValidateArguments(cases, site) {
       rows.push({
         id: c.id,
         group,
+        label: c.verdict.side,
         side: lean.side === "even" ? null : lean.side,
         credit: lean.side === "even" ? null : lean.side === c.verdict.side ? 1 : 0,
       });
@@ -243,7 +244,7 @@ export function buildReport(
   /* 1. Judged drafts: the lookup returns his verdict in both orientations. */
   const weights = fitProcess(cases);
   const index = indexMemory(memory);
-  const lookup = { knowledge, memory: index, model: { process: { weights } } };
+  const lookup = { knowledge, memory: index };
   let recalled = 0;
   for (const c of decided) {
     const straight = judgeDraft({ blue: c.blue, red: c.red }, lookup);
@@ -280,7 +281,8 @@ export function buildReport(
       });
   }
 
-  /* 3. Pick-order model on held-out groups, next to a rule with no model. */
+  /* 3. Pick order: a reading that was tried and set aside. It is still measured
+     here, next to a rule with no model, so the decision stays checkable. */
   const cv = crossValidate(cases);
   const chance = chanceLevel(cases);
   const pickOrder = grouped(cv.rows);
@@ -302,9 +304,33 @@ export function buildReport(
     .filter((pair) => pair.order?.side);
   const agreeing = together.filter((pair) => pair.said.side === pair.order.side);
   const opposed = together.filter((pair) => pair.said.side !== pair.order.side);
+  // Always naming the side the other groups prefer most often, on the same drafts.
+  const majorityOutside = (group) => {
+    const others = decided.filter((c) => c.group !== group);
+    const blue = others.filter((c) => c.verdict.side === "blue").length;
+    return blue * 2 === others.length ? null : blue * 2 > others.length ? "blue" : "red";
+  };
+  const saidSideRows = saidDecided.map((row) => {
+    const majority = majorityOutside(row.group);
+    return {
+      group: row.group,
+      credit: majority === null ? 0.5 : majority === row.label ? 1 : 0,
+      model: row.credit,
+    };
+  });
+  const saidBetter = saidSideRows.filter((r) => r.model > r.credit).length;
+  const saidWorse = saidSideRows.filter((r) => r.model < r.credit).length;
   const argumentsReport = site
     ? {
         ...grouped(saidDecided),
+        groups: new Set(saidDecided.map((row) => row.group)).size,
+        sideOnly: grouped(saidSideRows),
+        overSideOnly: {
+          argumentsRightRuleWrong: saidBetter,
+          ruleRightArgumentsWrong: saidWorse,
+          p: signTest(saidBetter, saidWorse),
+          note: "Drafts where his arguments and the always-same-side rule disagree. Exact sign test.",
+        },
         coverage: said.length ? saidDecided.length / said.length : 0,
         judged: said.length,
         withPickOrder: {
@@ -335,19 +361,20 @@ export function buildReport(
         c.sources.length > 0 &&
         c.sources.every((source) => heldOutVideos.has(source.video)),
       argumentSide: saidById.get(c.id)?.side ?? null,
-      orderSide: orderById.get(c.id)?.side ?? null,
       cardSide: cardSide === "even" ? null : cardSide,
+      // On a draft it was tuned on, the calculator's answer proves nothing:
+      // it is left out, and the draft counts as undecided at that step.
       calculatorSide:
-        calculator.status === "complete" && calculator.winner !== "even"
+        !isTuned(c) && calculator.status === "complete" && calculator.winner !== "even"
           ? calculator.winner
           : null,
     };
   });
-  const cascade = (drafts, useOrder) => {
+  const cascade = (drafts) => {
     const byReading = {};
     const all = [];
     for (const d of drafts) {
-      const reading = chooseReading({ ...d, orderSide: useOrder ? d.orderSide : null });
+      const reading = chooseReading(d);
       const row = {
         group: d.group,
         credit: reading.side === "even" ? 0.5 : reading.side === d.label ? 1 : 0,
@@ -381,13 +408,9 @@ export function buildReport(
     ? {
         // Honest headline: drafts no reading has seen (arguments from other
         // groups, cards written without these videos).
-        championsOnly: cascade(fresh, false),
-        withPickOrder: cascade(fresh.filter((d) => d.orderSide), true),
-        // Arguments and pick order never see the held-out group, so their
-        // tiers are measured on every judged draft.
-        byReadingAllDrafts: cascade(perDraft.filter((d) => d.orderSide), true).byReading,
-        allJudgedOptimistic: cascade(perDraft, false).all,
-        note: "Each judged draft is given the verdict the site would give it if he had not judged it: his arguments from other groups first, then the pick order, then his champion cards, then the structural calculator. 'championsOnly' and 'withPickOrder' use only drafts from videos the cards were written without. 'allJudgedOptimistic' uses every judged draft and is inflated: on most of them the cards summarise the very video being tested.",
+        heldOut: { ...cascade(fresh), groups: new Set(fresh.map((d) => d.group)).size },
+        allJudgedOptimistic: cascade(perDraft).all,
+        note: "Each judged draft is given the verdict the site would give it if he had not judged it: his arguments from other groups first, then his champion cards, then the structural calculator. 'heldOut' uses only drafts from videos the cards were written without, and leaves the calculator out on the drafts it was tuned on (those count as a draw at that step): no reading judges a draft it has seen. 'allJudgedOptimistic' uses every judged draft and is inflated: on most of them the cards summarise the very video being tested.",
       }
     : null;
 
@@ -397,7 +420,7 @@ export function buildReport(
 
   const neverSeen = { ...grouped(calc.untuned), abstained: calc.abstained };
   const evaluation = {
-    version: "2.1.0",
+    version: "2.2.0",
     evaluatedAt: now.toISOString(),
     memory: {
       cases: cases.length,
@@ -417,9 +440,10 @@ export function buildReport(
     unseen: {
       protocol:
         "Leave-one-group-out. A group joins every draft that shares a video or a professional series. Ties count as half. Intervals redraw whole groups.",
-      groups: cv.groups,
+      groups: new Set(decided.map((c) => c.group)).size,
       pickOrder: {
         ...pickOrder,
+        groups: cv.groups,
         chance,
         sideOnly,
         overSideOnly: {
@@ -428,7 +452,9 @@ export function buildReport(
           p: signTest(better, worse),
           note: "Drafts where the pick-order model and the always-same-side rule disagree. Exact sign test.",
         },
-        note: "Only input: for each lane, the side that locked its champion later. Fitted on the other groups, scored on the held-out group. 'chance' redraws the verdicts as coin flips; 'sideOnly' always answers the side the other groups prefer most often.",
+        weights,
+        usedByTheSite: false,
+        note: "Set aside. Only input: for each lane, the side that locked its champion later. Fitted on the other groups, scored on the held-out group. 'chance' redraws the verdicts as coin flips; 'sideOnly' always answers the side the other groups prefer most often. On 195 drafts this reading stood at 61.5%; with 268 it does no better than 'sideOnly', and when it agrees with his arguments the result is no better than his arguments alone (see arguments.withPickOrder).",
       },
       arguments: argumentsReport,
       championCards: cardsReport,
@@ -445,7 +471,7 @@ export function buildReport(
     },
     limitations: [
       "His verdicts lean on pick order, bans, players, team form and the meta of the day. Ten champions do not carry that.",
-      "The pick-order figure rests on fewer than two hundred drafts, it was measured on the corpus the idea came from, and part of it is the map side: the side that picks last is also the side he prefers most often.",
+      "A reading can look real on two hundred drafts and vanish on three hundred: the pick order did. The arguments figure rests on two hundred drafts too and has not been confirmed on new videos.",
       "The champion cards follow his verdict far more often on the videos they were written from than on the videos kept out of them. Only the second figure is shown. The same gap is to be expected for any knowledge taken from his videos.",
       "The arguments figure counts what he said in other videos. Teams that keep drafting the same pairs and that he keeps preferring can inflate it; on teams and patches he has not commented it may be lower.",
       "Review and late opinions can know the result of the game. They are kept, with their timing shown.",
@@ -458,23 +484,10 @@ export function buildReport(
     },
   };
   const shipped = {
-    version: "2.1.0",
-    trainedAt: now.toISOString(),
-    process: {
-      weights,
-      lambda: PROCESS_LAMBDA,
-      trainedOn: usableCases(cases).length,
-      note: "Positive weight: the side that picks later in this lane is the side he tends to prefer. Only the sign of the total is used.",
-    },
+    version: "2.2.0",
+    measuredAt: now.toISOString(),
+    note: "Measured agreement of each reading the site uses for a draft he did not judge. Nothing is fitted: the site counts his arguments, then his champion cards, then applies the structural calculator.",
     reliability: {
-      withOrder: {
-        agreement: pickOrder.agreement,
-        n: pickOrder.n,
-        low: pickOrder.low,
-        high: pickOrder.high,
-        p: chance.p,
-        sideOnly: { side: sideOnly.side, agreement: sideOnly.agreement },
-      },
       arguments: argumentsReport
         ? {
             agreement: argumentsReport.agreement,
@@ -482,24 +495,14 @@ export function buildReport(
             low: argumentsReport.low,
             high: argumentsReport.high,
             coverage: argumentsReport.coverage,
+            // Always naming the same side, on the same drafts: the bar to clear.
+            sideOnly: { agreement: argumentsReport.sideOnly.agreement },
           }
         : null,
-      both: argumentsReport
-        ? {
-            agreement: argumentsReport.withPickOrder.sameSide.agreement,
-            n: argumentsReport.withPickOrder.sameSide.n,
-            low: argumentsReport.withPickOrder.sameSide.low,
-            high: argumentsReport.withPickOrder.sameSide.high,
-          }
-        : null,
-      // His arguments say one side, the pick order the other: the site keeps his arguments.
-      contested: everyDraft?.byReadingAllDrafts.contested ?? null,
-      // No argument applies: pick order alone, then his champion cards, then his principles.
-      order: everyDraft?.byReadingAllDrafts.order ?? null,
       // Measured on drafts from videos the cards were written without.
       cards: cardsReport?.heldOut ?? null,
       principles: { agreement: neverSeen.agreement, n: neverSeen.n, low: neverSeen.low, high: neverSeen.high },
-      everyDraft: everyDraft ? everyDraft.championsOnly.all : null,
+      everyDraft: everyDraft ? everyDraft.heldOut.all : null,
     },
   };
   return { evaluation, model: shipped };
@@ -522,18 +525,18 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const pct = (r) => `${(r.agreement * 100).toFixed(1)} % (${r.agree}/${r.n}, IC95 ${(r.low * 100).toFixed(0)}–${(r.high * 100).toFixed(0)})`;
   const u = evaluation.unseen;
   console.log(`Mémoire : ${evaluation.memory.decided} drafts jugées, verdict restitué ${pct(evaluation.memory.selfRecall)}`);
-  console.log(`Draft inédite, ordre des picks : ${pct(u.pickOrder)} sur ${u.groups} groupes ; hasard ${(u.pickOrder.chance.mean * 100).toFixed(1)} ± ${(u.pickOrder.chance.sd * 100).toFixed(1)}, p=${u.pickOrder.chance.p.toFixed(3)}`);
+  console.log(`Draft inédite, ordre des picks : ${pct(u.pickOrder)} sur ${u.pickOrder.groups} groupes ; hasard ${(u.pickOrder.chance.mean * 100).toFixed(1)} ± ${(u.pickOrder.chance.sd * 100).toFixed(1)}, p=${u.pickOrder.chance.p.toFixed(3)}`);
   console.log(`Toujours « ${u.pickOrder.sideOnly.side} » : ${pct(u.pickOrder.sideOnly)} ; écart avec le modèle : ${u.pickOrder.overSideOnly.modelRightRuleWrong} contre ${u.pickOrder.overSideOnly.ruleRightModelWrong}, p=${u.pickOrder.overSideOnly.p.toFixed(3)}`);
   if (u.arguments)
+    console.log(`Ses arguments contre « toujours le même côté » sur les mêmes drafts : ${pct(u.arguments.sideOnly)} ; écart ${u.arguments.overSideOnly.argumentsRightRuleWrong} contre ${u.arguments.overSideOnly.ruleRightArgumentsWrong}, p=${u.arguments.overSideOnly.p.toFixed(3)}`);
     console.log(`Draft inédite, ses arguments venus d’autres vidéos : ${pct(u.arguments)} ; couverture ${(u.arguments.coverage * 100).toFixed(0)} % ; d’accord avec l’ordre des picks : ${pct(u.arguments.withPickOrder.sameSide)} ; opposés : arguments justes ${u.arguments.withPickOrder.oppositeSides.argumentsRight}/${u.arguments.withPickOrder.oppositeSides.n}`);
   if (u.everyDraft) {
     const line = (c) => Object.entries(c.byReading).map(([k, r]) => `${k} ${r.agree}/${r.n}`).join(" · ");
-    console.log(`Toute draft, champions seuls, vidéos jamais vues par les fiches : ${pct(u.everyDraft.championsOnly.all)} | ${line(u.everyDraft.championsOnly)}`);
-    console.log(`Toute draft, avec l’ordre des picks, mêmes vidéos : ${pct(u.everyDraft.withPickOrder.all)} | ${line(u.everyDraft.withPickOrder)}`);
+    console.log(`Toute draft, vidéos jamais vues par aucune lecture : ${pct(u.everyDraft.heldOut.all)} | ${line(u.everyDraft.heldOut)}`);
     console.log(`Sur toutes les drafts jugées (gonflé par les fiches) : ${pct(u.everyDraft.allJudgedOptimistic)}`);
     if (u.championCards)
       console.log(`Fiches champion : vidéos jamais vues ${pct(u.championCards.heldOut)} ; vidéos qui ont servi à les écrire ${pct(u.championCards.writtenFrom)}`);
   }
   console.log(`Calculateur structurel : réglé sur ${pct(u.structuralCalculator.tunedOn)} ; jamais vues ${pct(u.structuralCalculator.neverSeen)}`);
-  console.log(`Poids par lane : ${JSON.stringify(model.process.weights)}`);
+  console.log(`Ordre des picks (lecture écartée), poids par lane : ${JSON.stringify(u.pickOrder.weights)}`);
 }

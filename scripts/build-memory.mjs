@@ -358,7 +358,8 @@ function matchOe(record) {
   if (!best) return null;
   const tolerated = known >= 8 ? 1 : 0;
   if (best.hits < known - tolerated) return null;
-  if (best.hits - second < 2) return null;
+  const exact = record.complete && best.hits === known;
+  if (best.hits - second < (exact ? 1 : 2)) return null;
   // Answer keys already use map sides: a flipped match would be a contradiction.
   if (record.mapSides && best.leftIs !== "blue") return null;
   const mismatches = record.known
@@ -518,7 +519,7 @@ function attach(record) {
   const best = ranked[0];
   if (!best) return false;
   const second = ranked[1]?.hits ?? 0;
-  const tolerated = known >= 8 ? 1 : 0;
+  const tolerated = record.complete && best.candidate.oe ? 2 : known >= 8 ? 1 : 0;
   if (best.hits < known - tolerated || best.hits - second < 2) return false;
   if (record.mapSides && best.candidate.oe && best.leftIs !== "blue") return false;
   observe(best.candidate, record, best.leftIs, "video");
@@ -769,6 +770,20 @@ for (const item of out) {
   byFingerprint.set(item.fingerprint, list);
 }
 const duplicates = [...byFingerprint.values()].filter((l) => l.length > 1);
+// Two cases of one video with eight champions in common on the same sides:
+// most likely one game heard twice. Listed for review, never merged silently.
+const nearDuplicates = [];
+for (let i = 0; i < out.length; i++)
+  for (let j = i + 1; j < out.length; j++) {
+    const a = out[i];
+    const b = out[j];
+    if (!a.sources.some((s) => b.sources.some((t) => t.video === s.video))) continue;
+    const shared = (x, y) => ROLES.filter((r) => ROLES.some((q) => y[q] === x[r])).length;
+    const straight = shared(a.blue, b.blue) + shared(a.red, b.red);
+    const crossed = shared(a.blue, b.red) + shared(a.red, b.blue);
+    if (Math.max(straight, crossed) >= 8)
+      nearDuplicates.push({ cases: [a.id, b.id], shared: Math.max(straight, crossed), bothVerified: a.rosterVerified && b.rosterVerified });
+  }
 
 // Leakage groups: cases linked by a shared video or a shared series.
 const parent = new Map();
@@ -880,6 +895,7 @@ const memory = {
     teamNameMismatches: audit.teamNameMismatches,
     conflicts,
     duplicateFingerprints: duplicates.map((l) => l.map((c) => c.id)),
+    nearDuplicates,
   },
   cases: out,
 };
@@ -1030,4 +1046,5 @@ console.log(JSON.stringify(summary, null, 1));
 console.log(
   `Enregistrements : ${JSON.stringify(audit.records)} ; reliés aux matchs : ${audit.oeMatched} (+${audit.matchedWithinSeries} par série) ; rattachés dans la vidéo : ${audit.attachedWithinVideo} ; roster propre : ${audit.ownRoster} ; non résolus : ${audit.unresolved.length} (dont ${audit.unresolved.filter((u) => u.stated).length} avec avis)`,
 );
+console.log(`Quasi-doublons dans une même vidéo : ${nearDuplicates.length} ${JSON.stringify(nearDuplicates)}`);
 console.log(`Corrections de roster : ${audit.rosterCorrections.length} ; noms d’équipes discordants : ${audit.teamNameMismatches.length} ; conflits : ${conflicts.length}`);

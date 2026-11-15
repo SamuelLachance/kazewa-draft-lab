@@ -15,10 +15,15 @@ const arg = (name, fallback) => {
   const at = process.argv.indexOf(name);
   return at > -1 ? process.argv[at + 1] : fallback;
 };
-const csvDir = arg(
+// Several folders can be given, separated by commas. When two of them hold the
+// same year, the last one wins: a fresher download replaces an older one.
+const csvDirs = arg(
   "--csv-dir",
   process.env.OE_CSV_DIR ?? path.resolve(root, "..", "..", "kazewa", "draft-lab", ".cache", "oe"),
-);
+)
+  .split(",")
+  .map((dir) => dir.trim())
+  .filter(Boolean);
 const out = path.resolve(root, arg("--out", ".cache/oe-games.json"));
 const ROLES = ["top", "jng", "mid", "bot", "sup"];
 
@@ -47,14 +52,15 @@ export function parseCsvLine(line) {
 
 async function main() {
   const games = new Map();
-  const files = fs
-    .readdirSync(csvDir)
-    .filter((name) => /^\d{4}\.csv$/.test(name))
-    .sort();
-  if (!files.length) throw Error(`Aucun CSV annuel dans ${csvDir}`);
+  const byYear = new Map();
+  for (const dir of csvDirs)
+    for (const name of fs.readdirSync(dir).filter((n) => /^\d{4}\.csv$/.test(n)))
+      byYear.set(name, path.join(dir, name));
+  const files = [...byYear.keys()].sort();
+  if (!files.length) throw Error(`Aucun CSV annuel dans ${csvDirs.join(", ")}`);
   for (const name of files) {
     const lines = readline.createInterface({
-      input: fs.createReadStream(path.join(csvDir, name), "utf8"),
+      input: fs.createReadStream(byYear.get(name), "utf8"),
       crlfDelay: Infinity,
     });
     let col = null;

@@ -2,11 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { fingerprint, indexMemory } from "../src/memory.mjs";
-import { judgeDraft, normalizeLater, swapLater, tendency } from "../src/verdict.mjs";
+import { cardReading, cardRelations, mentionedChampions } from "../src/relations.mjs";
+import { argumentLean, chooseReading, judgeDraft } from "../src/verdict.mjs";
 
-const knowledge = JSON.parse(
-  await readFile(new URL("../data/knowledge.json", import.meta.url), "utf8"),
-);
+const load = async (name) =>
+  JSON.parse(await readFile(new URL(`../data/${name}`, import.meta.url), "utf8"));
+const knowledge = await load("knowledge.json");
 const team = (top, jng, mid, bot, sup) => ({ top, jng, mid, bot, sup });
 const judged = {
   id: "case_a",
@@ -14,7 +15,6 @@ const judged = {
   red: team("Gragas", "Skarner", "Ahri", "Jhin", "Leona"),
   sides: "map",
   rosterVerified: true,
-  later: { top: "red", jng: "red", mid: "blue", bot: "blue", sup: "red" },
   verdict: { side: "red", confidence: 2, timing: "draft", label: "Rouge devant" },
   reasons: ["Raison"],
   reads: [],
@@ -30,16 +30,15 @@ const undecided = {
   id: "case_b",
   blue: team("Ornn", "Vi", "Azir", "Jinx", "Lulu"),
   red: team("Renekton", "Lee Sin", "Ahri", "Kai'Sa", "Rell"),
-  later: null,
   verdict: { side: "even", confidence: 0, timing: null, label: "" },
 };
 undecided.fingerprint = fingerprint(undecided);
 const memory = indexMemory({ cases: [judged, undecided] });
 const model = {
-  process: { weights: { top: 0.46, jng: 0.25, mid: 0.37, bot: -0.06, sup: 0.15 } },
   reliability: {
-    withOrder: { agreement: 0.6, n: 194, low: 0.53, high: 0.66 },
-    withoutOrder: { agreement: 0.5, n: 249 },
+    arguments: { agreement: 0.6, n: 200, low: 0.53, high: 0.67 },
+    cards: { agreement: 0.57, n: 56, low: 0.44, high: 0.69 },
+    principles: { agreement: 0.5, n: 208, low: 0.43, high: 0.58 },
   },
 };
 const unseen = {
@@ -47,11 +46,12 @@ const unseen = {
   red: team("Jayce", "Nidalee", "LeBlanc", "Jhin", "Pyke"),
 };
 
-test("a draft he judged is answered with his verdict, never with the model", () => {
+test("a draft he judged is answered with his verdict, never with an estimate", () => {
   const result = judgeDraft({ blue: judged.blue, red: judged.red }, { knowledge, memory, model });
   assert.equal(result.status, "complete");
   assert.equal(result.source, "memory");
   assert.equal(result.winner, "red");
+  assert.deepEqual(result.lean, { basis: "memory", side: "red" });
   assert.equal(result.kazewa.verdict.confidence, 2);
   const mirrored = judgeDraft({ blue: judged.red, red: judged.blue }, { knowledge, memory, model });
   assert.equal(mirrored.source, "memory");
@@ -60,156 +60,12 @@ test("a draft he judged is answered with his verdict, never with the model", () 
   assert.ok(["blue", "red", "even"].includes(result.structure.winner));
 });
 
-test("provider spellings still find the judged draft", () => {
+test("provider spellings and a flex filed in another role still find the judged draft", () => {
   const spelled = {
     blue: team("jax", "NOCTURNE", "orianna", "Draven", "nautilus"),
     red: team("Gragas", "Skarner", "Ahri", "Jhin", "Leona"),
   };
   assert.equal(judgeDraft(spelled, { knowledge, memory, model }).source, "memory");
-});
-
-test("an unseen draft still gets a verdict, and says it comes from the coarsest reading", () => {
-  const result = judgeDraft(unseen, { knowledge, memory, model });
-  assert.equal(result.source, "unseen");
-  // `winner` is his verdict only: the site never passes its estimate off as his.
-  assert.equal(result.winner, null);
-  assert.equal(result.kazewa, null);
-  // No pick order was given.
-  assert.equal(result.tendency.basis, "none");
-  assert.equal(result.tendency.score, 0);
-  // No argument, no card: his composition principles decide.
-  assert.equal(result.lean.basis, "principles");
-  assert.equal(result.lean.side, result.structure.winner);
-  assert.ok(["blue", "red"].includes(result.lean.side));
-});
-
-test("with the pick order the tendency follows the lanes that answered, and mirrors exactly", () => {
-  const later = { top: "blue", jng: "blue", mid: "blue", bot: "red", sup: "red" };
-  const result = judgeDraft(unseen, { knowledge, memory, model, later });
-  assert.equal(result.tendency.basis, "order");
-  assert.equal(result.tendency.side, "blue");
-  assert.equal(result.tendency.reliability.agreement, 0.6);
-  assert.equal(result.tendency.parts.length, 5);
-  // Bot carries a negative weight: picking the carry late pushes the other way.
-  const bot = result.tendency.parts.find((part) => part.role === "bot");
-  assert.equal(bot.later, "red");
-  assert.equal(bot.favours, "blue");
-  const mirrored = judgeDraft(
-    { blue: unseen.red, red: unseen.blue },
-    { knowledge, memory, model, later: swapLater(later) },
-  );
-  assert.equal(mirrored.tendency.side, "red");
-  assert.equal(mirrored.tendency.score, -result.tendency.score);
-});
-
-test("an incomplete pick order is no pick order", () => {
-  assert.equal(normalizeLater({ top: "blue", jng: "red" }), null);
-  assert.equal(normalizeLater({ top: "blue", jng: "red", mid: "x", bot: "red", sup: "red" }), null);
-  assert.equal(tendency({ later: { top: "blue" }, model }).basis, "none");
-  assert.equal(tendency({ later: null, model: null }).basis, "none");
-});
-
-test("a draft he commented without choosing stays undecided", () => {
-  const result = judgeDraft({ blue: undecided.blue, red: undecided.red }, { knowledge, memory, model });
-  assert.equal(result.source, "memory_undecided");
-  assert.equal(result.winner, null);
-  assert.equal(result.kazewa.verdict.side, "even");
-});
-
-test("a judged draft brings its real pick order, and a typed one wins over it", () => {
-  const draft = { blue: judged.blue, red: judged.red };
-  assert.deepEqual(judgeDraft(draft, { knowledge, memory, model }).later, judged.later);
-  const typed = { top: "blue", jng: "blue", mid: "blue", bot: "blue", sup: "blue" };
-  assert.deepEqual(judgeDraft(draft, { knowledge, memory, model, later: typed }).later, typed);
-});
-
-test("incomplete, duplicated and unknown drafts abstain before any lookup", () => {
-  const partial = judgeDraft({ blue: judged.blue, red: { top: "Gragas" } }, { knowledge, memory, model });
-  assert.equal(partial.status, "incomplete");
-  assert.equal(partial.source, null);
-  assert.equal(partial.tendency, null);
-  const unknown = judgeDraft(
-    { blue: { ...judged.blue, top: "Champion Inconnu" }, red: judged.red },
-    { knowledge, memory, model },
-  );
-  assert.equal(unknown.status, "unsupported");
-  const duplicated = judgeDraft(
-    { blue: judged.blue, red: { ...judged.red, top: "Jax" } },
-    { knowledge, memory, model },
-  );
-  assert.equal(duplicated.status, "invalid");
-});
-
-test("without a memory or a model the site still answers, and claims nothing", () => {
-  const result = judgeDraft(unseen, { knowledge });
-  assert.equal(result.status, "complete");
-  assert.equal(result.source, "unseen");
-  assert.equal(result.tendency.basis, "none");
-  assert.deepEqual(result.precedents, []);
-  assert.deepEqual(result.arguments, []);
-});
-
-test("every screen reads one side from the judgement, with where it comes from", () => {
-  const draft = { blue: judged.blue, red: judged.red };
-  assert.deepEqual(judgeDraft(draft, { knowledge, memory, model }).lean, {
-    basis: "memory",
-    side: "red",
-  });
-  assert.deepEqual(
-    judgeDraft({ blue: undecided.blue, red: undecided.red }, { knowledge, memory, model }).lean,
-    { basis: "undecided", side: "even" },
-  );
-  assert.equal(judgeDraft(unseen, { knowledge, memory, model }).lean.basis, "principles");
-  const later = { top: "blue", jng: "blue", mid: "blue", bot: "red", sup: "red" };
-  assert.deepEqual(judgeDraft(unseen, { knowledge, memory, model, later }).lean, {
-    basis: "order",
-    side: "blue",
-  });
-  assert.deepEqual(judgeDraft({ blue: judged.blue }, { knowledge, memory, model }).lean, {
-    basis: "none",
-    side: "even",
-  });
-});
-
-test("a draft one or two champions away keeps the closest judged draft in view", () => {
-  const close = {
-    blue: { ...judged.blue, sup: "Thresh" },
-    red: judged.red,
-  };
-  const result = judgeDraft(close, { knowledge, memory, model });
-  assert.equal(result.source, "unseen");
-  assert.equal(result.near.id, "case_a");
-  assert.equal(result.near.sharedChampions, 9);
-  // The closest draft is shown next to the verdict; it is not the verdict.
-  assert.equal(result.lean.basis, "principles");
-  // The pick order is a better reading than his principles alone.
-  const later = { top: "blue", jng: "blue", mid: "blue", bot: "blue", sup: "blue" };
-  const withOrder = judgeDraft(close, { knowledge, memory, model, later });
-  assert.deepEqual(withOrder.lean, { basis: "order", side: "blue" });
-  assert.equal(withOrder.near.id, "case_a");
-});
-
-test("while an order is being typed, only what is typed counts", () => {
-  const draft = { blue: undecided.blue, red: undecided.red };
-  const stored = { top: "red", jng: "red", mid: "red", bot: "red", sup: "red" };
-  const withStored = indexMemory({ cases: [{ ...undecided, later: stored }] });
-  const untouched = judgeDraft(draft, { knowledge, memory: withStored, model });
-  assert.deepEqual(untouched.later, stored);
-  assert.equal(untouched.tendency.basis, "order");
-  // Four lanes typed: no order yet, and the stored one is not silently used.
-  const partial = judgeDraft(draft, {
-    knowledge,
-    memory: withStored,
-    model,
-    later: { top: "blue", jng: "blue", mid: "blue", bot: "blue" },
-  });
-  assert.equal(partial.later, null);
-  assert.equal(partial.tendency.basis, "none");
-  // He still did not choose: the headline stays his.
-  assert.equal(partial.lean.basis, "undecided");
-});
-
-test("ten champions with a flex filed elsewhere still return his verdict", () => {
   const flexed = {
     blue: team("Nocturne", "Jax", "Orianna", "Draven", "Nautilus"),
     red: judged.red,
@@ -220,7 +76,51 @@ test("ten champions with a flex filed elsewhere still return his verdict", () =>
   assert.equal(result.kazewa.rolesDiffer, true);
 });
 
-test("his arguments give the side, the pick order confirms it or cancels it", () => {
+test("a draft he commented without choosing stays undecided", () => {
+  const result = judgeDraft({ blue: undecided.blue, red: undecided.red }, { knowledge, memory, model });
+  assert.equal(result.source, "memory_undecided");
+  assert.equal(result.winner, null);
+  assert.deepEqual(result.lean, { basis: "undecided", side: "even" });
+});
+
+test("the readings are tried from the most reliable to the coarsest", () => {
+  assert.deepEqual(
+    chooseReading({ argumentSide: "red", cardSide: "blue", calculatorSide: "blue" }),
+    { basis: "arguments", side: "red" },
+  );
+  assert.deepEqual(chooseReading({ argumentSide: null, cardSide: "blue", calculatorSide: "red" }), {
+    basis: "cards",
+    side: "blue",
+  });
+  assert.deepEqual(chooseReading({ argumentSide: null, cardSide: null, calculatorSide: "red" }), {
+    basis: "principles",
+    side: "red",
+  });
+  assert.deepEqual(chooseReading({ argumentSide: null, cardSide: null, calculatorSide: null }), {
+    basis: "balance",
+    side: "even",
+  });
+  assert.deepEqual(argumentLean([{ favours: "blue" }, { favours: "red" }]), {
+    blue: 1,
+    red: 1,
+    side: "even",
+  });
+});
+
+test("an unseen draft still gets a verdict, and says it comes from the coarsest reading", () => {
+  const result = judgeDraft(unseen, { knowledge, memory, model });
+  assert.equal(result.source, "unseen");
+  // `winner` is his verdict only: the site never passes its estimate off as his.
+  assert.equal(result.winner, null);
+  assert.equal(result.kazewa, null);
+  // No argument, no card: his composition principles decide.
+  assert.equal(result.lean.basis, "principles");
+  assert.equal(result.lean.side, result.structure.winner);
+  assert.ok(["blue", "red"].includes(result.lean.side));
+  assert.equal(result.reliability.principles.agreement, 0.5);
+});
+
+test("his arguments from another draft give the side, and follow the compositions", () => {
   const withClaims = indexMemory({
     cases: [
       {
@@ -238,42 +138,29 @@ test("his arguments give the side, the pick order confirms it or cancels it", ()
       },
     ],
   });
-  const reliable = {
-    ...model,
-    reliability: { ...model.reliability, arguments: { agreement: 0.63, n: 180 }, both: { agreement: 0.75, n: 79 } },
-  };
   const draft = {
     blue: team("Gragas", "Vi", "Syndra", "Kai'Sa", "Rell"),
     red: team("Jax", "Viego", "Azir", "Xayah", "Rakan"),
   };
-  const alone = judgeDraft(draft, { knowledge, memory: withClaims, model: reliable });
-  assert.deepEqual(alone.argumentLean, { blue: 1, red: 0, side: "blue" });
-  assert.deepEqual(alone.lean, { basis: "arguments", side: "blue" });
-  assert.equal(alone.reliability.arguments.agreement, 0.63);
-  const confirmed = judgeDraft(draft, {
-    knowledge,
-    memory: withClaims,
-    model: reliable,
-    later: { top: "blue", jng: "blue", mid: "blue", bot: "red", sup: "red" },
-  });
-  assert.deepEqual(confirmed.lean, { basis: "both", side: "blue" });
-  const opposed = judgeDraft(draft, {
-    knowledge,
-    memory: withClaims,
-    model: reliable,
-    later: { top: "red", jng: "red", mid: "red", bot: "blue", sup: "blue" },
-  });
-  // The two readings disagree: his arguments are kept, and the verdict says it is contested.
-  assert.deepEqual(opposed.lean, { basis: "contested", side: "blue" });
-  assert.equal(opposed.argumentLean.side, "blue");
-  assert.equal(opposed.tendency.side, "red");
-  // Mirrored draft: every reading follows the compositions.
-  const mirrored = judgeDraft({ blue: draft.red, red: draft.blue }, { knowledge, memory: withClaims, model: reliable });
+  const result = judgeDraft(draft, { knowledge, memory: withClaims, model });
+  assert.deepEqual(result.argumentLean, { blue: 1, red: 0, side: "blue" });
+  assert.deepEqual(result.lean, { basis: "arguments", side: "blue" });
+  assert.equal(result.reliability.arguments.agreement, 0.6);
+  const mirrored = judgeDraft({ blue: draft.red, red: draft.blue }, { knowledge, memory: withClaims, model });
   assert.deepEqual(mirrored.lean, { basis: "arguments", side: "red" });
 });
 
-test("his champion cards speak when no argument applies, before his principles", async () => {
-  const { cardReading, cardRelations, mentionedChampions } = await import("../src/relations.mjs");
+test("a draft one champion away keeps the closest judged draft in view, without borrowing its verdict", () => {
+  const close = { blue: { ...judged.blue, sup: "Thresh" }, red: judged.red };
+  const result = judgeDraft(close, { knowledge, memory, model });
+  assert.equal(result.source, "unseen");
+  assert.equal(result.near.id, "case_a");
+  assert.equal(result.near.sharedChampions, 9);
+  assert.notEqual(result.lean.basis, "memory");
+  assert.equal(result.winner, null);
+});
+
+test("his champion cards speak when no argument applies, before his principles", () => {
   const names = ["Vi", "Viego", "Nocturne", "Twisted Fate", "Pantheon", "Akali"];
   // Whole names only: "Vi" is not found inside "Viego".
   assert.deepEqual(mentionedChampions("Viego puis Twisted Fate.", names), ["Viego", "Twisted Fate"]);
@@ -302,18 +189,41 @@ test("his champion cards speak when no argument applies, before his principles",
     Nocturne: { good: "Twisted Fate", bad: "" },
     "Twisted Fate": { good: "", bad: "" },
   });
-  const judged = judgeDraft(draft, { knowledge, memory, model, relations: strong });
-  assert.deepEqual(judged.lean, { basis: "cards", side: "blue" });
-  // Mirrored draft: the reading follows the compositions.
+  const result = judgeDraft(draft, { knowledge, memory, model, relations: strong });
+  assert.deepEqual(result.lean, { basis: "cards", side: "blue" });
   const mirrored = judgeDraft({ blue: draft.red, red: draft.blue }, { knowledge, memory, model, relations: strong });
   assert.deepEqual(mirrored.lean, { basis: "cards", side: "red" });
   assert.deepEqual(cardReading(draft, null), { items: [], blue: 0, red: 0, side: "even" });
 });
 
+test("incomplete, duplicated and unknown drafts abstain before any lookup", () => {
+  const partial = judgeDraft({ blue: judged.blue, red: { top: "Gragas" } }, { knowledge, memory, model });
+  assert.equal(partial.status, "incomplete");
+  assert.equal(partial.source, null);
+  assert.deepEqual(partial.lean, { basis: "none", side: "even" });
+  const unknown = judgeDraft(
+    { blue: { ...judged.blue, top: "Champion Inconnu" }, red: judged.red },
+    { knowledge, memory, model },
+  );
+  assert.equal(unknown.status, "unsupported");
+  const duplicated = judgeDraft(
+    { blue: judged.blue, red: { ...judged.red, top: "Jax" } },
+    { knowledge, memory, model },
+  );
+  assert.equal(duplicated.status, "invalid");
+});
+
+test("without a memory, a model or cards the site still gives a verdict from his principles", () => {
+  const result = judgeDraft(unseen, { knowledge });
+  assert.equal(result.status, "complete");
+  assert.equal(result.source, "unseen");
+  assert.equal(result.lean.basis, "principles");
+  assert.equal(result.reliability, null);
+  assert.deepEqual(result.precedents, []);
+  assert.deepEqual(result.arguments, []);
+});
+
 test("with the shipped data every complete draft gets a verdict, whatever the champions", async () => {
-  const { cardRelations } = await import("../src/relations.mjs");
-  const load = async (name) =>
-    JSON.parse(await readFile(new URL(`../data/${name}`, import.meta.url), "utf8"));
   const [site, shipped, cards] = await Promise.all([
     load("memory-site.json"),
     load("model.json"),
@@ -334,7 +244,6 @@ test("with the shipped data every complete draft gets a verdict, whatever the ch
     options,
   );
   assert.equal(reported.status, "complete");
-  assert.notEqual(reported.lean.basis, "none");
   assert.ok(["blue", "red"].includes(reported.lean.side), `no side: ${reported.lean.basis}`);
   // Five hundred drafts drawn from the whole catalogue, rare champions included.
   const names = Object.keys(knowledge.champions);
@@ -358,10 +267,66 @@ test("with the shipped data every complete draft gets a verdict, whatever the ch
     if (result.lean.basis !== "balance")
       assert.ok(["blue", "red"].includes(result.lean.side));
     // The reliability shown for the reading exists in the shipped model.
-    const key = result.lean.basis === "order" ? "withOrder" : result.lean.basis;
     if (!["balance", "memory", "undecided"].includes(result.lean.basis))
-      assert.ok(shipped.reliability[key]?.agreement > 0, `no reliability for ${key}`);
+      assert.ok(
+        shipped.reliability[result.lean.basis]?.agreement > 0,
+        `no reliability for ${result.lean.basis}`,
+      );
   }
   // A draw is a verdict too, but it must stay the exception.
   assert.ok((counts.balance ?? 0) <= 25, `too many draws: ${JSON.stringify(counts)}`);
+});
+
+test("a card clause is read for what it says: partner, victim, punisher or bad partner", () => {
+  const relations = cardRelations({
+    Ezreal: { good: "Avec Karma et Leona ; contre Gnar, Neeko.", bad: "Puni par Nautilus." },
+    Ashe: { good: "", bad: "Avec Akali (anti-synergie) ; Xin/Vi = anti-synergie ; face à Jarvan." },
+    Gnar: { good: "", bad: "" },
+    Neeko: { good: "", bad: "" },
+    Karma: { good: "", bad: "" },
+    Leona: { good: "", bad: "" },
+    Nautilus: { good: "", bad: "" },
+    Akali: { good: "", bad: "" },
+    "Xin Zhao": { good: "", bad: "" },
+    Vi: { good: "", bad: "" },
+    "Jarvan IV": { good: "", bad: "" },
+  });
+  assert.deepEqual([...relations.goodWith.get("Ezreal")].sort(), ["Karma", "Leona"]);
+  assert.deepEqual([...relations.goodAgainst.get("Ezreal")].sort(), ["Gnar", "Neeko"]);
+  assert.deepEqual([...relations.badAgainst.get("Ezreal")], ["Nautilus"]);
+  // Short names are understood, and anti-synergy is about allies.
+  assert.deepEqual([...relations.badWith.get("Ashe")].sort(), ["Akali", "Vi", "Xin Zhao"]);
+  assert.deepEqual([...relations.badAgainst.get("Ashe")], ["Jarvan IV"]);
+
+  // Gnar next to Ezreal is not a synergy: the card says Ezreal is good AGAINST Gnar.
+  const allies = cardReading(
+    { blue: team("Gnar", "Vi", "Akali", "Ezreal", "Karma"), red: team("Ornn", "Viego", "Azir", "Jinx", "Lulu") },
+    relations,
+  );
+  assert.deepEqual(
+    allies.items.map((item) => [item.kind, item.champion, item.other, item.favours]),
+    [["synergy", "Ezreal", "Karma", "blue"]],
+  );
+  // Gnar opposite Ezreal: Ezreal gets the better of him, for Ezreal's side.
+  const facing = cardReading(
+    { blue: team("Ornn", "Viego", "Azir", "Ezreal", "Lulu"), red: team("Gnar", "Jarvan IV", "Akali", "Ashe", "Nautilus") },
+    relations,
+  );
+  assert.deepEqual(
+    facing.items.map((item) => [item.kind, item.champion, item.other, item.favours]).sort(),
+    [
+      ["antisynergy", "Ashe", "Akali", "blue"],
+      ["counter", "Ezreal", "Nautilus", "red"],
+      ["counter", "Gnar", "Ezreal", "blue"],
+    ],
+  );
+});
+
+test("the pick order is not an input of the verdict any more", () => {
+  const later = { top: "blue", jng: "blue", mid: "blue", bot: "blue", sup: "blue" };
+  const plain = judgeDraft(unseen, { knowledge, memory, model });
+  const withOrder = judgeDraft(unseen, { knowledge, memory, model, later });
+  assert.deepEqual(withOrder.lean, plain.lean);
+  assert.equal(withOrder.later, undefined);
+  assert.equal(withOrder.tendency, undefined);
 });

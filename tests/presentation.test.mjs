@@ -178,19 +178,3 @@ test("a stale winner field cannot override the signal sum", () => {
   assert.equal(shown.confidence, "faible");
   assert.equal(displayedVerdict({ status: "incomplete", winner: "blue", score: 9, signals: [] }), null);
 });
-
-test("a shared link carries the pick order only when it is complete", async () => {
-  const { buildDraftHash, draftFromHash, laterFromHash } = await import("../src/presentation.mjs");
-  const draft = {
-    blue: { top: "Jax", jng: "Vi", mid: "Ahri", bot: "Jinx", sup: "Lulu" },
-    red: { top: "Gnar", jng: "Viego", mid: "Azir", bot: "Kai'Sa", sup: "Rell" },
-  };
-  const later = { top: "blue", jng: "red", mid: "red", bot: "blue", sup: "red" };
-  const hash = buildDraftHash(draft, later);
-  assert.deepEqual(draftFromHash(hash), draft);
-  assert.deepEqual(laterFromHash(hash), later);
-  assert.equal(laterFromHash(buildDraftHash(draft)), null);
-  assert.equal(laterFromHash(buildDraftHash(draft, { top: "blue" })), null);
-  assert.equal(laterFromHash("#later=bbbbx"), null);
-  assert.equal(laterFromHash("#later=bbbbbb"), null);
-});

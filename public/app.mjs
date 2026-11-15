@@ -14,7 +14,6 @@ import {
   emptyDraft,
   validateEndpoint,
   draftFromHash,
-  laterFromHash,
   buildDraftHash,
   validateClientSnapshot,
   getLiveReadiness,
@@ -58,10 +57,7 @@ let knowledge,
   relations = null,
   championAssets,
   config = fallbackConfig;
-// Pick order typed for the draft on screen: role -> side that picked later.
-let laterInput = {},
-  cardChampion = null,
-  lastJudgement = null;
+let cardChampion = null;
 let view = "lab",
   labMode = "roles",
   coach = createSession("first"),
@@ -173,24 +169,8 @@ function sourceLinks(sources, limit = 2) {
     })
     .join("");
 }
-function typedLater() {
-  return ROLES.every((role) => ["blue", "red"].includes(laterInput[role]))
-    ? { ...laterInput }
-    : null;
-}
-// What the lab passes to the judgement: nothing until the visitor types, then
-// exactly what is typed (a partial order gives no tendency).
-function editedLater() {
-  return Object.keys(laterInput).length ? { ...laterInput } : null;
-}
-function judge(value, later = null) {
-  return judgeDraft(value, {
-    knowledge,
-    memory: memoryIndex,
-    model,
-    later,
-    relations,
-  });
+function judge(value) {
+  return judgeDraft(value, { knowledge, memory: memoryIndex, model, relations });
 }
 function sidePhrase(side, kazewa, names = SIDE_LABEL) {
   const plain = side === "blue" ? "le côté bleu" : "le côté rouge";
@@ -350,20 +330,10 @@ function renderChampionCard() {
   node.hidden = false;
   node.innerHTML = `<div class="panel-heading"><h3>${esc(cardChampion)} · ${esc(card.tag)}</h3><button type="button" class="icon-button" data-close-card aria-label="Fermer la fiche">×</button></div><p>${esc(card.job)}</p>${card.identities.length ? `<ul class="card-identities">${card.identities.map((item) => `<li><strong>${esc(item.identity)}</strong> ${esc(item.text)}</li>`).join("")}</ul>` : ""}${line("Bon avec, bon quand :", card.good)}${line("Puni par :", card.bad)}${line("Tempo :", card.tempo)}${line("En draft :", card.draft)}${reads.length ? `<h4>Ses lectures dans les drafts qu’il a jugées</h4><ul class="card-reads">${reads.map((read) => `<li>${esc(read.read)} <span class="source-links">${sourceLinks([{ video: read.video, title: read.title, ts: read.ts }], 1)}</span></li>`).join("")}</ul>` : ""}<p class="fine-print">${card.sources > 0 ? `Fiche résumée à partir de ${esc(card.sources)} extrait${card.sources > 1 ? "s" : ""} de ses vidéos · fiabilité ${esc(CONFIDENCE_LABEL[card.confidence] || card.confidence)}.` : "Kazewa n’a pas commenté ce champion dans le corpus : fiche déduite de son kit."}</p>`;
 }
-function renderVerdictCard(judgement, names, orderEditable) {
+function renderVerdictCard(judgement, names) {
   const kazewa = judgement.kazewa;
   const lean = judgement.lean;
-  const order = judgement.tendency;
-  const reliability = order?.reliability;
   const near = judgement.near;
-  const hasOrder = order?.basis === "order" && order.side !== "even";
-  const sideOnly = reliability?.sideOnly;
-  const measured = reliability
-    ? `Testée sur ${reliability.n} drafts de Kazewa qui n’ont pas servi à la régler, elle retrouve son verdict ${formatPct(reliability.agreement)} du temps (entre ${formatPct(reliability.low)} et ${formatPct(reliability.high)})${sideOnly ? ` ; répondre toujours « ${sideOnly.side === "blue" ? "côté bleu" : "côté rouge"} » donne déjà ${formatPct(sideOnly.agreement)}` : ""}.`
-    : "";
-  const noOrder = orderEditable
-    ? "Indique plus bas qui a pick en dernier dans chaque lane, et lis ses avis sur les drafts les plus proches."
-    : "L’ordre des picks n’est pas connu ici : pas de tendance.";
   const all = judgement.reliability;
   const said = judgement.argumentLean;
   const saidCount = said
@@ -396,14 +366,7 @@ function renderVerdictCard(judgement, names, orderEditable) {
       ? "Deux avis opposés selon la vidéo."
       : "Kazewa ne donne pas de préférence.";
     description =
-      [
-        kazewa.label,
-        hasOrder
-          ? `À titre indicatif, l’ordre des picks pencherait vers ${sidePhrase(order.side, null, names)}${reliability ? ` (fiabilité mesurée ${formatPct(reliability.agreement)})` : ""}.`
-          : "",
-      ]
-        .filter(Boolean)
-        .join(" ") || "Il commente cette draft sans dire quel côté il préfère.";
+      kazewa.label || "Il commente cette draft sans dire quel côté il préfère.";
     margin = "—";
     marginLabel = "SON VERDICT";
     note = "Il ne tranche pas · le site non plus";
@@ -412,21 +375,15 @@ function renderVerdictCard(judgement, names, orderEditable) {
     const nearLine = near
       ? `Sur la draft la plus proche qu’il a jugée (${near.sharedChampions} champions sur 10 en commun), il préférait ${sidePhrase(near.verdict.side, null, names)}.`
       : "";
-    if (lean.basis === "both" || lean.basis === "arguments") {
-      const r = lean.basis === "both" ? all?.both : all?.arguments;
-      badge = r ? `Fiabilité mesurée : ${formatPct(r.agreement)}` : "Tendance";
-      title = `Verdict estimé : ${sidePhrase(side, null, names)}.`;
+    title = `Verdict estimé : ${sidePhrase(side, null, names)}.`;
+    marginLabel = "FIABILITÉ MESURÉE";
+    if (lean.basis === "arguments") {
+      const r = all?.arguments;
+      badge = r ? `Fiabilité mesurée : ${formatPct(r.agreement)}` : "D’après ses arguments";
       description = [
-        lean.basis === "both"
-          ? `Ses arguments sur ces champions, donnés dans d’autres drafts (${saidCount}), et l’ordre des picks désignent le même côté.`
-          : `D’après ses arguments sur ces champions, donnés dans d’autres drafts (${saidCount}).`,
+        `D’après ses arguments sur ces champions, donnés dans d’autres drafts (${saidCount}).`,
         r
-          ? lean.basis === "both"
-            ? `Sur les ${r.n} drafts qu’il a jugées où ces deux lectures s’accordent, c’est son verdict ${formatPct(r.agreement)} du temps (${range(r)}).`
-            : `Sur ${r.n} drafts qu’il a jugées, le côté désigné par ses arguments venus d’autres vidéos est son verdict ${formatPct(r.agreement)} du temps (${range(r)}).`
-          : "",
-        lean.basis === "arguments" && orderEditable && all?.both
-          ? `Indique l’ordre des picks plus bas : quand il confirme ses arguments, la fiabilité mesurée passe à ${formatPct(all.both.agreement)}.`
+          ? `Sur ${r.n} drafts qu’il a jugées, le côté désigné par ses arguments venus d’autres vidéos est son verdict ${formatPct(r.agreement)} du temps (${range(r)})${r.sideOnly ? ` ; répondre toujours le même côté donne ${formatPct(r.sideOnly.agreement)} sur ces drafts` : ""}.`
           : "",
         nearLine,
         "Ce n’est pas son avis sur cette draft.",
@@ -434,87 +391,44 @@ function renderVerdictCard(judgement, names, orderEditable) {
         .filter(Boolean)
         .join(" ");
       margin = r ? formatPct(r.agreement) : "—";
-      marginLabel = "FIABILITÉ MESURÉE";
-      bar = side === "blue" ? (lean.basis === "both" ? 68 : 62) : lean.basis === "both" ? 32 : 38;
-      note = "Estimation · sa prochaine vidéo peut dire l’inverse";
-    } else if (lean.basis === "contested") {
-      const r = all?.contested;
-      badge = r ? `Fiabilité mesurée : ${formatPct(r.agreement)}` : "Lecture contestée";
-      title = `Verdict estimé : ${sidePhrase(side, null, names)}.`;
-      description = [
-        `Ses arguments sur ces champions penchent vers ${sidePhrase(said.side, null, names)} (${saidCount}), mais l’ordre des picks penche vers ${sidePhrase(order.side, null, names)}. Le site garde ses arguments.`,
-        r
-          ? `Dans cette situation, sur ${r.n} drafts qu’il a jugées, ils désignaient son verdict ${formatPct(r.agreement)} du temps : à peine mieux qu’une pièce lancée.`
-          : "",
-        nearLine,
-        "Ce n’est pas son avis sur cette draft.",
-      ]
-        .filter(Boolean)
-        .join(" ");
-      margin = r ? formatPct(r.agreement) : "—";
-      marginLabel = "FIABILITÉ MESURÉE";
-      bar = side === "blue" ? 55 : 45;
-      note = "Deux lectures opposées · verdict fragile";
-    } else if (lean.basis === "order") {
-      badge = reliability
-        ? `Fiabilité mesurée : ${formatPct(reliability.agreement)}`
-        : "Lecture de l’ordre des picks";
-      title = `Verdict estimé : ${sidePhrase(side, null, names)}.`;
-      description = [
-        "Aucun argument précis de Kazewa ne s’applique à ces champions dans ces rôles. Lecture de l’ordre des picks : qui répond à qui dans chaque lane.",
-        measured,
-        nearLine,
-        "Ce n’est pas son avis sur cette draft.",
-      ]
-        .filter(Boolean)
-        .join(" ");
-      // Only the direction is measured. The size of the score says nothing.
-      margin = reliability ? formatPct(reliability.agreement) : "—";
-      marginLabel = "FIABILITÉ MESURÉE";
-      bar = side === "blue" ? 60 : 40;
+      bar = side === "blue" ? 62 : 38;
       note = "Estimation · sa prochaine vidéo peut dire l’inverse";
     } else if (lean.basis === "cards") {
       const r = all?.cards;
       const fromCards = judgement.cardReading;
       badge = r ? `Fiabilité mesurée : ${formatPct(r.agreement)}` : "D’après ses fiches champion";
-      title = `Verdict estimé : ${sidePhrase(side, null, names)}.`;
       description = [
-        `Aucun argument précis de Kazewa ne s’applique à ces champions dans ces rôles. Lecture d’après ses fiches champion, qui disent qui est bon avec qui et qui est puni par qui : ${fromCards.blue} élément${fromCards.blue > 1 ? "s" : ""} pour le bleu, ${fromCards.red} pour le rouge.`,
+        `${said.blue + said.red > 0 ? `Ses arguments sur ces champions se partagent (${saidCount}) : ils ne départagent pas.` : "Aucun argument précis de Kazewa ne s’applique à ces champions dans ces rôles."} Lecture d’après ses fiches champion, qui disent qui est bon avec qui et qui prend le dessus sur qui : ${fromCards.blue} élément${fromCards.blue > 1 ? "s" : ""} pour le bleu, ${fromCards.red} pour le rouge.`,
         r
-          ? `Sur ${r.n} drafts tirées de vidéos que ses fiches n’ont jamais vues, cette lecture désigne son verdict ${formatPct(r.agreement)} du temps (${range(r)}) : un peu mieux qu’une pièce lancée.`
+          ? `Sur ${r.n} drafts tirées de vidéos que ses fiches n’ont jamais vues, cette lecture désigne son verdict ${formatPct(r.agreement)} du temps (${range(r)}) : ${r.low > 0.5 ? "un peu mieux qu’une pièce lancée" : "l’écart avec une pièce lancée n’est pas établi"}.`
           : "",
-        orderEditable ? "Indique l’ordre des picks plus bas pour une lecture mieux mesurée." : "",
         nearLine,
         "Ce n’est pas son avis sur cette draft.",
       ]
         .filter(Boolean)
         .join(" ");
       margin = r ? formatPct(r.agreement) : "—";
-      marginLabel = "FIABILITÉ MESURÉE";
       bar = side === "blue" ? 58 : 42;
       note = "Lecture d’après ses fiches · moins sûre que ses arguments";
     } else if (lean.basis === "principles") {
       const r = all?.principles;
       badge = r ? `Fiabilité mesurée : ${formatPct(r.agreement)}` : "D’après ses principes";
-      title = `Verdict estimé : ${sidePhrase(side, null, names)}.`;
       description = [
-        "Ni ses arguments ni ses fiches champion ne départagent ces deux compositions. Lecture de dernier recours d’après ses principes de composition (frontline, dégâts soutenus, catch, scaling, détaillés plus bas).",
+        "Ni ses arguments ni ses fiches champion ne départagent ces deux compositions (aucun élément, ou autant de chaque côté). Lecture de dernier recours d’après ses principes de composition (frontline, dégâts soutenus, catch, scaling, détaillés plus bas).",
         r
           ? `Sur ${r.n} drafts qu’il a jugées et que ce calculateur n’avait jamais vues, il désigne son verdict ${formatPct(r.agreement)} du temps : c’est une pièce lancée.`
           : "",
-        orderEditable ? "Indique l’ordre des picks plus bas pour une lecture mieux mesurée." : "",
         nearLine,
       ]
         .filter(Boolean)
         .join(" ");
       margin = r ? formatPct(r.agreement) : "—";
-      marginLabel = "FIABILITÉ MESURÉE";
       bar = side === "blue" ? 54 : 46;
       note = "Dernier recours · à prendre comme une description";
     } else {
       badge = "Équilibre";
       title = "Deux drafts à l’équilibre.";
-      description = `Ni ses arguments, ni ses fiches champion, ni ses principes de composition ne départagent ces deux drafts. ${orderEditable ? "Indique l’ordre des picks plus bas : c’est ce qu’il regarde en premier." : ""} ${nearLine}`.trim();
+      description = `Ni ses arguments, ni ses fiches champion, ni ses principes de composition ne départagent ces deux drafts. ${nearLine}`.trim();
       margin = "=";
       marginLabel = "VERDICT ESTIMÉ";
       note = "Rien ne sépare les deux compositions";
@@ -566,24 +480,6 @@ function renderKazewaPanel(judgement, names) {
   node.hidden = false;
   node.innerHTML = `<div class="panel-heading"><h3>Ses raisons</h3><span class="mono">${esc(matchLine(kazewa))}</span></div>${kazewa.reasons?.length ? `<ol class="kazewa-reasons">${kazewa.reasons.map((reason) => `<li>${esc(reason)}</li>`).join("")}</ol>` : '<p class="fine-print">Il donne son côté sans détailler ses raisons dans ce passage.</p>'}${kazewa.reads?.length ? `<h4>Ses lectures de champions</h4><ul class="kazewa-reads">${kazewa.reads.map((read) => `<li data-side="${esc(read.side)}"><strong>${esc(read.champion)}</strong> ${esc(read.read)}</li>`).join("")}</ul>` : ""}<p class="fine-print">${esc(facts.join(" "))}</p><div class="source-links">${sourceLinks(kazewa.sources, 3)}</div>`;
 }
-function renderOrderPanel(judgement, editable) {
-  const node = $("#order-panel");
-  if (!editable || judgement.source === "memory") {
-    node.hidden = true;
-    node.innerHTML = "";
-    return;
-  }
-  const champions = judgement.structure.teams;
-  const filled = ROLES.filter((role) =>
-    ["blue", "red"].includes(laterInput[role]),
-  ).length;
-  const known = Boolean(judgement.later) && !Object.keys(laterInput).length;
-  node.hidden = false;
-  node.innerHTML = `<div class="panel-heading"><h3>Qui a pick en dernier ?</h3><span class="mono">${known ? "ORDRE RÉEL CONNU" : `${filled} / 5 LANES`}</span></div><p class="fine-print">Dans chaque lane, clique le champion pick après son vis-à-vis. Répondre à un pick déjà posé est ce que Kazewa regarde en premier. La tendance apparaît quand les cinq lanes sont renseignées.</p><div class="order-rows">${ROLES.map((role) => {
-    const current = laterInput[role] ?? (known ? judgement.later[role] : null);
-    return `<div class="order-row"><span class="order-role">${ROLE_LABEL[role]}</span>${["blue", "red"].map((side) => `<button type="button" data-later-role="${role}" data-later-side="${side}" data-side="${side}" class="${current === side ? "is-active" : ""}" aria-pressed="${current === side}">${esc(champions[side].champions[role])}</button>`).join("")}</div>`;
-  }).join("")}</div>`;
-}
 function renderArguments(judgement) {
   const node = $("#arguments-panel");
   const list = judgement.arguments || [];
@@ -615,11 +511,20 @@ function renderCardsPanel(judgement) {
   }
   const shown = reading.items.slice(0, 8);
   node.hidden = false;
-  node.innerHTML = `<div class="panel-heading"><h3>Ce que disent ses fiches champion</h3><span class="mono">${reading.blue} BLEU · ${reading.red} ROUGE</span></div><p class="fine-print">Chaque fiche résume ce qu’il dit d’un champion dans ses vidéos : avec qui il est bon, par qui il est puni. Le côté indiqué est celui que la remarque avantage ici.${reading.items.length > shown.length ? ` Les ${shown.length} premières sur ${reading.items.length}.` : ""}</p>${shown
-    .map(
-      (item, i) =>
-        `<article class="signal" data-side="${esc(item.favours)}"><span class="signal-number">${String(i + 1).padStart(2, "0")}</span><div><h4 class="signal-title">${item.kind === "synergy" ? `${esc(item.champion)} + ${esc(item.other)}` : `${esc(item.other)} contre ${esc(item.champion)}`}<span class="side-tag">${item.favours === "blue" ? "BLEU" : "ROUGE"}</span></h4><p>${item.kind === "synergy" ? `D’après ${esc(cardOf(item.champion))}, ${esc(item.other)} fait partie de ses bons partenaires.` : `D’après ${esc(cardOf(item.champion))}, ${esc(item.other)} fait partie de ce qui punit ce champion.`}</p></div></article>`,
-    )
+  node.innerHTML = `<div class="panel-heading"><h3>Ce que disent ses fiches champion</h3><span class="mono">${reading.blue} BLEU · ${reading.red} ROUGE</span></div><p class="fine-print">Chaque fiche résume ce qu’il dit d’un champion dans ses vidéos : avec qui il va bien ou mal, sur qui il prend le dessus, par qui il est puni. Le côté indiqué est celui que la remarque avantage ici.${reading.items.length > shown.length ? ` Les ${shown.length} premières sur ${reading.items.length}.` : ""}</p>${shown
+    .map((item, i) => {
+      const heading =
+        item.kind === "counter"
+          ? `${esc(item.other)} contre ${esc(item.champion)}`
+          : `${esc(item.champion)} + ${esc(item.other)}`;
+      const sentence =
+        item.kind === "synergy"
+          ? "ces deux champions vont bien ensemble."
+          : item.kind === "antisynergy"
+            ? "ces deux champions vont mal ensemble."
+            : `${esc(item.other)} prend le dessus sur ${esc(item.champion)}.`;
+      return `<article class="signal" data-side="${esc(item.favours)}"><span class="signal-number">${String(i + 1).padStart(2, "0")}</span><div><h4 class="signal-title">${heading}<span class="side-tag">${item.favours === "blue" ? "BLEU" : "ROUGE"}</span></h4><p>D’après ${esc(cardOf(item.card))}, ${sentence}</p></div></article>`;
+    })
     .join("")}`;
 }
 function renderPrecedents(judgement) {
@@ -680,7 +585,7 @@ function renderStructure(result, names) {
 }
 function renderResult(
   judgement,
-  { blocked = null, names = SIDE_LABEL, orderEditable = false } = {},
+  { blocked = null, names = SIDE_LABEL } = {},
 ) {
   if (blocked || judgement.status !== "complete") {
     $("#result-section").hidden = true;
@@ -705,9 +610,8 @@ function renderResult(
   }
   $("#result-section").hidden = false;
   $("#empty-result").hidden = true;
-  renderVerdictCard(judgement, names, orderEditable);
+  renderVerdictCard(judgement, names);
   renderKazewaPanel(judgement, names);
-  renderOrderPanel(judgement, orderEditable);
   renderArguments(judgement);
   renderCardsPanel(judgement);
   renderPrecedents(judgement);
@@ -784,7 +688,6 @@ function applyQuick(side) {
   const parsed = compositionFromText($(`#quick-${side}`).value, knowledge);
   quickParsed[side] = parsed;
   draft[side] = { ...parsed.picks };
-  resetOrder();
   if (quickSwap?.side === side) quickSwap = null;
   origin =
     "Saisie rapide · les rôles suivent le rôle habituel de chaque champion.";
@@ -802,7 +705,6 @@ function chooseQuickRole(side, role) {
   }
   draft[side] = swapRoles(draft[side], quickSwap.role, role);
   quickSwap = null;
-  resetOrder();
   origin = "Saisie rapide · les champions ont été échangés de rôle.";
   analyzeManual();
 }
@@ -824,7 +726,6 @@ function renderQuickVerdict(judgement) {
     return;
   }
   const lean = judgement.lean;
-  const reliability = judgement.tendency?.reliability;
   let sentence;
   if (lean.basis === "memory")
     sentence = `Kazewa a jugé cette draft : il préfère ${sidePhrase(lean.side, judgement.kazewa)}. Confiance ${judgement.kazewa.verdict.confidence}/3.`;
@@ -836,10 +737,7 @@ function renderQuickVerdict(judgement) {
   else {
     const all = judgement.reliability ?? {};
     const source = {
-      both: ["ses arguments et l’ordre des picks", all.both],
       arguments: ["ses arguments sur ces champions", all.arguments],
-      contested: ["ses arguments, contre l’ordre des picks", all.contested],
-      order: ["l’ordre des picks", all.withOrder],
       cards: ["ses fiches champion", all.cards],
       principles: ["ses principes de composition", all.principles],
     }[lean.basis] ?? ["son corpus", null];
@@ -850,17 +748,13 @@ function renderQuickVerdict(judgement) {
   node.textContent = sentence;
 }
 function analyzeManual() {
-  const judgement = judge(draft, editedLater());
-  lastJudgement = judgement;
+  const judgement = judge(draft);
   if (labMode === "quick") renderQuickReadout();
   else renderTeams();
   const note = $("#draft-origin");
   if (note) note.textContent = origin || "Choisis les dix champions par rôle.";
   renderQuickVerdict(judgement);
-  renderResult(judgement, { orderEditable: true });
-}
-function resetOrder() {
-  laterInput = {};
+  renderResult(judgement);
 }
 function setView(next, { scroll = false } = {}) {
   view = next;
@@ -922,20 +816,22 @@ function renderValidation() {
   $("#champion-count").textContent = count;
   const mem = evaluation?.memory ?? memory?.summary;
   $("#memory-count").textContent = mem?.decided ?? "—";
-  const order = evaluation?.unseen?.pickOrder;
-  const calc = evaluation?.unseen?.structuralCalculator;
-  const said = evaluation?.unseen?.arguments;
-  const every = evaluation?.unseen?.everyDraft;
-  const sameSide = said?.withPickOrder?.sameSide;
+  const unseen = evaluation?.unseen;
+  const order = unseen?.pickOrder;
+  const calc = unseen?.structuralCalculator;
+  const said = unseen?.arguments;
+  const every = unseen?.everyDraft?.heldOut;
+  const cardFigures = unseen?.championCards;
   $("#validation-text").textContent = mem
-    ? `${mem.decided} drafts jugées par Kazewa en mémoire : son verdict exact, ses raisons, sa vidéo. Toute autre draft reçoit un verdict estimé d’après ses arguments, ses fiches champion et ses principes : juste ${formatPct(every?.championsOnly?.all?.agreement)} du temps sur des vidéos tenues à l’écart, ${formatPct(sameSide?.agreement)} quand ses arguments et l’ordre des picks s’accordent.`
+    ? `${mem.decided} drafts jugées par Kazewa en mémoire : son verdict exact, ses raisons, sa vidéo. Toute autre draft reçoit un verdict estimé d’après ses arguments, ses fiches champion et ses principes : juste ${formatPct(every?.all?.agreement)} du temps sur des vidéos tenues à l’écart.`
     : "Mémoire des verdicts indisponible.";
   const interval = (r) =>
     r?.n ? `${formatPct(r.low)} à ${formatPct(r.high)}` : "—";
   const row = (name, r, remark) =>
     `<tr><td>${esc(name)}</td><td>${r?.n ?? "—"}</td><td>${formatPct(r?.agreement)}</td><td>${esc(interval(r))}</td><td>${esc(remark)}</td></tr>`;
+  const sideName = order?.sideOnly?.side === "blue" ? "côté bleu" : "côté rouge";
   $("#evaluation-details").innerHTML =
-    `<span class="eyebrow">CE QUI EST MESURÉ</span><h3>Sa mémoire est exacte. Son avis estimé ne l’est pas toujours.</h3><p>Deux questions différentes, jamais mélangées. Une draft que Kazewa a commentée renvoie son verdict : c’est une restitution, juste par construction. Une draft qu’il n’a pas commentée est une estimation : elle est mesurée sur des séries et des vidéos qui n’ont pas servi à régler la lecture.</p><div class="eval-stats"><div class="eval-stat"><strong>${mem?.decided ?? "—"}</strong><span>DRAFTS AVEC SON VERDICT</span></div><div class="eval-stat"><strong>${mem?.videos ?? "—"}</strong><span>VIDÉOS SOURCES</span></div><div class="eval-stat"><strong>${formatPct(every?.championsOnly?.all?.agreement)}</strong><span>TOUTE DRAFT, CHAMPIONS SEULS</span></div><div class="eval-stat"><strong>${formatPct(sameSide?.agreement)}</strong><span>QUAND L’ORDRE DES PICKS CONFIRME</span></div></div><table><thead><tr><th>Situation</th><th>Drafts</th><th>Accord</th><th>Intervalle de confiance</th><th>Lecture</th></tr></thead><tbody>${row("Draft qu’il a jugée (mémoire)", mem?.selfRecall, "Restitution de son verdict, pas une prédiction")}${row("Toute draft, champions seuls · verdict estimé", every?.championsOnly?.all, "Toutes les lectures enchaînées, sur des vidéos tenues à l’écart")}${row("Toute draft, avec l’ordre des picks · verdict estimé", every?.withPickOrder?.all, "Mêmes vidéos, ordre des picks connu")}${row("Draft inédite · ses arguments venus d’autres vidéos", said, "Aucun réglage : on compte ses arguments par côté")}${row("Draft inédite · arguments et ordre des picks du même côté", sameSide, "Les deux lectures s’accordent")}${row("Draft inédite · arguments contre ordre des picks", every?.byReadingAllDrafts?.contested, "Le site garde ses arguments : verdict fragile")}${row("Draft inédite · ses fiches champion", evaluation?.unseen?.championCards?.heldOut, "Vidéos que les fiches n’ont jamais vues")}${row("Ses fiches champion · vidéos dont elles sont tirées", evaluation?.unseen?.championCards?.writtenFrom, "Ne prouve rien : elles résument ces vidéos")}${row("Draft inédite · ordre des picks seul", order, "Cinq poids, un par lane")}${order?.sideOnly ? row(`Draft inédite · répondre toujours « ${order.sideOnly.side === "blue" ? "côté bleu" : "côté rouge"} »`, order.sideOnly, "Règle sans modèle, sur les mêmes drafts") : ""}${row("Draft inédite · calculateur structurel", calc?.neverSeen, "Pile ou face : une description, pas un verdict")}${row("Calculateur · drafts qui ont servi à le régler", calc?.tunedOn, "Ne prouve rien : il a été réglé dessus")}</tbody></table><p>Le hasard se mesure en rejouant toute la procédure avec des verdicts tirés au sort : ${formatPct(order?.chance?.mean)} en moyenne, à plus ou moins ${order?.chance?.sd != null ? (order.chance.sd * 100).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) : "—"} points. L’ordre des picks dépasse ce niveau, de peu : la mesure repose sur ${order?.n ?? "—"} drafts réparties en ${evaluation?.unseen?.groups ?? "—"} groupes.${order?.sideOnly ? ` Une partie de ce signal tient au côté de la carte : le côté qui pick en dernier est aussi celui qu’il préfère le plus souvent, et l’écart entre les deux lignes (${order.agree} contre ${order.sideOnly.agree} drafts sur ${order.n}) n’est pas établi statistiquement (p = ${order.overSideOnly?.p != null ? order.overSideOnly.p.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) : "—"}).` : ""}</p><p>Ses arguments : pour chaque draft jugée, on ne garde que les matchups, synergies et réponses qu’il a nommés dans d’autres vidéos et qui s’appliquent encore (mêmes champions, même relation, mêmes rôles), et on compte de quel côté ils penchent. Rien n’est réglé sur ses verdicts. Cette lecture répond pour ${formatPct(said?.coverage)} des drafts jugées ; quand elle s’oppose à l’ordre des picks (${said?.withPickOrder?.oppositeSides?.n ?? "—"} drafts), elle a raison ${said?.withPickOrder?.oppositeSides?.argumentsRight ?? "—"} fois : le site la garde, en signalant que le verdict est fragile.</p><p>Toute draft reçoit un verdict. Quand aucun de ses arguments ne s’applique, le site passe à ses fiches champion (qui est bon avec qui, qui est puni par qui), puis à ses principes de composition. Ces deux lectures sont moins sûres, et chaque verdict dit laquelle a servi.</p><p>Ce que montre l’écart entre les deux lignes des fiches : quand Kazewa a déjà parlé d’une draft, ce qu’il en a dit permet de retrouver son verdict quatre fois sur cinq ; sur une draft dont il n’a jamais parlé, la même connaissance retombe près du hasard. Son avis tient à la draft elle-même, pas à des règles générales sur les champions.</p><p>Ce qui ne marche pas : les profils de champions, leur identité, les règles de composition du calculateur et les statistiques de 44 000 matchs pros ne suivent pas ses avis sur des drafts qui n’ont pas servi à les régler. Ses verdicts s’appuient aussi sur les bans, les joueurs et la méta du moment, que dix champions ne portent pas.</p>${evaluation?.reference?.realWinnerMatchesVerdict?.n ? `<p>Repère : dans ${formatPct(evaluation.reference.realWinnerMatchesVerdict.agreement)} des ${evaluation.reference.realWinnerMatchesVerdict.n} drafts jugées dont le résultat est connu, l’équipe qu’il préférait a gagné. Une partie de ses revues est enregistrée en connaissant le résultat.</p>` : ""}<p><a href="./data/evaluation.json" target="_blank" rel="noopener">Rapport de mesure ↗</a> · <a href="./data/memory-site.json" target="_blank" rel="noopener">Mémoire des verdicts ↗</a> · <a href="./data/model.json" target="_blank" rel="noopener">Poids de la tendance ↗</a></p>`;
+    `<span class="eyebrow">CE QUI EST MESURÉ</span><h3>Sa mémoire est exacte. Son avis estimé ne l’est pas toujours.</h3><p>Deux questions différentes, jamais mélangées. Une draft que Kazewa a commentée renvoie son verdict : c’est une restitution, juste par construction. Une draft qu’il n’a pas commentée reçoit un verdict estimé : il est mesuré sur des séries et des vidéos tenues à l’écart.</p><div class="eval-stats"><div class="eval-stat"><strong>${mem?.decided ?? "—"}</strong><span>DRAFTS AVEC SON VERDICT</span></div><div class="eval-stat"><strong>${mem?.videos ?? "—"}</strong><span>VIDÉOS SOURCES</span></div><div class="eval-stat"><strong>${formatPct(said?.agreement)}</strong><span>DRAFT INÉDITE, D’APRÈS SES ARGUMENTS</span></div><div class="eval-stat"><strong>${formatPct(every?.all?.agreement)}</strong><span>TOUTE DRAFT, VIDÉOS TENUES À L’ÉCART</span></div></div><table><thead><tr><th>Situation</th><th>Drafts</th><th>Accord</th><th>Intervalle de confiance</th><th>Lecture</th></tr></thead><tbody>${row("Draft qu’il a jugée (mémoire)", mem?.selfRecall, "Restitution de son verdict, pas une prédiction")}${row("Toute draft · verdict estimé", every?.all, "Toutes les lectures enchaînées, sur des vidéos tenues à l’écart")}${row("Draft inédite · ses arguments venus d’autres vidéos", said, "Aucun réglage : on compte ses arguments par côté")}${said?.sideOnly ? row("Règle sans modèle · toujours le même côté, mêmes drafts", said.sideOnly, "La barre à dépasser") : ""}${row("Draft inédite · ses fiches champion", cardFigures?.heldOut, "Vidéos que les fiches n’ont jamais vues")}${row("Ses fiches champion · vidéos dont elles sont tirées", cardFigures?.writtenFrom, "Ne prouve rien : elles résument ces vidéos")}${row("Draft inédite · ses principes (calculateur)", calc?.neverSeen, "Pile ou face : une description, pas un verdict")}${row("Calculateur · drafts qui ont servi à le régler", calc?.tunedOn, "Ne prouve rien : il a été réglé dessus")}${row("Lecture écartée · ordre des picks", order, "Écart non établi avec la règle ci-dessous")}${order?.sideOnly ? row(`Règle sans modèle · répondre toujours « ${sideName} »`, order.sideOnly, "Sur les mêmes drafts") : ""}</tbody></table><p>Ses arguments : pour chaque draft jugée, on ne garde que les matchups, synergies et réponses qu’il a nommés dans d’autres vidéos et qui s’appliquent encore (mêmes champions, même relation, mêmes rôles), et on compte de quel côté ils penchent. Rien n’est réglé sur ses verdicts. Cette lecture répond pour ${formatPct(said?.coverage)} des drafts jugées.${said?.overSideOnly ? ` Face à la règle « toujours le même côté », ses arguments ont raison seuls sur ${said.overSideOnly.argumentsRightRuleWrong} drafts et tort seuls sur ${said.overSideOnly.ruleRightArgumentsWrong} : ${said.overSideOnly.p < 0.05 ? "l’avantage est établi" : "l’avantage n’est pas encore établi statistiquement"} (p = ${said.overSideOnly.p.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}).` : ""}</p><p>Toute draft reçoit un verdict. Quand aucun de ses arguments ne s’applique, ou qu’il y en a autant de chaque côté, le site passe à ses fiches champion (qui va bien avec qui, qui prend le dessus sur qui), puis à ses principes de composition. Ces deux lectures sont moins sûres, et chaque verdict dit laquelle a servi.</p>${cardFigures?.writtenFrom?.n ? `<p>Ce que montre l’écart entre les deux lignes des fiches : sur les vidéos qu’elles résument, les fiches retrouvent son verdict ${formatPct(cardFigures.writtenFrom.agreement)} du temps ; sur les vidéos qu’elles n’ont jamais vues, ${formatPct(cardFigures.heldOut?.agreement)}. Ce qu’il a dit d’une draft permet de retrouver son verdict ; des règles générales sur les champions, beaucoup moins.</p>` : ""}${order?.sideOnly ? `<p>L’ordre des picks a été essayé puis écarté. Sur ${order.n} drafts où il est connu, lire qui répond à qui dans chaque lane désigne son verdict ${formatPct(order.agreement)} du temps, contre ${formatPct(order.sideOnly.agreement)} en répondant toujours « ${sideName} » : ${order.overSideOnly?.p < 0.05 ? "un écart établi" : "l’écart n’est pas établi"}. Quand cette lecture va dans le sens de ses arguments, le résultat est de ${formatPct(said?.withPickOrder?.sameSide?.agreement)}, contre ${formatPct(said?.agreement)} pour ses arguments seuls. Elle avait paru utile sur un échantillon plus petit.</p>` : ""}<p>Ce qui ne marche pas non plus : les profils de champions, leur identité et les statistiques de 44 000 matchs pros ne suivent pas ses avis sur des drafts tenues à l’écart. Ses verdicts s’appuient sur les bans, les joueurs et la méta du moment, que dix champions ne portent pas.</p>${evaluation?.reference?.realWinnerMatchesVerdict?.n ? `<p>Repère : dans ${formatPct(evaluation.reference.realWinnerMatchesVerdict.agreement)} des ${evaluation.reference.realWinnerMatchesVerdict.n} drafts jugées dont le résultat est connu, l’équipe qu’il préférait a gagné. Une partie de ses revues est enregistrée en connaissant le résultat.</p>` : ""}<p><a href="./data/evaluation.json" target="_blank" rel="noopener">Rapport de mesure ↗</a> · <a href="./data/memory-site.json" target="_blank" rel="noopener">Mémoire des verdicts ↗</a> · <a href="./data/model.json" target="_blank" rel="noopener">Fiabilité de chaque lecture ↗</a></p>`;
   $("#rule-catalog").innerHTML = knowledge.rules
     .map(
       (r) =>
@@ -952,18 +848,14 @@ function liveVerdictLine(match) {
   const judgement = judge({ blue: match.blue.picks, red: match.red.picks });
   if (judgement.status !== "complete")
     return judgement.warnings?.[0] || "Verdict indisponible.";
-  if (judgement.lean.basis === "memory")
-    return `Kazewa a jugé cette draft : ${match[judgement.winner]?.name || SIDE_LABEL[judgement.winner]}.`;
-  if (judgement.lean.basis === "undecided")
-    return "Kazewa a commenté cette draft sans trancher.";
-  if (judgement.lean.side === "even") return "Draft inédite. Verdict estimé : équilibre.";
   const basis = judgement.lean.basis;
-  const r = judgement.reliability?.[basis === "order" ? "withOrder" : basis];
+  if (basis === "memory")
+    return `Kazewa a jugé cette draft : ${match[judgement.winner]?.name || SIDE_LABEL[judgement.winner]}.`;
+  if (basis === "undecided") return "Kazewa a commenté cette draft sans trancher.";
+  if (judgement.lean.side === "even") return "Draft inédite. Verdict estimé : équilibre.";
+  const r = judgement.reliability?.[basis];
   const from = {
-    both: "ses arguments et l’ordre des picks",
     arguments: "ses arguments",
-    contested: "ses arguments",
-    order: "l’ordre des picks",
     cards: "ses fiches champion",
     principles: "ses principes",
   }[basis];
@@ -1087,21 +979,6 @@ function renderCoachGrid(advice) {
     .join("");
   coachScores = nextScores;
 }
-// The coach knows the real pick order of the draft it just played.
-function coachLater() {
-  const at = {};
-  coach.log.forEach((entry, index) => {
-    if (entry.action === "pick") at[`${entry.side}.${entry.role}`] = index;
-  });
-  const later = {};
-  for (const role of ROLES) {
-    const blue = at[`blue.${role}`];
-    const red = at[`red.${role}`];
-    if (blue == null || red == null) return null;
-    later[role] = blue > red ? "blue" : "red";
-  }
-  return later;
-}
 function renderCoach() {
   if (view !== "coach" || !knowledge) return;
   const advice = advise(coach, knowledge, { limit: 8 });
@@ -1148,7 +1025,7 @@ function renderCoach() {
       coachFocus = "self";
       renderResult(
         advice.done
-          ? judge(coach.picks, coachLater())
+          ? judge(coach.picks)
           : { status: "incomplete", warnings: [] },
       );
       if (!advice.done) {
@@ -1166,7 +1043,7 @@ function renderCoach() {
     });
     return;
   }
-  if (advice.done) renderResult(judge(coach.picks, coachLater()));
+  if (advice.done) renderResult(judge(coach.picks));
   else {
     $("#result-section").hidden = true;
     $("#empty-result").hidden = true;
@@ -1355,7 +1232,6 @@ function judgedExamples() {
 }
 function loadCase(item) {
   draft = { blue: { ...item.blue }, red: { ...item.red } };
-  resetOrder();
   const line = matchLine({ teams: item.match?.teams, match: item.match });
   origin = `Draft jugée par Kazewa${line ? ` · ${line}` : ""}.`;
   setView("lab");
@@ -1375,7 +1251,6 @@ function loadExample() {
     blue: { top: "Sion", jng: "Maokai", mid: "Azir", bot: "Jinx", sup: "Lulu" },
     red: { top: "Jayce", jng: "Nidalee", mid: "LeBlanc", bot: "Jhin", sup: "Pyke" },
   };
-  resetOrder();
   origin =
     "Exemple : ces compositions ne représentent pas un match jugé par Kazewa.";
   setView("lab");
@@ -1402,21 +1277,6 @@ function bindEvents() {
     }
   });
   $("#workspace").addEventListener("click", (event) => {
-    const lane = event.target.closest("[data-later-role]");
-    if (lane) {
-      const role = lane.dataset.laterRole;
-      const side = lane.dataset.laterSide;
-      if (!Object.keys(laterInput).length && lastJudgement?.later)
-        laterInput = { ...lastJudgement.later };
-      // A second click on the same champion clears that lane.
-      if (laterInput[role] === side) delete laterInput[role];
-      else laterInput[role] = side;
-      analyzeManual();
-      document
-        .querySelector(`[data-later-role="${role}"][data-later-side="${side}"]`)
-        ?.focus();
-      return;
-    }
     const precedent = event.target.closest("[data-load-case]");
     if (precedent) {
       const item = memory?.cases?.find((c) => c.id === precedent.dataset.loadCase);
@@ -1498,8 +1358,6 @@ function bindEvents() {
     const select = event.target.closest("[data-role]");
     if (!select) return;
     draft[select.dataset.side][select.dataset.role] = select.value;
-    // The pick order of a lane belongs to the champions that were in it.
-    delete laterInput[select.dataset.role];
     origin = "Composition manuelle.";
     analyzeManual();
     $(
@@ -1510,12 +1368,6 @@ function bindEvents() {
   $("#swap-button").addEventListener("click", () => {
     draft = { blue: { ...draft.red }, red: { ...draft.blue } };
     quickSwap = null;
-    laterInput = Object.fromEntries(
-      Object.entries(laterInput).map(([role, side]) => [
-        role,
-        side === "blue" ? "red" : "blue",
-      ]),
-    );
     origin = "Équipes inversées · le verdict suit les compositions.";
     if (labMode === "quick") refreshQuickFields();
     analyzeManual();
@@ -1523,7 +1375,6 @@ function bindEvents() {
   $("#clear-button").addEventListener("click", () => {
     draft = emptyDraft();
     quickSwap = null;
-    resetOrder();
     cardChampion = null;
     origin = "Choisis les dix champions par rôle.";
     if (labMode === "quick") refreshQuickFields();
@@ -1531,7 +1382,7 @@ function bindEvents() {
   });
   $("#share-button").addEventListener("click", async () => {
     const url = new URL(location.href);
-    url.hash = buildDraftHash(draft, typedLater());
+    url.hash = buildDraftHash(draft);
     try {
       await navigator.clipboard.writeText(url.href);
       toast("Lien de la draft copié.");
@@ -1587,7 +1438,6 @@ function bindEvents() {
     const fromHash = draftFromHash(location.hash);
     if (fromHash) {
       draft = canonicalDraft(fromHash);
-      laterInput = laterFromHash(location.hash) ?? {};
       origin = "Draft chargée depuis un lien partagé.";
       setView("lab");
       if (labMode === "quick") {
@@ -1652,7 +1502,6 @@ async function init() {
     const shared = draftFromHash(location.hash);
     if (shared) {
       draft = canonicalDraft(shared);
-      laterInput = laterFromHash(location.hash) ?? {};
       origin = "Draft chargée depuis un lien partagé.";
       analyzeManual();
     } else loadExample();

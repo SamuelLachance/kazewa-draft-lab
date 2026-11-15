@@ -293,3 +293,16 @@ test("a precedent that fits both orientations equally shows no side", () => {
   };
   assert.deepEqual(precedents(draft, index, { minimum: 1 }), []);
 });
+
+test("one real game is stored once, even when it was heard twice", async () => {
+  const memory = await load("kazewa-memory.json");
+  // Two cases of one video sharing eight champions on the same sides are one
+  // game misheard: the builder attaches the misheard one to the verified game.
+  assert.deepEqual(memory.audit.nearDuplicates, []);
+  const seen = new Map();
+  for (const c of memory.cases) {
+    if (!c.match?.gameId) continue;
+    assert.ok(!seen.has(c.match.gameId), `game ${c.match.gameId} stored twice`);
+    seen.set(c.match.gameId, c.id);
+  }
+});

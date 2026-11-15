@@ -169,36 +169,33 @@ test("the report separates recall from prediction and keeps the bar in view", as
   assert.equal(recallRate.agree, recallRate.n);
   assert.equal(recallRate.n, evaluation.memory.decided);
 
+  // The pick order was tried and set aside: it is still measured, next to the
+  // rule with no model on the same drafts, and the site does not use it.
   const order = evaluation.unseen.pickOrder;
-  // What the site says about unseen drafts is the measured figure.
-  assert.equal(model.reliability.withOrder.agreement, order.agreement);
-  assert.equal(model.reliability.withOrder.n, order.n);
-  assert.equal(model.reliability.withOrder.low, order.low);
-  assert.equal(model.reliability.withOrder.sideOnly.agreement, order.sideOnly.agreement);
-  assert.ok(order.agreement < 0.75, "an unseen-draft figure this high needs a second look");
-  // The rule with no model is measured on the same drafts.
+  assert.equal(order.usedByTheSite, false);
   assert.equal(order.sideOnly.n, order.n);
   assert.ok(["blue", "red"].includes(order.sideOnly.side));
   assert.ok(order.overSideOnly.p > 0 && order.overSideOnly.p <= 1);
   assert.ok(order.low <= order.agreement && order.agreement <= order.high);
+  assert.equal(model.process, undefined);
+  assert.deepEqual(
+    Object.keys(model.reliability).sort(),
+    ["arguments", "cards", "everyDraft", "principles"],
+  );
 
-  // His arguments from other groups: counted, never fitted, and reported with
-  // what happens when they meet the pick order.
+  // His arguments from other groups: counted, never fitted.
   const said = evaluation.unseen.arguments;
   assert.equal(model.reliability.arguments.agreement, said.agreement);
-  assert.equal(model.reliability.both.agreement, said.withPickOrder.sameSide.agreement);
   // Every judged draft gets a verdict from the chain of readings, none is skipped.
   const every = evaluation.unseen.everyDraft;
   assert.equal(every.allJudgedOptimistic.n, evaluation.memory.decided);
   assert.equal(
-    Object.values(every.championsOnly.byReading).reduce((n, r) => n + r.n, 0),
-    every.championsOnly.all.n,
+    Object.values(every.heldOut.byReading).reduce((n, r) => n + r.n, 0),
+    every.heldOut.all.n,
   );
   // The headline only counts drafts from videos the cards were written without.
-  assert.ok(every.championsOnly.all.n >= 50 && every.championsOnly.all.n < evaluation.memory.decided);
-  assert.equal(model.reliability.everyDraft.agreement, every.championsOnly.all.agreement);
-  assert.equal(model.reliability.contested.n, said.withPickOrder.oppositeSides.n);
-  assert.equal(model.reliability.contested.agree, said.withPickOrder.oppositeSides.argumentsRight);
+  assert.ok(every.heldOut.all.n >= 50 && every.heldOut.all.n < evaluation.memory.decided);
+  assert.equal(model.reliability.everyDraft.agreement, every.heldOut.all.agreement);
   // The card figure shown is the one from videos the cards never saw, and the
   // report keeps the inflated one next to it.
   const cardFigures = evaluation.unseen.championCards;

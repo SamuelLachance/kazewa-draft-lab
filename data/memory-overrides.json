@@ -13,31 +13,9 @@
    "swapScreenSides": true,
    "why": "Pick lists were assigned to the wrong screen sides. Three other extractions put Poppy / MAD on the left; he prefers the right side, SK."
   },
-  "kb_key/test_key.json#T01": {
-   "picks": {
-    "right.jng": "Nocturne"
-   },
-   "why": "His reasons and reads discuss the Ryze-Nocturne mid-jungle duo; nothing mentions Lee Sin."
-  },
-  "kb_key/test_key.json#T44": {
-   "picks": {
-    "left.jng": "Lillia"
-   },
-   "why": "The review names Lillia on T1's side three times; Lee Sin appears in no reason or read."
-  },
-  "kb_key/test_key2.json#D23": {
-   "picks": {
-    "left.jng": "Lillia"
-   },
-   "why": "Same game as test_key T44."
-  },
   "verdicts/w9eG_9Yc3nE.json#1": {
    "attachTo": "kb/clean_verdicts/C06.json#w9eG_9Yc3nE_g1",
    "why": "Same game with the two top laners exchanged in this extraction; the matched professional game has Renekton on DK and Rumble on T1."
-  },
-  "kb_key/test_key.json#T33": {
-   "attachTo": "verdicts/JZecUmvga3M.json#3",
-   "why": "Same game of the same video; the review's reasons support its own roster (Lillia, Xayah and Rakan with Yasuo)."
   },
   "verdicts/Y1kXb5XprGo.json#4": {
    "attachTo": "kb_key/test_key2.json#D51",
@@ -74,6 +52,15 @@
   "kb/clean_verdicts/C03.json#HJ8E31CLAuI_g4": {
    "distrustText": true,
    "why": "Names Gen.G where the game is T1 vs DK game 4."
+  },
+  "kb/clean_verdicts/C10.json#gIpos4fRVw8_g4": {
+   "side": "even",
+   "distrustText": true,
+   "why": "This extraction exchanges the team names (it gives KC the Annie and Pantheon of G2) and calls both drafts flawed with the lowest confidence. The review of the same game is clear (confidence 3): he prefers G2. Confirmed by two independent reviews of the dossier."
+  },
+  "kb/clean_verdicts/C02.json#OwqthUyfFxw_g3": {
+   "distrustText": true,
+   "why": "Its label names Gen.G while its own verdict, the review and both answer keys all prefer the T1 composition (Cassiopeia side), and one reason gives T1 the Corki that Gen.G played."
   }
  },
  "videos": {
@@ -81,5 +68,8 @@
    "hindsight": true,
    "why": "Stats-first recap recorded knowing every result: its draft-phase extractions are hindsight, like its review extractions."
   }
+ },
+ "withdrawn": {
+  "note": "Withdrawn on 2026-11-14, once the professional match data covered these 2026 games and showed the original rosters were right: a jungler replaced in test_key T01, the same in T44 / test_key2 D23, and the attachment of test_key T33 to a review extraction whose roster was misheard. A roster is no longer corrected from what the commentary says; a complete extraction two picks away from a verified game of its own video is attached to that game."
  }
 }
