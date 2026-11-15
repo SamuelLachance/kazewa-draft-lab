@@ -44,21 +44,29 @@ Validation « un groupe dehors ». Un groupe réunit toutes les drafts qui parta
 
 **L’ordre des picks.** Pour chaque lane, le modèle sait seulement quel côté a posé son champion après l’autre. Répondre en top et au mid compte le plus, puis en jungle ; pour l’ADC le signe s’inverse légèrement. Ce signal dépasse le hasard mesuré en rejouant la procédure avec des verdicts tirés au sort (49,4 % ± 5,7 points, p ≈ 0,005). Une partie tient au côté de la carte : le côté qui pick en dernier est aussi celui qu’il préfère le plus souvent, et l’écart avec la règle « toujours côté rouge » (120 contre 110 drafts sur 195) n’est pas établi statistiquement (p ≈ 0,28).
 
-**Les deux ensemble.** Quand ses arguments et l’ordre des picks désignent le même côté, c’est son verdict trois fois sur quatre. Quand ils s’opposent (66 drafts), ses arguments ont raison 36 fois : le site n’affiche alors aucune tendance.
+**Les deux ensemble.** Quand ses arguments et l’ordre des picks désignent le même côté, c’est son verdict trois fois sur quatre. Quand ils s’opposent (66 drafts), ses arguments ont raison 36 fois : le site garde ses arguments et signale que le verdict est fragile.
+
+**Ses fiches champion.** Chaque fiche résume ce qu’il dit d’un champion : avec qui il est bon, par qui il est puni. Sur une draft, une fiche parle quand un partenaire cité est du même côté ou qu’un champion qui le punit est en face. Les fiches ont été écrites à partir de la plupart de ses vidéos ; 28 vidéos avaient été tenues à l’écart (`data/card-holdout.json`). Sur les drafts de ces 28 vidéos, les fiches désignent son verdict 32 fois sur 56 (57,1 %). Sur les drafts des vidéos dont elles sont tirées : 131 fois sur 161 (81,4 %). Seul le premier chiffre est affiché. L’écart dit l’essentiel : ce qu’il a dit d’une draft permet de retrouver son verdict, des règles générales sur les champions à peine.
 
 **Ce qui ne marche pas.** Les règles de composition du calculateur, les profils de champions (18 traits par équipe, environ 41 %), l’identité des champions (43 à 47 %) et les statistiques de 44 000 matchs pros (52 à 55 %) restent au niveau du hasard. Ces essais sont dans `research/`.
 
-### Ce que le site affiche
+### Toute draft reçoit un verdict
 
-| Situation | Affichage |
-| --- | --- |
-| Arguments et ordre des picks du même côté | Tendance, fiabilité de la deuxième ligne du tableau |
-| Arguments seuls | Tendance, fiabilité de la première ligne |
-| Ordre des picks seul | Tendance, fiabilité de la troisième ligne, avec le rappel de la règle « toujours côté rouge » |
-| Arguments et ordre des picks opposés | Aucune tendance, les deux lectures sont montrées |
-| Rien d’applicable | Aucune tendance |
+Le site ne s’abstient pas. Il enchaîne les lectures de la plus fiable à la plus grossière et dit laquelle a servi.
 
-Seule la direction est mesurée. Le site n’affiche pas de score de confiance propre à une draft.
+| Situation | Verdict estimé | Drafts | Accord |
+| --- | --- | ---: | ---: |
+| Arguments et ordre des picks du même côté | Ce côté | 79 | 74,7 % |
+| Arguments seuls | Le côté de ses arguments | 180 | 63,3 % |
+| Arguments contre ordre des picks | Le côté de ses arguments, signalé comme fragile | 66 | 54,5 % |
+| Aucun argument, ordre des picks connu | Le côté de l’ordre des picks | 50 | 62,0 % |
+| Aucun argument | Le côté de ses fiches champion | 56 | 57,1 % (vidéos jamais vues par les fiches) |
+| Fiches muettes ou partagées | Le côté de ses principes de composition | 9 | pièce lancée (52 % sur 178 drafts jamais vues) |
+| Rien ne départage | Équilibre | 0 | |
+
+Le total est mesuré sur les 69 drafts des vidéos tenues à l’écart des fiches, avec ses arguments venus d’autres groupes : aucune lecture n’a vu ces drafts. Avec les dix champions seuls, toutes reçoivent un verdict et il coïncide avec le sien 41 fois (59,4 %, intervalle 48 à 69). Avec l’ordre des picks, sur les 43 où il est connu : 30 fois (69,8 %, intervalle 54 à 81). Sur l’ensemble des 244 drafts jugées le total monte à 66,4 %, mais ce chiffre est gonflé par les fiches et n’est pas affiché.
+
+Seule la direction est mesurée. Le site n’affiche pas de score de confiance propre à une draft : il affiche la fiabilité de la lecture utilisée.
 
 ### L’ancien « 100 % »
 

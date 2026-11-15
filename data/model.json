@@ -1,6 +1,6 @@
 {
  "version": "2.1.0",
- "trainedAt": "2026-11-15T00:05:06.305Z",
+ "trainedAt": "2026-11-15T00:49:26.385Z",
  "process": {
   "weights": {
    "top": 0.4458,
@@ -38,14 +38,43 @@
    "low": 0.6285714285714286,
    "high": 0.8444444444444444
   },
-  "split": {
+  "contested": {
    "n": 66,
-   "argumentsRight": 36
+   "agree": 36,
+   "agreement": 0.5454545454545454,
+   "low": 0.417910447761194,
+   "high": 0.6666666666666666,
+   "interval": "group bootstrap"
   },
-  "withoutOrder": {
+  "order": {
+   "n": 50,
+   "agree": 31,
+   "agreement": 0.62,
+   "low": 0.4772727272727273,
+   "high": 0.7450980392156863,
+   "interval": "group bootstrap"
+  },
+  "cards": {
+   "n": 56,
+   "agree": 32,
+   "agreement": 0.5714285714285714,
+   "low": 0.4418604651162791,
+   "high": 0.6862745098039216,
+   "interval": "group bootstrap"
+  },
+  "principles": {
    "agreement": 0.5224719101123596,
    "n": 178,
-   "note": "structural calculator on drafts it was not tuned on: no signal"
+   "low": 0.45569620253164556,
+   "high": 0.59375
+  },
+  "everyDraft": {
+   "n": 69,
+   "agree": 41,
+   "agreement": 0.5942028985507246,
+   "low": 0.48333333333333334,
+   "high": 0.6941176470588235,
+   "interval": "group bootstrap"
   }
  }
 }

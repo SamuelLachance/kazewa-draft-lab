@@ -147,6 +147,8 @@ test("the shipped report and model are exactly what the shipped memory gives", a
   const fresh = buildReport(memory, knowledge, tuning, {
     now: new Date(evaluation.evaluatedAt),
     site,
+    cards: await load("champion-cards.json"),
+    holdout: await load("card-holdout.json"),
   });
   assert.deepEqual(
     JSON.parse(JSON.stringify(fresh.evaluation)),
@@ -185,7 +187,25 @@ test("the report separates recall from prediction and keeps the bar in view", as
   const said = evaluation.unseen.arguments;
   assert.equal(model.reliability.arguments.agreement, said.agreement);
   assert.equal(model.reliability.both.agreement, said.withPickOrder.sameSide.agreement);
-  assert.deepEqual(model.reliability.split, said.withPickOrder.oppositeSides);
+  // Every judged draft gets a verdict from the chain of readings, none is skipped.
+  const every = evaluation.unseen.everyDraft;
+  assert.equal(every.allJudgedOptimistic.n, evaluation.memory.decided);
+  assert.equal(
+    Object.values(every.championsOnly.byReading).reduce((n, r) => n + r.n, 0),
+    every.championsOnly.all.n,
+  );
+  // The headline only counts drafts from videos the cards were written without.
+  assert.ok(every.championsOnly.all.n >= 50 && every.championsOnly.all.n < evaluation.memory.decided);
+  assert.equal(model.reliability.everyDraft.agreement, every.championsOnly.all.agreement);
+  assert.equal(model.reliability.contested.n, said.withPickOrder.oppositeSides.n);
+  assert.equal(model.reliability.contested.agree, said.withPickOrder.oppositeSides.argumentsRight);
+  // The card figure shown is the one from videos the cards never saw, and the
+  // report keeps the inflated one next to it.
+  const cardFigures = evaluation.unseen.championCards;
+  assert.equal(model.reliability.cards.agreement, cardFigures.heldOut.agreement);
+  assert.equal(model.reliability.cards.n, cardFigures.heldOut.n);
+  assert.ok(cardFigures.heldOut.n >= 40);
+  assert.ok(cardFigures.writtenFrom.agreement > cardFigures.heldOut.agreement);
   assert.ok(said.n <= said.judged && said.coverage > 0.5 && said.coverage <= 1);
   assert.ok(said.low <= said.agreement && said.agreement <= said.high);
   assert.ok(said.agreement < 0.8, "an unseen-draft figure this high needs a second look");
@@ -194,7 +214,7 @@ test("the report separates recall from prediction and keeps the bar in view", as
   const calc = evaluation.unseen.structuralCalculator;
   assert.ok(calc.neverSeen.n >= 150);
   assert.ok(calc.tunedOn.n <= 70);
-  assert.equal(model.reliability.withoutOrder.agreement, calc.neverSeen.agreement);
+  assert.equal(model.reliability.principles.agreement, calc.neverSeen.agreement);
 });
 
 test("the page never states an agreement figure of its own", async () => {

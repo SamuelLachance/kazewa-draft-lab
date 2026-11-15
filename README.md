@@ -1,6 +1,6 @@
 # Kazewa — Draft Lab
 
-Le verdict de Kazewa sur les drafts de League of Legends qu’il a commentées, avec ses raisons et sa vidéo. Pour une draft qu’il n’a pas commentée : ses avis les plus proches, ses arguments sur les mêmes champions, et une tendance tirée de ces arguments, dont la fiabilité est mesurée et affichée.
+Le verdict de Kazewa sur les drafts de League of Legends qu’il a commentées, avec ses raisons et sa vidéo. Toute autre draft reçoit un verdict estimé : d’après ses arguments sur les mêmes champions, puis ses fiches champion, puis ses principes de composition. Chaque verdict dit quelle lecture a servi et ce qu’elle vaut.
 
 Site : [samuellachance.github.io/kazewa-draft-lab](https://samuellachance.github.io/kazewa-draft-lab/). Dépôt : [SamuelLachance/kazewa-draft-lab](https://github.com/SamuelLachance/kazewa-draft-lab).
 
@@ -11,8 +11,14 @@ Site : [samuellachance.github.io/kazewa-draft-lab](https://samuellachance.github
 | Draft que Kazewa a jugée | Son verdict, sa confiance, ses raisons en français, le lien vers le passage de la vidéo | Restitution : c’est son avis, pas une prédiction |
 | Draft inédite, ses arguments s’y appliquent | Le côté que désignent les matchups, synergies et réponses qu’il a nommés dans d’autres vidéos | Environ 63 %, mesuré en ne gardant que ses arguments venus d’autres vidéos |
 | … et l’ordre des picks les confirme | La même tendance, renforcée | Environ 75 % |
-| … et l’ordre des picks les contredit | Aucune tendance, les deux lectures sont montrées | Aucune des deux ne l’emporte |
-| Draft inédite, aucun argument applicable | L’ordre des picks seul s’il est connu (environ 61 %), sinon rien | Les règles de composition seules ne dépassent pas une pièce lancée |
+| … et l’ordre des picks les contredit | Le côté de ses arguments, signalé comme fragile | Environ 55 % |
+| Aucun argument applicable, ordre des picks connu | Le côté que désigne l’ordre des picks | Environ 61 % |
+| Aucun argument applicable | Le côté que désignent ses fiches champion (qui est bon avec qui, qui est puni par qui) | Environ 57 %, mesuré sur des vidéos que les fiches n’ont jamais vues |
+| Ses fiches ne départagent pas | Le côté que désignent ses principes de composition | Environ 52 % : une pièce lancée |
+
+Aucune draft complète n’est laissée sans verdict. Sur les drafts de vidéos tenues à l’écart de toutes les lectures, le verdict estimé coïncide avec le sien environ six fois sur dix avec les dix champions seuls, et sept fois sur dix quand l’ordre des picks est donné.
+
+Un constat borne tout le reste : sur les vidéos dont ses fiches champion sont tirées, les fiches retrouvent son verdict quatre fois sur cinq ; sur les vidéos qu’elles n’ont jamais vues, à peine plus d’une fois sur deux. Ce qu’il dit d’une draft permet de retrouver son verdict ; des règles générales sur les champions ne le permettent pas.
 
 Les chiffres exacts sont dans [`data/evaluation.json`](data/evaluation.json) et expliqués dans [`docs/EVALUATION.md`](docs/EVALUATION.md). Le site les lit dans ce fichier : il n’écrit aucun pourcentage en dur.
 
@@ -74,13 +80,15 @@ Les extractions qu’aucune partie ne permet de compléter restent hors mémoire
 | Chemin | Fonction |
 | --- | --- |
 | `src/memory.mjs` | Recherche d’une draft jugée, drafts proches, arguments applicables |
-| `src/verdict.mjs` | Réponse du site : sa mémoire d’abord, tendance mesurée sinon |
+| `src/verdict.mjs` | Réponse du site : sa mémoire d’abord, sinon la chaîne de lectures |
+| `src/relations.mjs` | Lecture d’après ses fiches champion |
 | `src/engine.mjs` | Calculateur structurel (description des compositions) |
 | `src/draft-coach.mjs` | Coach de draft pick par pick |
 | `data/kazewa-memory.json` | Mémoire complète, avec la trace de chaque source |
 | `data/memory-site.json` | Version chargée par le site |
 | `data/champion-cards.json` | Fiche Kazewa des 173 champions |
 | `data/model.json` | Poids de l’ordre des picks par lane et fiabilités mesurées |
+| `data/card-holdout.json` | Vidéos tenues à l’écart quand les fiches ont été écrites |
 | `data/evaluation.json` | Rapport de mesure |
 | `scripts/` | Construction de la mémoire, mesure, build |
 | `research/` | Banc d’essai hors groupe et modèles essayés |

@@ -1,6 +1,6 @@
 {
  "version": "2.1.0",
- "evaluatedAt": "2026-11-15T00:05:06.305Z",
+ "evaluatedAt": "2026-11-15T00:49:26.385Z",
  "memory": {
   "cases": 253,
   "decided": 244,
@@ -79,6 +79,135 @@
    },
    "note": "No fitting. For each judged draft, the arguments he gave in other groups that still apply (same champions, same relation, same roles) are counted per side; the side with more is compared with his verdict. Drafts with no applicable argument or a tie are not counted (coverage)."
   },
+  "championCards": {
+   "heldOut": {
+    "n": 56,
+    "agree": 32,
+    "agreement": 0.5714285714285714,
+    "low": 0.4418604651162791,
+    "high": 0.6862745098039216,
+    "interval": "group bootstrap"
+   },
+   "writtenFrom": {
+    "n": 161,
+    "agree": 131,
+    "agreement": 0.8136645962732919,
+    "low": 0.7481481481481481,
+    "high": 0.8734177215189873,
+    "interval": "group bootstrap"
+   },
+   "heldOutVideos": 28,
+   "note": "'heldOut' counts drafts from videos the cards were written without; 'writtenFrom' counts drafts from videos the cards summarise. Only 'heldOut' says what the card reading is worth on a new draft."
+  },
+  "everyDraft": {
+   "championsOnly": {
+    "all": {
+     "n": 69,
+     "agree": 41,
+     "agreement": 0.5942028985507246,
+     "low": 0.48333333333333334,
+     "high": 0.6941176470588235,
+     "interval": "group bootstrap"
+    },
+    "byReading": {
+     "arguments": {
+      "n": 50,
+      "agree": 30,
+      "agreement": 0.6,
+      "low": 0.44680851063829785,
+      "high": 0.723404255319149,
+      "interval": "group bootstrap"
+     },
+     "principles": {
+      "n": 5,
+      "agree": 3,
+      "agreement": 0.6,
+      "low": 0.25,
+      "high": 1,
+      "interval": "group bootstrap"
+     },
+     "cards": {
+      "n": 14,
+      "agree": 8,
+      "agreement": 0.5714285714285714,
+      "low": 0.38461538461538464,
+      "high": 0.75,
+      "interval": "group bootstrap"
+     }
+    }
+   },
+   "withPickOrder": {
+    "all": {
+     "n": 43,
+     "agree": 30,
+     "agreement": 0.6976744186046512,
+     "low": 0.5384615384615384,
+     "high": 0.8125,
+     "interval": "group bootstrap"
+    },
+    "byReading": {
+     "both": {
+      "n": 14,
+      "agree": 10,
+      "agreement": 0.7142857142857143,
+      "low": 0.4166666666666667,
+      "high": 0.9375,
+      "interval": "group bootstrap"
+     },
+     "contested": {
+      "n": 16,
+      "agree": 10,
+      "agreement": 0.625,
+      "low": 0.3076923076923077,
+      "high": 0.85,
+      "interval": "group bootstrap"
+     },
+     "order": {
+      "n": 13,
+      "agree": 10,
+      "agreement": 0.7692307692307693,
+      "low": 0.5714285714285714,
+      "high": 1,
+      "interval": "group bootstrap"
+     }
+    }
+   },
+   "byReadingAllDrafts": {
+    "contested": {
+     "n": 66,
+     "agree": 36,
+     "agreement": 0.5454545454545454,
+     "low": 0.417910447761194,
+     "high": 0.6666666666666666,
+     "interval": "group bootstrap"
+    },
+    "both": {
+     "n": 79,
+     "agree": 59,
+     "agreement": 0.7468354430379747,
+     "low": 0.6438356164383562,
+     "high": 0.8426966292134831,
+     "interval": "group bootstrap"
+    },
+    "order": {
+     "n": 50,
+     "agree": 31,
+     "agreement": 0.62,
+     "low": 0.4772727272727273,
+     "high": 0.7450980392156863,
+     "interval": "group bootstrap"
+    }
+   },
+   "allJudgedOptimistic": {
+    "n": 244,
+    "agree": 162,
+    "agreement": 0.6639344262295082,
+    "low": 0.5976095617529881,
+    "high": 0.7263157894736842,
+    "interval": "group bootstrap"
+   },
+   "note": "Each judged draft is given the verdict the site would give it if he had not judged it: his arguments from other groups first, then the pick order, then his champion cards, then the structural calculator. 'championsOnly' and 'withPickOrder' use only drafts from videos the cards were written without. 'allJudgedOptimistic' uses every judged draft and is inflated: on most of them the cards summarise the very video being tested."
+  },
   "structuralCalculator": {
    "tunedOn": {
     "n": 62,
@@ -112,6 +241,7 @@
  "limitations": [
   "His verdicts lean on pick order, bans, players, team form and the meta of the day. Ten champions do not carry that.",
   "The pick-order figure rests on fewer than two hundred drafts, it was measured on the corpus the idea came from, and part of it is the map side: the side that picks last is also the side he prefers most often.",
+  "The champion cards follow his verdict far more often on the videos they were written from than on the videos kept out of them. Only the second figure is shown. The same gap is to be expected for any knowledge taken from his videos.",
   "The arguments figure counts what he said in other videos. Teams that keep drafting the same pairs and that he keeps preferring can inflate it; on teams and patches he has not commented it may be lower.",
   "Review and late opinions can know the result of the game. They are kept, with their timing shown.",
   "A new video can contradict a tendency. The memory is updated by rebuilding it from the corpus."

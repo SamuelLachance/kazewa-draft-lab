@@ -20,6 +20,7 @@ for (const name of [
   "memory-site.json",
   "model.json",
   "champion-cards.json",
+  "card-holdout.json",
   "champion-assets.json",
 ]) {
   const content = await readFile(path.join(root, "data", name), "utf8");

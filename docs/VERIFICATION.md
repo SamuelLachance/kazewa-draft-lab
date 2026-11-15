@@ -2,7 +2,7 @@
 
 Vérifications effectuées le 14 novembre 2026.
 
-Résultat local : **122 tests automatisés réussis**, aucune erreur ; mesure recalculée ; construction statique réussie.
+Résultat local : **124 tests automatisés réussis**, aucune erreur ; mesure recalculée ; construction statique réussie.
 
 ## Mémoire des verdicts
 
@@ -20,6 +20,8 @@ Résultat local : **122 tests automatisés réussis**, aucune erreur ; mesure re
 - L’ordre des picks est comparé à la règle « toujours le même côté », mesurée sur les mêmes drafts.
 - Le rapport et le modèle livrés doivent être exactement ceux que donne la mémoire livrée.
 - La page ne contient aucun pourcentage d’accord écrit en dur.
+- La lecture par fiches champion est mesurée sur les seules vidéos tenues à l’écart quand les fiches ont été écrites ; le rapport garde à côté le chiffre gonflé des autres vidéos, et un test vérifie que c’est le premier qui est affiché.
+- Toute draft complète reçoit un verdict : un test tire 500 drafts au hasard dans tout le catalogue, champions rares compris, et vérifie que chacune obtient un côté (ou, par exception, un équilibre) et que la fiabilité de la lecture utilisée existe dans le modèle livré.
 
 ## Recherche d’un meilleur modèle
 
@@ -30,8 +32,9 @@ Cinq tentatives indépendantes ont cherché un signal sous le même protocole (a
 Vérifié sur le serveur local, en largeur bureau (1280 px) et mobile (375 px), sans débordement horizontal ni erreur de console :
 
 1. Chargement : une draft jugée s’affiche avec son verdict, ses raisons en français, ses lectures de champions et le lien vidéo.
-2. Changement d’un champion : la draft devient inédite, la tendance vient de ses arguments, le panneau d’ordre des picks apparaît.
-3. Saisie de l’ordre des picks sur les cinq lanes : la tendance est confirmée (fiabilité plus haute) ou annulée (deux lectures opposées).
+2. Changement d’un champion : la draft devient inédite, le verdict estimé vient de ses arguments, le panneau d’ordre des picks apparaît.
+3. Saisie de l’ordre des picks sur les cinq lanes : le verdict est confirmé (fiabilité plus haute) ou signalé comme contesté.
+3 bis. Draft sans aucun argument applicable (Gwen, Nocturne, Twisted Fate, Yunara, Neeko contre Akali, Pantheon, Aurora, Xayah, Lulu) : verdict estimé d’après ses fiches champion, avec la liste des remarques qui s’appliquent.
 4. Inversion des équipes : la tendance et le verdict suivent les compositions. Un clic dans la page ne relance plus le rendu de la vue.
 5. Fiche champion : ouverture, contenu, fermeture.
 6. Drafts proches et arguments applicables, avec le bouton qui charge un précédent.
