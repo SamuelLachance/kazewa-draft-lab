@@ -16,9 +16,10 @@ await mkdir(path.join(output, "data"), { recursive: true });
 for (const name of [
   "knowledge.json",
   "rules.json",
-  "benchmark.json",
   "evaluation.json",
-  "distillation.json",
+  "memory-site.json",
+  "model.json",
+  "champion-cards.json",
   "champion-assets.json",
 ]) {
   const content = await readFile(path.join(root, "data", name), "utf8");

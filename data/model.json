@@ -1,0 +1,51 @@
+{
+ "version": "2.1.0",
+ "trainedAt": "2026-11-15T00:05:06.305Z",
+ "process": {
+  "weights": {
+   "top": 0.4458,
+   "jng": 0.2928,
+   "mid": 0.3568,
+   "bot": -0.0938,
+   "sup": 0.1186
+  },
+  "lambda": 2,
+  "trainedOn": 195,
+  "note": "Positive weight: the side that picks later in this lane is the side he tends to prefer. Only the sign of the total is used."
+ },
+ "reliability": {
+  "withOrder": {
+   "agreement": 0.6153846153846154,
+   "n": 195,
+   "low": 0.5341614906832298,
+   "high": 0.6880733944954128,
+   "p": 0.004975124378109453,
+   "sideOnly": {
+    "side": "red",
+    "agreement": 0.5641025641025641
+   }
+  },
+  "arguments": {
+   "agreement": 0.6333333333333333,
+   "n": 180,
+   "low": 0.5489130434782609,
+   "high": 0.7068062827225131,
+   "coverage": 0.7377049180327869
+  },
+  "both": {
+   "agreement": 0.7468354430379747,
+   "n": 79,
+   "low": 0.6285714285714286,
+   "high": 0.8444444444444444
+  },
+  "split": {
+   "n": 66,
+   "argumentsRight": 36
+  },
+  "withoutOrder": {
+   "agreement": 0.5224719101123596,
+   "n": 178,
+   "note": "structural calculator on drafts it was not tuned on: no signal"
+  }
+ }
+}

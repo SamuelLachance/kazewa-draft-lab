@@ -44,12 +44,24 @@ export function draftFromHash(hash) {
   }
 }
 
-export function buildDraftHash(draft) {
+/** Pick order in a link: one letter per lane, top to support, b or r. */
+export function laterFromHash(hash) {
+  const value = new URLSearchParams(String(hash).replace(/^#/, "")).get("later");
+  if (!value || !/^[br]{5}$/.test(value)) return null;
+  return Object.fromEntries(
+    ROLES.map((role, i) => [role, value[i] === "b" ? "blue" : "red"]),
+  );
+}
+
+export function buildDraftHash(draft, later = null) {
   const copy = emptyDraft();
   for (const side of ["blue", "red"])
     for (const role of ROLES)
       copy[side][role] = String(draft[side]?.[role] || "").slice(0, 60);
-  return "#" + new URLSearchParams({ draft: JSON.stringify(copy) }).toString();
+  const params = { draft: JSON.stringify(copy) };
+  if (later && ROLES.every((role) => later[role] === "blue" || later[role] === "red"))
+    params.later = ROLES.map((role) => (later[role] === "blue" ? "b" : "r")).join("");
+  return "#" + new URLSearchParams(params).toString();
 }
 
 export function validateClientSnapshot(value) {

@@ -1,39 +1,43 @@
-# Vérifications de la version
+# Vérifications de la version 2.1.0
 
-Vérifications effectuées le 29 octobre 2026.
+Vérifications effectuées le 14 novembre 2026.
 
-Résultat local final : **86 tests automatisés réussis**, aucune erreur ; construction statique réussie.
+Résultat local : **122 tests automatisés réussis**, aucune erreur ; mesure recalculée ; construction statique réussie.
 
-## Calcul et données
+## Mémoire des verdicts
 
-Les tests automatisés couvrent la symétrie du score, l’absence des résultats et noms d’équipes dans les entrées prédictives, l’abstention sur picks inconnus/incertains et drafts incomplets, les rôles des synergies, la déduplication des cas, l’orientation des labels, l’exclusion des correspondances ambiguës et la séparation du corpus exploratoire.
+- Chaque draft jugée renvoie son verdict dans les deux orientations (244 sur 244), contrôlé par `npm run evaluate` et par `tests/memory.test.mjs`.
+- Les tests vérifient pour chaque cas : dix champions distincts et connus, verdict et moment valides, au moins une vidéo source, ordre des picks cohérent, arguments limités aux champions de la draft, aucune draft en double.
+- Les 259 cas de la première construction ont été relus un par un à partir de leur dossier, puis chaque anomalie a reçu une seconde relecture indépendante. Une relecture du code en cinq angles, dont chaque défaut signalé a été vérifié par un second relecteur, a ensuite trouvé quatre parties stockées deux fois et une vidéo récapitulative à reclasser. Les corrections retenues sont dans `data/memory-overrides.json`. Détail dans [`EVALUATION.md`](EVALUATION.md).
+- Les traductions françaises et les arguments structurés ont été produits par lots, puis relus par un second passage qui contrôlait le côté avantagé par chaque argument. L’import refuse un lot qui ne correspond plus au texte qu’il traduit.
+- Les 173 fiches champion couvrent tout le catalogue ; un test échoue si un champion n’a pas de fiche.
 
-Les rapports d’accord sont recalculables. Les empreintes des sources empêchent de réutiliser un rapport périmé après modification du moteur. La publication n’est pas bloquée : le seuil affiché est 70 % sur la cohorte élargie.
+## Mesure
 
-L’expérience d’apprentissage utilise une validation par groupes de vidéos et de compositions. Ses 82,3 % en apprentissage ne sont pas un résultat de généralisation ; les 51,6 % hors groupe et le recul sur le transfert séparé ne justifient pas son adoption.
+- La validation retire un groupe entier (vidéo ou série) à chaque tour. Un test met les deux tiers des drafts dans un groupe qui suit la règle inverse : jugé honnêtement il obtient zéro, et il obtiendrait tout s’il fuyait dans son propre entraînement.
+- Ses arguments sont comptés depuis les autres groupes seulement ; un test vérifie qu’un argument ne compte ni pour sa propre draft ni pour une autre partie de sa vidéo.
+- Avec des verdicts tirés au sort, l’accord mesuré reste autour de 50 % et le test de permutation (200 tirages) ne les déclare pas significatifs ; avec une règle réelle il est au plancher.
+- L’ordre des picks est comparé à la règle « toujours le même côté », mesurée sur les mêmes drafts.
+- Le rapport et le modèle livrés doivent être exactement ceux que donne la mémoire livrée.
+- La page ne contient aucun pourcentage d’accord écrit en dur.
+
+## Recherche d’un meilleur modèle
+
+Cinq tentatives indépendantes ont cherché un signal sous le même protocole (arguments de Kazewa, statistiques des matchs pros, ordre des picks, structure des compositions, drafts proches), chacune limitée à douze variantes. Les notes disponibles sont dans `research/notes/`. Deux pistes en sont sorties : l’ordre des picks, et la reprise de ses propres arguments. Le site utilise la seconde sous sa forme la plus simple, sans aucun réglage.
 
 ## Navigateur
 
-Chrome a rendu le site avec un profil de test isolé, sans accès à la session utilisateur. Vérification visuelle du bureau et d’un viewport mobile réel de 390 px, sans débordement horizontal.
+Vérifié sur le serveur local, en largeur bureau (1280 px) et mobile (375 px), sans débordement horizontal ni erreur de console :
 
-Un harnais temporaire de même origine a vérifié neuf parcours :
-
-1. Chargement du moteur et des dix sélecteurs.
-2. Suppression des picks et suspension du verdict.
-3. Analyse d’une composition complète.
-4. Inversion des équipes et conservation de la marge.
-5. Lien partagé contenant un pick incertain : abstention visible.
-6. Affichage des mesures et du corpus exploratoire dans la méthode.
-7. Absence de flux : aucun verdict final.
-8. Réception et analyse d’un flux local explicitement simulé.
-9. Changement de source : ancien verdict effacé immédiatement.
-
-Le serveur de simulation et les pages temporaires ne font pas partie du site distribué. Les captures et le résultat de cette séance sont dans le dossier local ignoré `.preview/`.
+1. Chargement : une draft jugée s’affiche avec son verdict, ses raisons en français, ses lectures de champions et le lien vidéo.
+2. Changement d’un champion : la draft devient inédite, la tendance vient de ses arguments, le panneau d’ordre des picks apparaît.
+3. Saisie de l’ordre des picks sur les cinq lanes : la tendance est confirmée (fiabilité plus haute) ou annulée (deux lectures opposées).
+4. Inversion des équipes : la tendance et le verdict suivent les compositions. Un clic dans la page ne relance plus le rendu de la vue.
+5. Fiche champion : ouverture, contenu, fermeture.
+6. Drafts proches et arguments applicables, avec le bouton qui charge un précédent.
+7. Saisie rapide : même verdict que par rôle.
+8. Coach de draft, direct pro et méthode : rendu sans erreur ; le tableau de mesure lit `data/evaluation.json`.
 
 ## Sources live et HTTP
 
-Le connecteur public LoL Esports a réussi un appel réseau réel et trouvé zéro partie active. Des fenêtres historiques réelles ont confirmé le schéma des rôles et les dix identifiants de champions. Cela ne valide pas encore une partie active de bout en bout ni une garantie de suivi pendant la sélection.
-
-Les tests HTTP couvrent les erreurs réseau, observations périmées, doublons, limites de taille, authentification, CORS, fichiers privés, traversées de chemins et liens symboliques. Le connecteur PandaScore reste à vérifier avec un accès commercial réel.
-
-La connexion GitHub est confirmée. Le dépôt de revue et la validation du code restent distincts de la publication d’un site et de la fidélité aux jugements de Kazewa.
+Inchangé depuis la version précédente : les tests HTTP couvrent les erreurs réseau, observations périmées, doublons, limites de taille, CORS, fichiers privés, traversées de chemins et liens symboliques. Le connecteur PandaScore reste à vérifier avec un accès commercial réel.

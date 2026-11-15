@@ -2221,3 +2221,281 @@ body[data-view="coach"] .principles-strip {
     animation: none !important;
   }
 }
+/* Kazewa memory */
+@media (min-width: 1051px) {
+  .champion-row {
+    grid-template-columns: 33px 39px 1fr auto;
+  }
+}
+@media (min-width: 761px) and (max-width: 1050px) {
+  .champion-row {
+    grid-template-columns: 28px 35px 1fr auto;
+  }
+}
+@media (max-width: 760px) {
+  .champion-row .card-button {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    padding: 3px 6px;
+    margin-top: -2px;
+  }
+}
+.order-role {
+  font: 8px var(--mono);
+  color: #a1ad99;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.card-button {
+  font: 8px var(--mono);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #a8bc8c;
+  background: transparent;
+  border: 1px solid #36422f;
+  border-radius: 3px;
+  padding: 5px 7px;
+}
+.card-button:hover,
+.card-button.is-active {
+  color: var(--lime);
+  border-color: #6b8a45;
+}
+.champion-card {
+  margin-top: 14px;
+  border: 1px solid #45583a;
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 18px 22px;
+}
+.champion-card .panel-heading h3 {
+  font-family: var(--heading);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+.champion-card p,
+.champion-card li {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #c9d2c0;
+}
+.champion-card p + p,
+.champion-card ul + p,
+.champion-card p + ul {
+  margin-top: 8px;
+}
+.champion-card strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.champion-card h4 {
+  font-size: 11px;
+  font-weight: 500;
+  margin: 14px 0 6px;
+  color: var(--text);
+}
+.champion-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+.champion-card li {
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+}
+.champion-card .fine-print {
+  margin-top: 12px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.champion-card .source-links {
+  display: inline-flex;
+}
+.verdict-card[data-source="memory"] {
+  border-width: 2px;
+}
+.verdict-card[data-source="unseen"],
+.verdict-card[data-source="memory_undecided"] {
+  border-style: dashed;
+}
+.verdict-card[data-side="even"] {
+  background: linear-gradient(110deg, #20241d, #181c17 80%);
+  border-color: #4a5443;
+}
+.verdict-main p {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.kazewa-panel,
+.order-panel {
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 20px 22px;
+}
+.kazewa-panel {
+  border-color: #45583a;
+}
+.kazewa-reasons {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 9px;
+}
+.kazewa-reasons li {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text);
+  padding-left: 4px;
+}
+.kazewa-reasons li::marker {
+  font: 10px var(--mono);
+  color: #7f9469;
+}
+.kazewa-panel h4 {
+  font-size: 11px;
+  font-weight: 500;
+  margin: 18px 0 8px;
+}
+.kazewa-reads {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 24px;
+}
+.kazewa-reads li {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #c9d2c0;
+  border-left: 2px solid var(--blue);
+  padding-left: 10px;
+}
+.kazewa-reads li[data-side="red"] {
+  border-left-color: var(--red);
+}
+.kazewa-reads strong {
+  color: var(--text);
+  font-weight: 600;
+  margin-right: 4px;
+}
+.kazewa-panel > .fine-print {
+  margin: 16px 0 8px;
+}
+.kazewa-panel .source-links,
+.evidence-grid .source-links {
+  font-size: 9px;
+  align-items: center;
+}
+.order-panel > .fine-print {
+  margin-bottom: 12px;
+}
+.order-rows {
+  display: grid;
+  gap: 6px;
+}
+.order-row {
+  display: grid;
+  grid-template-columns: 52px 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+}
+.order-row button {
+  min-height: 34px;
+  font-size: 12px;
+  text-align: left;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: #151b14;
+  color: #c9d2c0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.order-row button[data-side="blue"]:hover,
+.order-row button[data-side="blue"].is-active {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.order-row button[data-side="red"]:hover,
+.order-row button[data-side="red"].is-active {
+  border-color: var(--red);
+  color: var(--red);
+}
+.order-row button.is-active {
+  background: #1d251c;
+  font-weight: 600;
+}
+.order-row button.is-active::after {
+  content: " · pick après";
+  font: 8px var(--mono);
+  letter-spacing: 0.4px;
+  opacity: 0.85;
+}
+.evidence-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+.evidence-grid:not(:has(> section:not([hidden]))) {
+  display: none;
+}
+.evidence-grid > section[hidden] {
+  display: none;
+}
+.evidence-grid:has(> section[hidden]) {
+  grid-template-columns: 1fr;
+}
+.evidence-grid .signal p {
+  font-size: 11px;
+  color: #c0cab7;
+}
+.evidence-grid .signal-title {
+  font-size: 12px;
+}
+.evidence-grid .fine-print,
+.reason-panel > .fine-print {
+  margin: -6px 0 10px;
+}
+.precedent-comps [data-side="blue"] {
+  color: var(--blue);
+}
+.precedent-comps [data-side="red"] {
+  color: var(--red);
+}
+.evidence-grid .text-button {
+  font: 9px var(--mono);
+  padding: 0;
+}
+.evaluation-details table td:last-child {
+  color: var(--muted);
+}
+@media (max-width: 1050px) {
+  .evidence-grid,
+  .evidence-grid:has(> section[hidden]) {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .kazewa-reads {
+    grid-template-columns: 1fr;
+  }
+  .kazewa-panel,
+  .order-panel,
+  .champion-card {
+    padding: 16px;
+  }
+  .order-row {
+    grid-template-columns: 44px 1fr 1fr;
+  }
+  .evaluation-details table {
+    display: block;
+    overflow-x: auto;
+  }
+}

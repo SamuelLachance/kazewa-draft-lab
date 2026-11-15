@@ -1,0 +1,2 @@
+# Generated data keeps LF so hashes and diffs are stable on every platform.
+data/*.json text eol=lf

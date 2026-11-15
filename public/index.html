@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#111511" />
     <meta
       name="description"
-      content="Analysez les deux compositions d’une draft de League of Legends selon les principes de Kazewa. Un verdict expliqué, des sources et un suivi des matchs professionnels."
+      content="Retrouvez le verdict de Kazewa sur les drafts de League of Legends qu’il a commentées, ses raisons et sa vidéo. Pour une draft inédite : ses avis les plus proches et une tendance dont la fiabilité est mesurée."
     />
     <title>Kazewa — Draft Lab</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
@@ -55,8 +55,9 @@
               La partie commence<br />avant le <span>premier kill.</span>
             </h1>
             <p class="hero-description">
-              Deux compositions. Un plan de jeu. Découvrez quelle draft prend
-              l’avantage, avec le raisonnement de Kazewa à chaque étape.
+              Deux compositions. Si Kazewa a jugé cette draft, voici son verdict
+              et ses raisons. Sinon, ses avis les plus proches et une tendance
+              dont la fiabilité est mesurée.
             </p>
           </div>
           <div class="hero-aside" aria-label="Périmètre de l’analyse">
@@ -78,7 +79,7 @@
                 <strong id="champion-count">—</strong><span>CHAMPIONS</span>
               </div>
               <div>
-                <strong id="rule-count">—</strong><span>PRINCIPES SOURCÉS</span>
+                <strong id="memory-count">—</strong><span>DRAFTS JUGÉES PAR KAZEWA</span>
               </div>
             </div>
           </div>
@@ -113,12 +114,12 @@
           <section id="lab-view" aria-label="Composition manuelle">
             <div class="draft-toolbar">
               <div class="toolbar-note">
-                <span class="keycap">10</span> champions. Aucun classement
-                d’équipe dans le calcul.
+                <span class="keycap">10</span> champions. Son verdict si Kazewa
+                a jugé la draft, une lecture mesurée sinon.
               </div>
               <div class="toolbar-actions">
                 <button id="example-button" class="small-button">
-                  Charger un cas du corpus
+                  Charger une draft jugée par Kazewa
                   <span aria-hidden="true">↗</span></button
                 ><button
                   id="swap-button"
@@ -148,8 +149,9 @@
             <div id="quick-draft" class="quick-draft" hidden>
               <p class="quick-help">
                 Écris ou colle les champions de chaque côté, séparés par des
-                virgules. Le score apparaît dès que les deux comps sont
-                reconnues. Les rôles suivent le rôle habituel de chaque
+                virgules. Dès que les deux comps sont reconnues, le verdict de
+                Kazewa s’affiche s’il a jugé cette draft ; sinon ses avis les
+                plus proches. Les rôles suivent le rôle habituel de chaque
                 champion. Clique deux rôles du même côté pour échanger leurs
                 champions.
               </p>
@@ -184,6 +186,12 @@
               </div>
               <div class="team-panel red-team" id="red-team"></div>
             </div>
+            <section
+              id="champion-card"
+              class="champion-card"
+              aria-live="polite"
+              hidden
+            ></section>
             <div class="draft-footnote">
               <span id="draft-origin"
                 >Sélectionnez les champions par rôle pour lancer
@@ -319,7 +327,8 @@
           >
             <div class="verdict-card" id="verdict-card">
               <div class="verdict-heading">
-                <span class="eyebrow">LE VERDICT DE LA DRAFT</span
+                <span class="eyebrow" id="verdict-eyebrow"
+                  >LE VERDICT DE LA DRAFT</span
                 ><span id="confidence-badge" class="badge"></span>
               </div>
               <div class="verdict-main">
@@ -329,7 +338,7 @@
                 </div>
                 <div class="score-display">
                   <strong id="verdict-margin"></strong
-                  ><span>SCORE · + BLEU</span>
+                  ><span id="verdict-margin-label">CONFIANCE</span>
                 </div>
               </div>
               <div class="advantage-track" aria-hidden="true">
@@ -337,16 +346,43 @@
               </div>
               <div class="track-labels">
                 <span>CÔTÉ BLEU</span
-                ><span>Score heuristique · pas une probabilité de victoire</span
+                ><span id="track-note"></span
                 ><span>CÔTÉ ROUGE</span>
               </div>
+            </div>
+            <section
+              id="kazewa-panel"
+              class="kazewa-panel"
+              aria-label="Les raisons de Kazewa"
+              hidden
+            ></section>
+            <section
+              id="order-panel"
+              class="order-panel"
+              aria-label="Ordre des picks"
+              hidden
+            ></section>
+            <div class="evidence-grid">
+              <section
+                id="arguments-panel"
+                class="reason-panel"
+                aria-label="Arguments de Kazewa sur ces champions"
+                hidden
+              ></section>
+              <section
+                id="precedents-panel"
+                class="reason-panel"
+                aria-label="Drafts proches jugées par Kazewa"
+                hidden
+              ></section>
             </div>
             <div class="analysis-grid">
               <section class="reason-panel">
                 <div class="panel-heading">
-                  <h3>Ce qui fait la différence</h3>
+                  <h3>Lecture structurelle du calculateur</h3>
                   <span class="mono" id="signal-count"></span>
                 </div>
+                <p class="fine-print" id="calculator-note"></p>
                 <div id="reasons"></div>
               </section>
               <section class="axes-panel">
@@ -391,39 +427,43 @@
             <div class="method-intro">
               <span class="eyebrow">DU CORPUS AU VERDICT</span>
               <h2 id="method-title">
-                Un raisonnement que vous<br />pouvez remonter à la source.
+                Son verdict quand il existe.<br />Une mesure honnête sinon.
               </h2>
               <p>
-                Le moteur traduit les principes récurrents du corpus en règles
-                exécutables. C’est une reconstruction expérimentale de la
-                méthode, avec des choix d’implémentation explicites.
+                Chaque draft que Kazewa a commentée est gardée en mémoire avec
+                son verdict, ses raisons et sa vidéo. Pour une draft qu’il n’a
+                pas jugée, le site montre ses avis les plus proches et ce qu’il a
+                dit des mêmes champions, et en tire une tendance dont la
+                fiabilité a été mesurée.
               </p>
             </div>
             <div class="method-steps">
               <article>
                 <span>01</span>
-                <h3>Les fondations</h3>
+                <h3>La mémoire</h3>
                 <p>
-                  Une frontline qui tient. Des dégâts soutenus. Des carries qui
-                  peuvent jouer. Les trous structurels passent avant les petits
-                  avantages.
+                  Les dix champions et leurs rôles sont comparés aux drafts
+                  qu’il a commentées. Si la draft y est, c’est son verdict qui
+                  s’affiche, avec le moment où il l’a donné.
                 </p>
               </article>
               <article>
                 <span>02</span>
-                <h3>Le face-à-face</h3>
+                <h3>Ses arguments</h3>
                 <p>
-                  Catch contre immobiles, engage contre disengage, poke protégé,
-                  combos et anti-dash : la valeur d’un pick dépend des neuf
-                  autres.
+                  Un matchup, une synergie ou une réponse qu’il a nommés dans
+                  une autre draft restent valables quand les mêmes champions
+                  se retrouvent dans la même relation. Le côté qu’ils
+                  désignent donne la tendance.
                 </p>
               </article>
               <article>
                 <span>03</span>
-                <h3>Le plan dans le temps</h3>
+                <h3>L’ordre des picks</h3>
                 <p>
-                  Qui doit agir ? Qui peut attendre ? Le moteur compare les
-                  outils de scaling, de teamfight, de terrain et de side.
+                  Qui répond à qui dans chaque lane. Quand l’ordre des picks
+                  confirme ses arguments, la tendance est plus fiable ; quand
+                  il les contredit, le site n’en affiche aucune.
                 </p>
               </article>
             </div>
@@ -439,17 +479,18 @@
             <div class="method-limit">
               <strong>Le périmètre compte.</strong>
               <p>
-                Les noms des équipes, la forme des joueurs, les bans, l’ordre de
-                sélection et l’état de la partie ne participent jamais au
-                calcul. Certains jugements de Kazewa en dépendent : une
-                imitation complète ne peut donc pas être garantie à partir des
-                dix champions. Les profils historiques et leurs contradictions
-                sont signalés.
+                Les verdicts de Kazewa s’appuient sur l’ordre des picks, les
+                bans, les joueurs, la forme des équipes et la méta du moment.
+                Dix champions ne portent pas cette information : personne ne
+                peut promettre son avis sur une draft qu’il n’a pas encore
+                commentée. Le site sépare donc ce qu’il sait (sa mémoire) de ce
+                qu’il estime (une tendance tirée de ses propres arguments, avec
+                sa fiabilité mesurée).
               </p>
               <p>
-                La fidélité mesure l’accord avec ses jugements de draft ; elle
-                ne mesure pas le taux de victoire réel. Aucun pourcentage de
-                victoire n’est affiché sans calibration indépendante.
+                La mesure porte sur l’accord avec ses jugements de draft, pas
+                sur le taux de victoire réel. Le calculateur structurel décrit
+                les deux compositions ; son score n’est pas son verdict.
               </p>
             </div>
           </section>
@@ -459,8 +500,8 @@
           <div>
             <span aria-hidden="true">⌘</span>
             <p>
-              La compo, avant le nom.<small
-                >Aucune réputation d’équipe dans le score.</small
+              Son verdict, pas une imitation.<small
+                >Une draft jugée renvoie à sa vidéo.</small
               >
             </p>
           </div>
@@ -468,7 +509,7 @@
             <span aria-hidden="true">◎</span>
             <p>
               Un verdict, des raisons.<small
-                >Chaque signal renvoie à sa source.</small
+                >Ses arguments, traduits et sourcés.</small
               >
             </p>
           </div>
@@ -476,7 +517,7 @@
             <span aria-hidden="true">↗</span>
             <p>
               Le doute fait partie du plan.<small
-                >Draft incomplète : le moteur s’abstient.</small
+                >Draft inédite : la fiabilité est affichée.</small
               >
             </p>
           </div>
@@ -488,7 +529,7 @@
           Projet indépendant fondé sur un corpus d’analyses. Non affilié à Riot
           Games ni approuvé par Kazewa.
         </p>
-        <span class="mono">COMPOSITION → RAISONNEMENT → VERDICT</span>
+        <span class="mono">MÉMOIRE → ARGUMENTS → TENDANCE MESURÉE</span>
       </footer>
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

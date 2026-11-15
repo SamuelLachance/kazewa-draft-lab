@@ -1,79 +1,87 @@
-# Évaluer la fidélité à Kazewa
+# Ce qui est mesuré
 
-Le moteur applique des règles fixées à partir de la méthode et de la taxonomie du projet. Il ne reçoit que deux objets de cinq champions, avec leurs rôles. Aucun vainqueur réel, nom d’équipe, joueur, patch, ordre de sélection, ban ou label de Kazewa ne lui est transmis.
+Deux questions différentes. Elles ne sont jamais mélangées dans un même chiffre.
 
-## Résultat du modèle 1.2.0
+1. **Une draft que Kazewa a jugée.** Le site renvoie son verdict. C’est une recherche dans sa mémoire : l’accord est total par construction, et ce n’est pas la mesure d’un modèle.
+2. **Une draft qu’il n’a pas jugée.** Le site estime. Cette estimation est mesurée sur des drafts tenues à l’écart.
 
-La version 1.2.0 ajoute Briar, seul champion du catalogue Data Dragon 16.21.1 absent de la 1.1.0. Son profil est déduit du guide gameplay et des notes de cours ajoutées dans `data/`. Il n’est pas attribué à Kazewa. Aucune draft du benchmark figé ne la contient.
+Les valeurs courantes sont dans [`data/evaluation.json`](../data/evaluation.json), recalculées par `npm run evaluate`. Le site les lit dans ce fichier. Les nombres cités ici sont ceux du rapport du 14 novembre 2026.
 
-Le verdict est une lecture symétrique des deux compositions. Chaque règle publiée a un signe et un coefficient : le signe choisit le côté crédité, le coefficient pondère le constat. Les compteurs de lane et les synergies nommées restent crédités au côté qui les porte. Trois règles qui récompensent un bloc sur le papier — immobiles comptés comme une faute, scaling protégé, grille de teamfight — sont comptées pour l’autre côté. Quatre lois nommées restent dans la lecture (un hook ferme Milio, Yone répond à Aatrox, Sion répond à Aatrox, Renekton et Taliyah ne package pas). Une side terminée sans aucune frontline ne garde pas le crédit papier d’objectifs. Un wombo sans DPS soutenu ne le garde pas contre un bot mobile. Poppy sans vrai tank ne tranche pas face à une composition de catch. Alistar sans ancre de follow-up ne convertit pas son bloc de tanks en plan d’objectifs. Zeri garde la priorité de push sur Ezreal en bot. Cette orientation a été confrontée aux labels rétrospectifs. Aucun identifiant de draft, de vidéo ou de roster ne renvoie un label stocké. Le modèle appris à part (82,3 % sur son entraînement, 51,6 % hors groupe) ne fournit pas ce verdict et ne fait pas passer le seuil de fidélité.
+## La mémoire
 
-Sur la cohorte élargie, le moteur donne **62 décisions conformes sur 62, soit 100 % d’accord avec 100 % de couverture** (62 cas, aucune abstention). L’intervalle de Wilson de cet accord va de 94,2 % à 100 %. C’est le chiffre du site : le seuil retenu est 70 %, et il est atteint. Le filtre primaire laisse **5 cas** : 5 décisions conformes sur 5. Les valeurs reproductibles figurent dans `data/evaluation.json`. La publication n’est pas bloquée. Le contrôle de recherche à 85 %, 50 cas et 10 vidéos reste non atteint, parce que la cohorte primaire n’a que 5 cas.
+`data/kazewa-memory.json` contient 253 parties professionnelles dont il a commenté la draft, issues de 103 vidéos. 244 portent un côté préféré ; 9 sont commentées sans préférence.
 
-## Résultat du modèle 1.1.0
+- 199 compositions sont vérifiées contre les données du match réel (compositions par rôle, côtés de carte, ordre des picks, vainqueur). Les autres viennent de ses vidéos seules : parties d’avant 2022 ou d’après mars 2026, absentes de l’index local.
+- Le verdict garde le moment le plus fiable : 180 avis donnés pendant la draft, 51 dans la revue du match, 13 explicitement tardifs. Le moment est affiché.
+- Quand un autre passage penche pour l’autre côté, le site le dit.
+- 182 extractions partielles n’ont pas pu être reliées à une partie. Elles restent hors mémoire plutôt que d’être complétées au jugé.
+- La même draft saisie avec un flex rangé dans un autre rôle est reconnue : ce sont les dix champions qui comptent.
 
-Le corpus contient 309 extractions limitées à la phase de draft, dont 269 avec une préférence exprimée. Seulement 44 décrivent dix champions certains et connus. Après ajout de 18 compositions de dossiers dont les picks déjà connus concordent, le benchmark élargi compte **62 cas**. Les 11 doublons ont été retirés. Parmi 51 rapprochements possibles avec la clé de dossiers, 22 sont exclus car la correspondance de côtés ou de picks connus est ambiguë ou contradictoire.
+Le rapport vérifie que chaque draft jugée, dans les deux orientations, renvoie bien son verdict (`memory.selfRecall`).
 
-Avant cette lecture, le moteur heuristique plafonné laissait **5 cas primaires** : 2 décisions conformes sur 5, soit 40 %. Sur la cohorte élargie, ce moteur-là donnait **23 décisions conformes sur 57, soit 40,4 %**, avec 91,9 % de couverture. Ce n’est plus le chiffre du rapport courant. Le rapport courant est celui du modèle 1.2.0 ci-dessus, écrit dans `data/evaluation.json`.
+### Audit
 
-Le corpus exploratoire distinct compte 101 cas issus de 66 vidéos : **75 accords sur 100 décisions, soit 75,0 % d’accord avec 99,0 % de couverture**. Il comprend 39 cas communs au benchmark nettoyé. Les 62 autres cas donnent 36 accords sur 61 décisions, soit 59,0 %, mais restent rétrospectifs et peuvent partager les sources de la méthode. Ces résultats ne contribuent pas au seuil de fidélité. Ce n’est pas le chiffre du laboratoire.
+Les cas de la première construction ont été relus un par un à partir de leur dossier (extractions, partie reliée, autres parties de la série), puis chaque anomalie a reçu une seconde relecture indépendante. Une relecture du code a ensuite trouvé quatre parties stockées deux fois et une vidéo récapitulative enregistrée en connaissant les résultats. Les corrections retenues sont dans [`data/memory-overrides.json`](../data/memory-overrides.json), chacune avec sa justification : verdicts mal orientés, junglers erronés, doublons rattachés, textes qui nomment la mauvaise équipe, avis de la vidéo récapitulative reclassés en avis tardifs. Les désaccords réels entre deux passages sont laissés tels quels et signalés.
 
-La version 1.1.0 contient 42 règles. Ses corrections ont été écrites à partir des sources par un agent n’ayant consulté ni les cas ni les labels du benchmark, puis figées avant ce calcul. La lecture actuelle retient une partie de ces règles et compte trois règles de bloc papier pour l’autre côté ; ce choix a été confronté aux labels. Le script d’évaluation ne réajuste rien : il mesure le moteur déjà figé. Ce n’est pas un jeu de test indépendant.
+## Les drafts inédites
 
-## Ce que mesure le rapport
+### Protocole
 
-`data/evaluation.json` compare la préférence du moteur à une préférence explicitement exprimée dans les extractions de **phase de draft** `kb/clean_verdicts/`. C’est un **benchmark rétrospectif figé**. La lecture du moteur a été confrontée à ces labels ; le rapport ne décrit pas cet accord comme un test indépendant. Les vidéos ayant contribué à la méthode peuvent aussi fournir des exemples évalués. Un bon score rétrospectif ne suffit pas à établir la fidélité future.
+Validation « un groupe dehors ». Un groupe réunit toutes les drafts qui partagent une vidéo ou une série professionnelle. Chaque draft jugée est estimée avec ce qui vient des autres groupes uniquement, puis comparée à son verdict. Les intervalles retirent et remettent des groupes entiers, parce que les drafts d’une même vidéo ne sont pas indépendantes.
 
-Le rapport distingue deux cohortes :
+### Résultats
 
-- **Primaire** : dix champions connus sans `?`, préférence exprimée, et aucun indice textuel détecté de raisonnement sur le processus de draft, le patch, les joueurs, la force des équipes ou le résultat. Le filtre est conservateur et imparfait ; ses expressions sont visibles dans le script. Il ne prouve pas que tout contexte extérieur a disparu du jugement.
-- **Élargie** : mêmes labels issus de la phase de draft, avec les raisons historiques ou contextuelles conservées. Des compositions manquantes peuvent provenir des en-têtes de dossiers déjà présents dans le projet et reliés à `test_key2.json`. Ces compositions sont signalées comme reconstruites et exclues de la cohorte primaire. Ce ne sont pas de nouvelles vérifications auprès d’un fournisseur externe.
+| Lecture | Drafts | Accord | Intervalle | Ce que c’est |
+| --- | ---: | ---: | --- | --- |
+| Ses arguments venus d’autres vidéos | 180 | 63,3 % | 55 à 71 | Aucun réglage : on compte ses arguments par côté |
+| Arguments et ordre des picks du même côté | 79 | 74,7 % | 63 à 84 | Les deux lectures s’accordent |
+| Ordre des picks seul | 195 | 61,5 % | 53 à 69 | Cinq poids, un par lane |
+| Répondre toujours « côté rouge » | 195 | 56,4 % | 50 à 63 | Règle sans modèle, sur les mêmes drafts |
+| Calculateur structurel, drafts jamais vues | 178 | 52,2 % | 46 à 59 | Hasard |
+| Calculateur structurel, drafts de réglage | 62 | 93,5 % | | Ne prouve rien : il a été réglé dessus |
 
-Une absence de préférence explicite est exclue. Les picks incertains ne sont jamais rendus certains en supprimant `?`. Les dossiers d’anciens modèles ne fournissent que leurs en-têtes de compositions ; leurs prédictions, textes similaires et statistiques de méta ne sont jamais fournis au moteur.
+**Ses arguments.** Pour chaque draft jugée, on ne garde que les matchups, synergies et réponses qu’il a nommés dans d’autres groupes et qui s’appliquent encore : mêmes champions, même relation allié ou adverse, mêmes rôles. On compte de quel côté ils penchent. Rien n’est ajusté sur ses verdicts. Cette lecture répond pour 74 % des drafts jugées ; pour les autres il n’y a pas d’argument applicable, ou autant de chaque côté.
 
-`test_key3.json` reprend les mêmes 51 matchs que `test_key2.json` et n’ajoute aucun exemple. `test_key.json` et les verdicts généraux sont écartés des labels du benchmark principal : ils peuvent contenir des jugements tardifs ou révisés qui divergent des passages limités à la draft. Les verdicts généraux ne servent qu’au corpus exploratoire distinct décrit ci-dessous. Les anciennes prédictions dans `kb/eval*` ne sont pas des annotations de Kazewa.
+**L’ordre des picks.** Pour chaque lane, le modèle sait seulement quel côté a posé son champion après l’autre. Répondre en top et au mid compte le plus, puis en jungle ; pour l’ADC le signe s’inverse légèrement. Ce signal dépasse le hasard mesuré en rejouant la procédure avec des verdicts tirés au sort (49,4 % ± 5,7 points, p ≈ 0,005). Une partie tient au côté de la carte : le côté qui pick en dernier est aussi celui qu’il préfère le plus souvent, et l’écart avec la règle « toujours côté rouge » (120 contre 110 drafts sur 195) n’est pas établi statistiquement (p ≈ 0,28).
 
-## Corpus exploratoire distinct
+**Les deux ensemble.** Quand ses arguments et l’ordre des picks désignent le même côté, c’est son verdict trois fois sur quatre. Quand ils s’opposent (66 drafts), ses arguments ont raison 36 fois : le site n’affiche alors aucune tendance.
 
-Le champ `exploratoryRaw` évalue séparément les extractions de revues complètes `verdicts/`. Les opinions explicitement tardives, les picks ou côtés incertains et les conflits de composition sont exclus. Lorsqu’une extraction limitée à la draft peut être reliée au même match, un verdict contradictoire ou une absence de préférence dans cette extraction exclut aussi le cas exploratoire. L’absence de drapeau tardif dans une revue complète **ne prouve pas** que le jugement a été formulé avant la partie.
+**Ce qui ne marche pas.** Les règles de composition du calculateur, les profils de champions (18 traits par équipe, environ 41 %), l’identité des champions (43 à 47 %) et les statistiques de 44 000 matchs pros (52 à 55 %) restent au niveau du hasard. Ces essais sont dans `research/`.
 
-Certaines vidéos traitent plusieurs séries : leurs numéros de partie recommencent à 1, tandis que les segments nettoyés peuvent être numérotés en continu. Les rapprochements utilisent donc les champions connus et une correspondance de côtés non ambiguë, avec un identifiant de série pour les cas restants. Le rapport publie le nombre de cas communs au benchmark nettoyé et un sous-rapport hors de ces cas. Un rapprochement non résolu n’établit pas l’indépendance des exemples.
+### Ce que le site affiche
 
-Ce corpus n’est jamais fusionné avec la cohorte primaire et ne peut faire passer le seuil de fidélité. Il sert uniquement à observer le comportement du même moteur figé sur davantage de drafts historiques, avec une qualité d’annotation plus incertaine.
+| Situation | Affichage |
+| --- | --- |
+| Arguments et ordre des picks du même côté | Tendance, fiabilité de la deuxième ligne du tableau |
+| Arguments seuls | Tendance, fiabilité de la première ligne |
+| Ordre des picks seul | Tendance, fiabilité de la troisième ligne, avec le rappel de la règle « toujours côté rouge » |
+| Arguments et ordre des picks opposés | Aucune tendance, les deux lectures sont montrées |
+| Rien d’applicable | Aucune tendance |
 
-## Déduplication et orientation
+Seule la direction est mesurée. Le site n’affiche pas de score de confiance propre à une draft.
 
-Les cas sont regroupés par identifiant vidéo/partie, identifiant de match lorsqu’il existe, et empreinte des dix champions avec leurs rôles. L’empreinte est identique quand les deux compositions sont échangées. Les labels sont alors réorientés avant comparaison. Un conflit de label ou de composition pour un même groupe est signalé et exclu. Des résultats réels contradictoires après réorientation sont signalés et remplacés par `null` pour la mesure du vainqueur réel ; ils ne changent pas une préférence de draft cohérente.
+### L’ancien « 100 % »
 
-Une extraction exacte peut ne connaître que gauche/droite à l’écran. Pour ces cas, `blue` et `red` anonymisent respectivement gauche et droite ; ils ne prétendent pas documenter le véritable côté de carte ou le premier pick. Cette convention ne change pas le modèle, qui doit être symétrique. Un dossier reconstruit est relié aux côtés de l’extraction par les champions connus ; une correspondance ambiguë ou contradictoire est exclue. Pour rapprocher un cas exploratoire de plusieurs segments nettoyés possibles, la correspondance doit désigner un seul segment : avoir davantage de picks connus ne permet pas de départager deux sources compatibles.
+La version précédente affichait 62 accords sur 62. Les poids et les exceptions du calculateur avaient été réglés sur ces 62 drafts. Sur les 178 drafts jugées qu’il n’avait jamais vues, le même calculateur donne 93 accords : une sur deux. Le rapport garde les deux nombres côte à côte (`unseen.structuralCalculator`).
 
-## Accord, couverture et abstention
+## Repère : le résultat réel
 
-L’**accord** est le nombre de décisions correspondant à Kazewa, divisé par le nombre de décisions. La **couverture** est le nombre de décisions divisé par le nombre de cas admissibles. Un verdict `even`, une composition incomplète, un champion inconnu ou une erreur d’entrée constitue une abstention. Une abstention diminue la couverture et n’est comptée ni comme succès ni comme échec décidé. Le rapport fournit aussi la matrice de confusion et les résultats par vidéo.
+Dans 79 % des drafts jugées dont le résultat est connu, l’équipe qu’il préférait a gagné (`reference.realWinnerMatchesVerdict`). Ce n’est pas une mesure du site. Une partie de ses revues est enregistrée en connaissant le résultat.
 
-Les intervalles de Wilson à 95 % portent sur les cas. Ils **ne corrigent pas la corrélation entre plusieurs parties commentées dans la même vidéo**. Le nombre de vidéos et la moyenne des accords par vidéo sont donc également présentés ; ces informations ne rendent pas les exemples indépendants de la méthode source.
+## Limites
 
-La prédiction du vainqueur réel est une mesure séparée, limitée aux cas où le résultat est disponible et correctement orienté. Elle ne calibre pas les scores en probabilités de victoire.
+- Les deux lectures ont été mesurées sur le corpus où elles ont été trouvées. Leur vraie valeur se verra sur ses prochaines vidéos.
+- Ses arguments viennent de ses vidéos passées. Des équipes qui reprennent les mêmes duos, et qu’il continue de préférer, peuvent gonfler le chiffre ; sur des équipes ou des patchs qu’il n’a pas commentés il peut être plus bas.
+- Les groupes relient les parties par vidéo, et par série quand la partie est reliée aux données de match. Deux vidéos sur une même série non reliée tombent dans deux groupes.
+- Les avis de revue et les avis tardifs peuvent connaître le résultat. Ils sont gardés, avec leur moment.
+- Les paraphrases de ses raisons viennent d’une transcription automatique, puis d’une traduction relue. Le lien vidéo permet de vérifier.
 
-## Seuil de validation du prototype
-
-Le seuil retenu pour le site est **70 % d’accord** sur les avis tranchés de la cohorte élargie, avec au moins 80 % de couverture. Ce n’est pas une règle attribuée à Kazewa. Il ne bloque pas la publication. L’ancien contrôle à 85 %, 50 cas et 10 vidéos reste calculé dans le rapport de recherche (`gate`) et ne décide plus de l’affichage ni de la mise en ligne.
-
-## Reproduction
-
-Depuis `draft-lab` :
+## Reproduire
 
 ```powershell
-node scripts/evaluate.mjs
-node --test tests/evaluation.test.mjs
+npm run evaluate
+node --test tests/evaluation.test.mjs tests/memory.test.mjs tests/verdict.test.mjs
+node research/run.mjs research/models/process.mjs --split all --permute 100
 ```
 
-Pour reconstruire le benchmark depuis les fichiers du corpus parent, puis recalculer le rapport :
-
-```powershell
-node scripts/evaluate.mjs --rebuild-benchmark
-```
-
-La reconstruction demande le corpus original. Le calcul normal fonctionne depuis le dépôt autonome grâce au benchmark livré. Aucun poids de règle n’est ajusté par le script. Les dates de génération sont informatives et ne constituent pas une date d’entraînement ni une preuve de connaissance de la méta actuelle.
-
-Le rapport enregistre les empreintes SHA-256 du moteur, des connaissances et du benchmark. Toute modification de ces entrées demande un nouveau calcul avant de réutiliser le rapport.
+Les tests refusent un rapport ou un modèle qui ne correspond plus exactement à la mémoire livrée, une fiabilité affichée différente du rapport, et une page qui écrirait un pourcentage d’accord en dur.

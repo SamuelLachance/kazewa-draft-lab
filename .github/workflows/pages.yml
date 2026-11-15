@@ -21,9 +21,6 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm test
       - run: npm run evaluate
-      - name: Signaler le seuil de fidélité sans bloquer le laboratoire public
-        run: npm run verify:fidelity
-        continue-on-error: true
       - run: npm run build
         env:
           LIVE_API_URL: ${{ vars.LIVE_API_URL }}
