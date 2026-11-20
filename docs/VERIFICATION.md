@@ -2,7 +2,7 @@
 
 Vérifications effectuées le 14 novembre 2026.
 
-Résultat local : **127 tests automatisés réussis**, aucune erreur ; mesure recalculée ; construction statique réussie.
+Résultat local : **131 tests automatisés réussis**, aucune erreur ; mesure recalculée ; construction statique réussie.
 
 ## Mémoire des verdicts
 
@@ -34,6 +34,14 @@ Cinq tentatives indépendantes ont cherché un signal sous le même protocole (a
 
 Deux pistes ont ensuite été mesurées hors de la draft elle-même. La force des équipes (classement Elo sur l’index des matchs, avant chaque partie) ne désigne son verdict qu’environ une fois sur deux. Le résultat de la partie le désigne 79,8 % du temps : le site s’en sert pour les parties déjà jouées, en le disant.
 
+## Coach de draft
+
+- L’ancien coach classait les champions avec le calculateur structurel : bans presque alphabétiques, raisons comme « 0 tank » sur un plateau vide. Rejoué sur de vraies drafts professionnelles de 2025, il plaçait le pick réel dans ses dix premières suggestions 16 % du temps.
+- Le nouveau classement (`src/coach.mjs`) a été réglé sur les drafts de 2025 puis mesuré sur celles de 2026 : sur 612 drafts, pick réel dans les cinq premières suggestions 33,1 % du temps, dans les dix premières 52,6 % (50,9 % quand les picks précédents sont rangés dans le rôle que le coach leur donne) ; ban réel dans les dix premières 49,0 % en première phase et 46,6 % en seconde. Chaque draft est rejouée avec les seuls chiffres pro des 60 jours précédents et les seules remarques de Kazewa antérieures ; les parties qu’il a commentées sont exclues.
+- Deux idées ont été écartées par cette mesure. Pénaliser un champion parce qu’un counter reste disponible faisait baisser l’accord avec les drafts réelles : c’est devenu un avertissement sans effet sur le classement. Donner plus de poids à ses arguments qu’à la présence pro aussi : ils comptent un point chacun, un et demi contre l’adversaire de la lane, plafonnés à trois dans un même sens. Même ainsi, ses arguments et ses avis récents font baisser l’accord avec les drafts réelles (54,0 % sans eux, 52,6 % avec) : ils sont gardés parce que le coach doit dire ce que lui en pense.
+- Une relecture en quatre angles (moteur, intégration, bon sens d’un joueur, données et tests), dont chaque défaut a été contrôlé par un second relecteur, a confirmé 36 défauts de la première réécriture, puis une seconde relecture 22 défauts restants ou créés par les corrections. Tous sont corrigés : champions flex rangés dans un rôle où ils ne sont pas joués, rôles joués en pro absents de la table des lanes, suggestion accompagnée d’une citation de Kazewa disant le pick faible, remarque rangée sous un autre champion que celui dont elle parle, ban conseillé de son propre meilleur pick, matchup jugé dans les deux sens compté pour celui qui choisit, avertissement citant des counters que l’adversaire ne peut plus jouer, liste alphabétique sans raison quand les données manquent ; puis, à la seconde passe, anti-synergies ignorées, avis sur un rôle appliqué à un autre rôle, série d’académies encore dans la fenêtre, parties d’académie rejouées dans la mesure.
+- Les tests vérifient : le classement de ses arguments par relation et par rôle, le sens d’un argument pour le champion qu’il donne perdant, un matchup contesté, le plafond, son avis récent sur un champion, le rôle réel des champions flex sur les données livrées, le ban de son propre pick, les formulations selon le côté qui joue, qu’une draft entière jouée sur la première suggestion donne deux équipes complètes avec une raison lisible à chaque tour, et que sans données le coach ne suggère rien.
+
 ## Navigateur
 
 Vérifié sur le serveur local, en largeur bureau (1280 px) et mobile (375 px), sans débordement horizontal ni erreur de console :
@@ -46,7 +54,8 @@ Vérifié sur le serveur local, en largeur bureau (1280 px) et mobile (375 px), 
 6. Drafts proches et arguments applicables, avec le bouton qui charge un précédent.
 7. Saisie rapide : même verdict que par rôle.
 8. Draft d’une partie pro qu’il n’a pas commentée (Gen.G contre T1, LCK, 7 août 2025, partie 1) : le site nomme la partie et le vainqueur, donne ce côté avec la fiabilité mesurée, et suit la composition quand les équipes sont inversées.
-9. Coach de draft, direct pro et méthode : rendu sans erreur ; le tableau de mesure lit `data/evaluation.json`.
+9. Coach de draft : les cinq suggestions de chaque tour avec leurs raisons, les citations, les liens vidéo ; une draft entière jouée en cliquant la première suggestion ; first pick et second pick ; un champion flex placé dans un autre rôle par le filtre de rôle ; la recherche (« kar » donne Karma, Karthus, Skarner) ; largeur mobile sans débordement.
+10. Direct pro et méthode : rendu sans erreur ; le tableau de mesure lit `data/evaluation.json`.
 
 ## Sources live et HTTP
 

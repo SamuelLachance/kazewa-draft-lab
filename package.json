@@ -15,6 +15,7 @@
     "oe:index": "node scripts/build-oe-index.mjs",
     "memory": "node scripts/build-memory.mjs",
     "pro:results": "node scripts/build-pro-results.mjs",
+    "coach:data": "node scripts/build-coach-data.mjs",
     "memory:enrich": "node scripts/import-enrichment.mjs",
     "evaluate": "node scripts/evaluate.mjs",
     "sync:champions": "node scripts/sync-champions.mjs",

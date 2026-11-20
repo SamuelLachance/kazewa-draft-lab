@@ -2442,3 +2442,147 @@ body[data-view="coach"] .principles-strip {
     overflow-x: auto;
   }
 }
+
+/* Draft coach: the suggestions and the sentence behind each point. */
+.coach-suggestions {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.coach-suggestions h3 {
+  font-family: var(--heading);
+  font-size: 20px;
+  letter-spacing: 0.3px;
+  margin: 0;
+}
+.coach-card {
+  border: 1px solid #242824;
+  border-radius: 6px;
+  background: #0b0f0b;
+  padding: 8px 10px 10px;
+}
+.coach-card-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.coach-card-face img {
+  display: block;
+  width: 46px;
+  height: 46px;
+  border-radius: 4px;
+}
+.coach-card-name {
+  font-family: var(--heading);
+  font-size: 20px;
+  line-height: 1.1;
+}
+.coach-card-name em {
+  font-style: normal;
+  color: var(--lime);
+  font-family: var(--mono);
+  font-size: 14px;
+  margin-right: 4px;
+}
+.coach-card-role {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+}
+.coach-card-go {
+  margin-left: auto;
+  border: 1px solid var(--lime);
+  border-radius: 4px;
+  color: var(--lime);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  padding: 4px 8px;
+  text-transform: uppercase;
+}
+.coach-card-pick:hover .coach-card-go,
+.coach-card-pick:focus-visible .coach-card-go {
+  background: var(--lime);
+  color: #080b08;
+}
+.coach-reasons {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.coach-reasons li {
+  padding-left: 14px;
+  position: relative;
+  overflow-wrap: anywhere;
+}
+.coach-reasons li::before {
+  content: "·";
+  position: absolute;
+  left: 3px;
+  color: var(--muted);
+}
+.coach-reasons li.is-plus::before {
+  content: "+";
+  left: 0;
+  color: var(--lime);
+}
+.coach-reasons li.is-minus::before {
+  content: "−";
+  left: 0;
+  color: var(--red);
+}
+.coach-reasons li.is-warning {
+  color: var(--muted);
+}
+.coach-reasons li.is-warning::before {
+  content: "!";
+  left: 2px;
+  color: var(--red);
+}
+.coach-quote,
+.coach-said {
+  color: var(--muted);
+}
+.coach-said {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.coach-card .source-links,
+.coach-said a,
+.coach-reasons a {
+  display: inline;
+  font-size: 12px;
+}
+.champ-tile .champ-rank {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  min-width: 18px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--lime);
+  color: #080b08;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.coach-suggestions h3.coach-also {
+  margin-top: 6px;
+  font-size: 17px;
+  color: var(--muted);
+}

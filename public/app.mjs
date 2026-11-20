@@ -1,11 +1,13 @@
 import { normalizeChampion, ROLES } from "./src/engine.mjs";
-import { compositionFromText, swapRoles } from "./src/quick-draft.mjs";
+import { compositionFromText, foldChampion, swapRoles } from "./src/quick-draft.mjs";
 import {
   advise,
   applyAction,
+  coachContext,
   createSession,
   undo,
 } from "./src/draft-coach.mjs";
+import { playableRoles, presence } from "./src/coach.mjs";
 import { LANES } from "./src/lanes.mjs";
 import { championReads, indexMemory } from "./src/memory.mjs";
 import { cardRelations } from "./src/relations.mjs";
@@ -56,6 +58,8 @@ let knowledge,
   model = null,
   cards = null,
   relations = null,
+  coachData = null,
+  coachBrain = null,
   championAssets,
   config = fallbackConfig;
 let cardChampion = null;
@@ -65,7 +69,6 @@ let view = "lab",
   coachFocus = "self",
   coachQuery = "",
   coachLane = "all",
-  coachScores = new Map(),
   draft = emptyDraft(),
   quickParsed = { blue: null, red: null },
   quickSwap = null,
@@ -1013,71 +1016,140 @@ function renderDraftSide(side, advice) {
     .join("");
   return `<div class="team-heading"><span class="team-side">${side === "blue" ? "BLUE SIDE" : "RED SIDE"}</span><h3>${side === coach.userSide ? "Ton côté" : "Adverse"}</h3></div><div class="ban-row">${bans}</div>${picks}`;
 }
-function formatCoachScore(score) {
-  if (!Number.isFinite(score) || Object.is(score, -0)) return "0";
-  const rounded = Math.round(score * 100) / 100;
-  const text = Object.is(rounded, -0) ? "0" : String(rounded);
-  return rounded > 0 ? `+${text}` : text;
-}
 function renderCoachGrid(advice) {
   const taken = coachTaken();
-  const previous = coachScores;
-  const nextScores = new Map();
   const ranked = advice.pool || advice.options;
   const byName = new Map(ranked.map((option) => [option.champion, option]));
-  const suggested = new Set(advice.options.map((option) => option.champion));
-  const query = coachQuery
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
+  const position = new Map(ranked.map((option, index) => [option.champion, index]));
+  const query = foldChampion(coachQuery);
+  const meta = coachBrain?.meta ?? null;
+  const side = advice.step?.side;
+  const freeRoles = side ? ROLES.filter((role) => !coach.picks[side][role]) : [];
   const names = Object.keys(knowledge.champions)
     .filter((name) => {
-      if (coachLane !== "all" && !(LANES[name] || []).includes(coachLane))
-        return false;
-      if (!query) return true;
-      return name
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .includes(query);
+      // A typed name is found under any role filter: a pick can be unusual.
+      if (query) return foldChampion(name).includes(query);
+      return coachLane === "all" || playableRoles(meta, name).includes(coachLane);
     })
     .sort((a, b) => {
       const used = Number(taken.has(a)) - Number(taken.has(b));
       if (used) return used;
+      // What was typed comes first: the exact name, then names starting with it.
+      if (query) {
+        const closeness = (name) => {
+          const folded = foldChampion(name);
+          return folded === query ? 0 : folded.startsWith(query) ? 1 : 2;
+        };
+        const typed = closeness(a) - closeness(b);
+        if (typed) return typed;
+      }
       const left = byName.get(a);
       const right = byName.get(b);
       const playable = Number(right?.playable !== false) - Number(left?.playable !== false);
       if (playable) return playable;
-      const order = ranked.findIndex((row) => row.champion === a) - ranked.findIndex((row) => row.champion === b);
+      const order = (position.get(a) ?? Infinity) - (position.get(b) ?? Infinity);
       if (order) return order;
       return a.localeCompare(b, "fr");
     });
   const picking = advice.step?.action === "pick";
+  const order = new Map(advice.options.map((option, index) => [option.champion, index + 1]));
   $("#coach-grid").innerHTML = names
     .map((name) => {
       const used = taken.has(name) || advice.done;
       const hint = byName.get(name);
-      const unavailable = Boolean(hint && hint.playable === false);
-      const numeric = Boolean(hint && Number.isFinite(hint.score));
-      const title = hint?.reasons?.[0] ? ` title="${esc(hint.reasons[0])}"` : "";
-      const score = numeric ? formatCoachScore(hint.score) : "";
-      const tone = !numeric || hint.score === 0 ? "" : hint.score > 0 ? " is-up" : " is-down";
-      const moved = numeric && previous.has(name) && previous.get(name) !== hint.score;
-      if (numeric) nextScores.set(name, hint.score);
-      const role =
-        hint && picking && !unavailable ? (hint.flex ? "FLEX" : ROLE_LABEL[hint.role]) : "";
+      const first = hint?.reasons?.[0]?.text;
+      const title = first ? ` title="${esc(first)}"` : "";
+      const seen = coachBrain?.meta ? Math.round(presence(coachBrain.meta, name) * 100) : 0;
+      const shown = !used && seen >= 1 ? `${seen} %` : "";
+      // With a role filter on, a click puts the champion in that role.
+      const asked =
+        picking && coachLane !== "all" && freeRoles.includes(coachLane) ? coachLane : null;
+      const given = asked ?? hint?.role ?? null;
+      // No usual role is free, and no role is asked for.
+      const unavailable = Boolean(hint && hint.playable === false && !asked);
+      const role = hint && picking && !unavailable && given ? ROLE_LABEL[given] : "";
       const status = unavailable && picking ? "rôle pris" : "";
-      const shown = score || (hint && !used ? "—" : "");
-      const label = [name, shown, role || status].filter(Boolean).join(" ");
+      const place = order.get(name);
+      const label = [
+        name,
+        place ? `suggestion ${place}` : "",
+        shown ? `présence pro ${shown}` : "",
+        role || status,
+      ]
+        .filter(Boolean)
+        .join(", ");
       const blocked = used || (picking && unavailable);
-      return `<button type="button" class="champ-tile${suggested.has(name) ? " is-suggested" : ""}${taken.has(name) ? " is-taken" : ""}${unavailable ? " is-unavailable" : ""}" data-champion="${esc(name)}" data-score="${esc(shown)}" aria-label="${esc(label)}"${title}${blocked ? " disabled" : ""}><span class="champ-face">${championImage(name, 74)}${shown ? `<span class="champ-score${tone}${moved ? " is-moved" : ""}">${esc(shown)}</span>` : ""}</span>${role || status ? `<span class="champ-role">${esc(role || status)}</span>` : ""}<span class="champ-name">${esc(name)}</span></button>`;
+      return `<button type="button" class="champ-tile${place ? " is-suggested" : ""}${taken.has(name) ? " is-taken" : ""}${unavailable ? " is-unavailable" : ""}" data-champion="${esc(name)}"${asked ? ` data-role="${esc(asked)}"` : ""} aria-label="${esc(label)}"${title}${blocked ? " disabled" : ""}><span class="champ-face">${championImage(name, 74)}${place ? `<span class="champ-rank">${place}</span>` : ""}${shown ? `<span class="champ-score">${esc(shown)}</span>` : ""}</span>${role || status ? `<span class="champ-role">${esc(role || status)}</span>` : ""}<span class="champ-name">${esc(name)}</span></button>`;
     })
     .join("");
-  coachScores = nextScores;
+}
+const NOTE_LABEL = {
+  pick_order: "Ce qu’il disait de ce pick",
+  meta_strong: "Il le jugeait fort",
+  meta_weak: "Il le jugeait faible",
+};
+const monthYear = (text) => {
+  const date = new Date(String(text) + "T12:00:00Z");
+  return Number.isNaN(date.getTime())
+    ? ""
+    : date.toLocaleDateString("fr-FR", { month: "long", year: "numeric", timeZone: "UTC" });
+};
+// The first suggestions, each with the sentence behind every point it scores.
+function renderCoachSuggestions(advice) {
+  const node = $("#coach-suggestions");
+  if (!node) return;
+  if (advice.done) {
+    node.innerHTML = "";
+    return;
+  }
+  if (!advice.options.length) {
+    node.innerHTML = `<h3>Pas de suggestion pour ce tour</h3><p class="fine-print">${coachBrain?.meta?.games ? "Rien ne départage les champions restants." : "Les données de méta pro n’ont pas pu être chargées, et Kazewa n’a rien dit des champions déjà pris. Recharge la page, ou choisis dans la grille."}</p>`;
+    return;
+  }
+  const step = advice.step;
+  const ban = step.action === "ban";
+  const heading = step.ours
+    ? ban
+      ? "À bannir en priorité"
+      : "À prendre en priorité"
+    : ban
+      ? "Ce qu’ils ont intérêt à bannir"
+      : "Ce qu’ils ont intérêt à prendre";
+  const card = (option, mark) => {
+      const reasons = option.reasons
+        .filter((reason) => reason.points || reason.kind === "answer" || reason.kind === "note")
+        .map((reason) => {
+          const tone =
+            reason.kind === "answer" ? "is-warning" : reason.points < 0 ? "is-minus" : reason.points > 0 ? "is-plus" : "";
+          const quote = reason.detail ? ` <span class="coach-quote">« ${esc(reason.detail)} »</span>` : "";
+          const links = reason.sources?.length ? ` ${sourceLinks(reason.sources, 1)}` : "";
+          return `<li class="${tone}">${esc(reason.text)}${quote}${links}</li>`;
+        })
+        .join("");
+      const used = new Set(option.reasons.map((reason) => reason.detail).filter(Boolean));
+      // His word on a champion's strength is a reason line when it is recent,
+      // and stale otherwise. What is quoted here is how he spoke of picking it.
+      const end = Date.parse(coachBrain?.meta?.to ?? "");
+      const fresh = (entry) =>
+        entry.tag === "pick_order" &&
+        Number.isFinite(end) &&
+        entry.date &&
+        end - Date.parse(entry.date) <= 730 * 86400000;
+      const note = ban ? null : (option.notes ?? []).find((entry) => !used.has(entry.text) && fresh(entry));
+      const said = note
+        ? `<p class="coach-said">${esc(NOTE_LABEL[note.tag] || "Ce qu’il en disait")}${note.date ? ` en ${esc(monthYear(note.date))}${note.patch ? ` (patch ${esc(note.patch)})` : ""}` : ""} : « ${esc(note.text)} » ${sourceLinks([{ video: note.video, ts: note.ts, title: "Vidéo" }], 1)}</p>`
+        : "";
+      const role = !ban && option.role ? `<span class="coach-card-role">${ROLE_LABEL[option.role]}${option.flex ? " · flex" : ""}</span>` : "";
+      return `<article class="coach-card"><button type="button" class="coach-card-pick" data-champion="${esc(option.champion)}"${!ban && option.role ? ` data-role="${esc(option.role)}"` : ""}><span class="coach-card-face">${championImage(option.champion, 46)}</span><span class="coach-card-name"><em>${mark}</em> ${esc(option.champion)}</span>${role}<span class="coach-card-go">${step.ours ? (ban ? "Bannir" : "Prendre") : "Valider"}</span></button><ul class="coach-reasons">${reasons}</ul>${said}</article>`;
+  };
+  const extra = advice.answers?.length
+    ? `<h3 class="coach-also">${step.ours ? "Moins joués en ce moment, mais il en a parlé" : "Moins joués, mais il en a parlé"}</h3><p class="fine-print">Des champions que Kazewa a nommés contre ou avec ceux déjà pris, et que la méta pro place plus bas.</p>${advice.answers.map((option) => card(option, "·")).join("")}`
+    : "";
+  node.innerHTML = `<h3>${heading}</h3>${advice.options.map((option, index) => card(option, index + 1)).join("")}${extra}`;
 }
 function renderCoach() {
-  if (view !== "coach" || !knowledge) return;
-  const advice = advise(coach, knowledge, { limit: 8 });
+  if (view !== "coach" || !knowledge || !coachBrain) return;
+  const advice = advise(coach, coachBrain, { limit: 5 });
   for (const button of document.querySelectorAll("[data-seat]")) {
     const active = button.dataset.seat === coach.seat;
     button.classList.toggle("is-active", active);
@@ -1103,16 +1175,27 @@ function renderCoach() {
     bestLine.textContent = advice.done
       ? ""
       : best
-        ? step.action === "ban"
-          ? `À bannir : ${best.champion} ${formatCoachScore(best.score)}`
-          : `À prendre : ${best.champion} ${best.flex ? "FLEX" : ROLE_LABEL[best.role]} ${formatCoachScore(best.score)}`
-        : "Aucun champion n’a encore un rôle libre qui améliore le score.";
+        ? step.ours
+          ? step.action === "ban"
+            ? `À bannir : ${best.champion}`
+            : `À prendre : ${best.champion} ${ROLE_LABEL[best.role]}`
+          : step.action === "ban"
+            ? `Ban probable en face : ${best.champion}`
+            : `Pick probable en face : ${best.champion} ${ROLE_LABEL[best.role]}`
+        : "Pas de suggestion pour ce tour.";
   }
   $("#coach-blue").innerHTML = renderDraftSide("blue", advice);
   $("#coach-red").innerHTML = renderDraftSide("red", advice);
+  const meta = coachBrain.meta;
+  const window = meta?.games
+    ? `${meta.games} parties pro du ${frenchDate(meta.from)} au ${frenchDate(meta.to)}, patchs ${meta.patches[0]} à ${meta.patches[meta.patches.length - 1]}, toutes ligues sauf les académies`
+    : "données de méta pro absentes";
   $("#coach-note").textContent = advice.done
-    ? advice.note
-    : `Le chiffre sur chaque portrait reste le score du calculateur. Il change dès qu’un champion est lock. Un ban retire le champion, il ne réécrit pas les autres chiffres. Le rôle proposé est la lane habituelle, sauf si un matchup de lane rend un autre rôle meilleur. L’ordre, lui, évite le blind. ${advice.note}`;
+    ? "Draft complète : le verdict ci-dessous est celui que le site donne à ces dix champions."
+    : step.action === "ban"
+      ? `Un ban vaut d’abord par la méta (${window}) : à quel point le champion est banni et pris. S’y ajoutent ce que Kazewa a dit de lui récemment, et, une fois des picks posés, ce qu’il ferait à ces picks d’après ses arguments et ses fiches. Le camp qui prend juste après les bans ne bannit pas son propre meilleur pick. Le pourcentage sur chaque portrait est la présence pro : pris ou banni. Clique un champion pour valider le tour, suggéré ou non.`
+      : `Un pick est classé sur ce que Kazewa a dit de lui avec les champions déjà pris (ses arguments d’abord, ses fiches champion sinon), sur ce qu’il disait de sa force ces derniers mois, sur la méta (${window}), sur le moment où les équipes pro prennent ce rôle et ce champion, et sur sa règle de la frontline quand trois picks sont posés sans en avoir. « Peut encore se faire répondre » est un avertissement, il ne change pas le classement. Ce n’est pas une prédiction de victoire. Clique un champion pour valider le tour ; pour le placer dans un autre rôle, choisis d’abord ce rôle dans le filtre.`;
+  renderCoachSuggestions(advice);
   renderCoachGrid(advice);
   renderCoachPro();
   if (coachFocus !== "self") {
@@ -1152,7 +1235,7 @@ function acceptCoachAction(champion, role) {
     return;
   }
   try {
-    coach = applyAction(coach, name, role || null, knowledge);
+    coach = applyAction(coach, name, role || null, coachBrain);
     coachFocus = "self";
     coachQuery = "";
     const search = $("#coach-search");
@@ -1405,7 +1488,6 @@ function bindEvents() {
     if (seat && seat.dataset.seat !== coach.seat) {
       coach = createSession(seat.dataset.seat);
       coachFocus = "self";
-      coachScores = new Map();
       renderCoach();
     }
     const lane = event.target.closest("[data-lane]");
@@ -1414,7 +1496,8 @@ function bindEvents() {
       renderCoach();
     }
     const tile = event.target.closest("[data-champion]");
-    if (tile && !tile.disabled) acceptCoachAction(tile.dataset.champion, null);
+    if (tile && !tile.disabled)
+      acceptCoachAction(tile.dataset.champion, tile.dataset.role || null);
     const pro = event.target.closest("[data-pro-match]");
     if (pro) {
       coachFocus = pro.dataset.proMatch;
@@ -1425,14 +1508,25 @@ function bindEvents() {
   $("#coach-search").addEventListener("input", (event) => {
     coachQuery = event.target.value;
     if (view !== "coach" || !knowledge) return;
-    renderCoachGrid(advise(coach, knowledge, { limit: 8 }));
+    renderCoachGrid(advise(coach, coachBrain, { limit: 5 }));
   });
   $("#coach-search").addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;
-    const tile = $("#coach-grid button:not(:disabled)");
-    if (!tile) return;
     event.preventDefault();
-    acceptCoachAction(tile.dataset.champion, null);
+    const typed = foldChampion(coachQuery);
+    // An empty box validates nothing: Enter is not "take the first suggestion".
+    if (!typed) return;
+    const tile = $("#coach-grid button");
+    const name = tile ? foldChampion(tile.dataset.champion) : "";
+    if (!tile || !(name === typed || name.startsWith(typed))) {
+      toast("Aucun champion ne commence par ce que tu as tapé.");
+      return;
+    }
+    if (tile.disabled) {
+      toast(`${tile.dataset.champion} n’est pas disponible pour ce tour.`);
+      return;
+    }
+    acceptCoachAction(tile.dataset.champion, tile.dataset.role || null);
   });
   $("#coach-undo").addEventListener("click", () => {
     coach = undo(coach);
@@ -1557,7 +1651,7 @@ function bindEvents() {
 
 async function init() {
   try {
-    [knowledge, evaluation, memory, config, model, championAssets, cards] =
+    [knowledge, evaluation, memory, config, model, championAssets, cards, coachData] =
       await Promise.all([
         getJSON("./data/knowledge.json"),
         getJSON("./data/evaluation.json", true),
@@ -1566,9 +1660,11 @@ async function init() {
         getJSON("./data/model.json", true),
         getJSON("./data/champion-assets.json", true),
         getJSON("./data/champion-cards.json", true),
+        getJSON("./data/coach.json", true),
       ]);
     memoryIndex = memory?.cases ? indexMemory(memory) : null;
     relations = cards ? cardRelations(cards) : null;
+    coachBrain = coachContext({ knowledge, memory, relations, data: coachData });
     config = { ...fallbackConfig, ...config };
     config.pollIntervalMs = Number.isFinite(Number(config.pollIntervalMs))
       ? Math.min(60000, Math.max(15000, Number(config.pollIntervalMs)))

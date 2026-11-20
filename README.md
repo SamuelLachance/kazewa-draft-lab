@@ -29,6 +29,20 @@ Pour toute draft, le site montre aussi :
 - **la fiche de chaque champion** : ce qu’il en dit, résumé de ses vidéos, pour les 173 champions du catalogue ;
 - **la lecture structurelle du calculateur** (frontline, dégâts, catch, scaling…). C’est une description des deux compositions. Sur les drafts qu’il n’a jamais vues, son côté coïncide avec celui de Kazewa une fois sur deux : son score n’est pas présenté comme un verdict.
 
+## Le coach de draft
+
+Le coach suit les vingt tours d’une draft (bans et picks) et dit à chaque tour quoi bannir ou prendre, avec la phrase qui justifie chaque point du classement :
+
+- **ce que Kazewa a dit** de ce champion avec ceux déjà pris : les matchups, réponses et synergies qu’il a nommés dans les drafts qu’il a jugées, dans les mêmes rôles, avec le lien vers la vidéo ; à défaut, ce qu’en disent ses fiches champion. L’adversaire direct de la lane compte davantage, et une lane qu’il juge perdue plus qu’une lane qu’il juge gagnée. Une anti-synergie qu’il a nommée compte contre le duo. Un matchup ou un duo qu’il a jugé dans les deux sens ne donne aucun point ;
+- **ce qu’il disait du champion ces six derniers mois** : fort ou faible dans la méta du moment, dans le rôle dont il parlait ;
+- **la méta pro** : la part des parties professionnelles récentes où le champion est pris ou banni, dans ce rôle (744 parties du 2026-09-15 au 2026-11-13, toutes ligues sauf les académies) ;
+- **le moment de la draft** : le rôle que les équipes pro prennent à ce pick, et le stade où elles prennent ce champion ;
+- **la frontline** : quand trois picks sont posés sans frontline, un champion qui en apporte une passe devant.
+
+Un champion est proposé dans le rôle où il est réellement joué : la table des lanes est complétée par les rôles joués en pro. Pour les bans, le camp qui prend juste après ne bannit pas son propre meilleur pick. Sous les cinq suggestions, le coach montre jusqu’à trois champions moins joués en ce moment mais que Kazewa a nommés contre ou avec ceux déjà pris. Il affiche aussi, sans que cela change le classement, les champions qui peuvent encore répondre à un pick d’après lui, et ce qu’il disait de ce pick dans une vidéo datée (365 remarques, chacune rangée sous le champion dont elle parle).
+
+Le coach ne prédit pas le vainqueur et n’utilise pas le calculateur structurel. Sa mesure est un contrôle de bon sens : sur 612 drafts professionnelles de 2026 rejouées tour par tour, avec les seuls chiffres des 60 jours précédents, le champion réellement pris figure dans ses cinq premières suggestions 33,1 % du temps et dans ses dix premières 52,6 % du temps (rang médian 10) ; 50,9 % quand les picks précédents sont rangés dans le rôle que le coach leur donne lui-même, comme sur le site. Le champion réellement banni figure dans ses dix premières suggestions 49,0 % du temps en première phase et 46,6 % en seconde. L’ancienne version, classée par le calculateur, plaçait le pick réel dans ses dix premières suggestions 16 % du temps (rang médian 39, mesuré sur 400 picks de 2025). Ce que Kazewa a dit n’améliore pas cet accord avec les drafts réelles : sans ses arguments, le même classement place le pick réel dans ses dix premières suggestions 54,0 % du temps. C’est le prix d’un coach qui donne son avis, pas celui de la moyenne des équipes. `node research/coach-eval.mjs` refait la mesure.
+
 ## Pourquoi pas « 100 % d’accord » sur les drafts futures
 
 Les verdicts de Kazewa s’appuient sur l’ordre des picks, les bans, les joueurs, la forme des équipes et la méta du moment. Dix champions ne portent pas cette information. Les profils de champions, leur identité, les règles structurelles et les statistiques de 44 000 matchs pros restent au niveau du hasard quand on les mesure sur des vidéos tenues à l’écart. Une lecture fait un peu mieux : ses propres arguments, repris d’une vidéo à l’autre, 61,8 % du temps, contre 54,1 % en répondant toujours le même côté. Cet avantage va dans le bon sens mais n’est pas encore établi statistiquement. La force des équipes avant la partie ne suit pas ses avis non plus. Le résultat de la partie, lui, les suit 79,8 % du temps : c’est pourquoi le site le nomme quand la partie a été jouée. L’ordre des picks avait paru utile sur 195 drafts ; sur 268 il ne fait pas mieux que répondre toujours le même côté, et il a été retiré. Personne ne peut promettre son avis sur une draft qu’il n’a pas encore commentée.
@@ -63,6 +77,7 @@ La mémoire se reconstruit depuis le corpus local (extractions des vidéos), qui
 npm run oe:index -- --csv-dir <dossier des CSV Oracle's Elixir>[,<autre dossier>]   # index local des matchs pros, dans .cache/
 npm run memory -- --corpus <dossier du corpus>                     # data/kazewa-memory.json + data/memory-site.json
 npm run pro:results                                                # data/pro-results/ : résultat de chaque partie de l’index
+npm run coach:data                                                 # data/coach.json : méta pro récente et remarques de Kazewa par champion
 npm run evaluate
 ```
 
@@ -85,13 +100,15 @@ Les extractions qu’aucune partie ne permet de compléter restent hors mémoire
 | `src/relations.mjs` | Lecture d’après ses fiches champion |
 | `src/results.mjs` | Parties pro déjà jouées avec les dix champions d’une draft |
 | `src/engine.mjs` | Calculateur structurel (description des compositions) |
-| `src/draft-coach.mjs` | Coach de draft pick par pick |
+| `src/draft-coach.mjs` | Coach de draft : les vingt tours, la session |
+| `src/coach.mjs` | Classement des bans et des picks, avec la phrase derrière chaque point |
 | `data/kazewa-memory.json` | Mémoire complète, avec la trace de chaque source |
 | `data/memory-site.json` | Version chargée par le site |
 | `data/champion-cards.json` | Fiche Kazewa des 173 champions |
 | `data/model.json` | Fiabilité mesurée de chaque lecture |
 | `data/card-holdout.json` | Vidéos tenues à l’écart quand les fiches ont été écrites |
 | `data/evaluation.json` | Rapport de mesure |
+| `data/coach.json` | Méta pro récente et remarques datées de Kazewa par champion (données Oracle’s Elixir pour la méta) |
 | `data/pro-results/` | Résultat des parties pro, par empreinte des dix champions (données Oracle’s Elixir) |
 | `scripts/` | Construction de la mémoire, mesure, build |
 | `research/` | Banc d’essai hors groupe et modèles essayés |

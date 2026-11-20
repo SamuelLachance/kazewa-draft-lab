@@ -1,11 +1,14 @@
-/** Whose turn it is still follows the twenty draft steps. The portrait number
- * is the shipped calculator with that champion added. The order is the draft
- * policy: it keeps the calculator, and refuses a blind the opponent can answer. */
-import { analyzeDraft, ROLES, laneTargets, scorePartial } from "./engine.mjs";
-import { STABLE_BOT, assessPlacement } from "./draft-policy.mjs";
-import { LANES } from "./lanes.mjs";
+/**
+ * The draft coach: twenty steps, and at each one what to ban or pick and why.
+ *
+ * The ranking is src/coach.mjs: what Kazewa said about the champions already
+ * locked, how professional teams draft right now, and who can still answer a
+ * pick. The structural calculator is not part of it: on the drafts he judged
+ * it follows his verdict one time in two.
+ */
+import { ROLES } from "./engine.mjs";
+import { coachTables, playableRoles, rankBans, rankPicks } from "./coach.mjs";
 
-const SIDES = ["blue", "red"];
 // Blue opens bans and the first pick. Red opens the second ban phase and the last pick.
 export const DRAFT_STEPS = Object.freeze([
   ...[0, 1, 2, 3, 4, 5].map((index) => ({
@@ -27,15 +30,7 @@ export const DRAFT_STEPS = Object.freeze([
   { action: "pick", side: "blue" },
   { action: "pick", side: "red" },
 ]);
-const ROLE_NAME = {
-  top: "top",
-  jng: "jungle",
-  mid: "mid",
-  bot: "ADC",
-  sup: "support",
-};
-const ROLE_ORDER = { bot: 0, jng: 1, mid: 2, sup: 3, top: 4 };
-const roleOrder = (role) => ROLE_ORDER[role] ?? 9;
+const SIDES = ["blue", "red"];
 const emptyPicks = () => Object.fromEntries(ROLES.map((role) => [role, null]));
 
 export function createSession(seat = "first") {
@@ -58,6 +53,11 @@ export function currentStep(session) {
     action: step.action,
     side: step.side,
     ours: step.side === session.userSide,
+    // The number of this pick in the draft, 1 to 10.
+    slot:
+      step.action === "pick"
+        ? session.log.filter((entry) => entry.action === "pick").length + 1
+        : null,
     phase:
       session.log.length < 6
         ? "Première phase de bans"
@@ -81,368 +81,122 @@ function taken(session) {
   return names;
 }
 
-function remainingNames(session, knowledge) {
-  const used = taken(session);
-  return Object.keys(knowledge.champions).filter((name) => !used.has(name));
-}
-
-function reasonsFrom(signals, side, champion) {
-  const ranked = (signals ?? []).map((signal) => ({
-    signal,
-    text: signal.evidence,
-  }));
-  ranked.sort((a, b) => {
-    const mention = (item) =>
-      item.text.includes(champion) || item.signal.evidence.includes(champion) ? 1 : 0;
-    const ours = (item) => (item.signal.side === side ? 1 : 0);
-    return (
-      mention(b) - mention(a) ||
-      ours(b) - ours(a) ||
-      b.signal.weight - a.signal.weight ||
-      a.signal.id.localeCompare(b.signal.id)
-    );
-  });
-  const reasons = [];
-  for (const item of ranked) {
-    if (reasons.length >= 3) break;
-    const text = item.text.replace(/\s+/g, " ").trim();
-    reasons.push(text.length > 160 ? item.signal.title : text);
-  }
-  if (!reasons.length) reasons.push("Score du calculateur sur la draft actuelle.");
-  return reasons;
-}
-
-function formatSigned(score) {
-  if (!Number.isFinite(score) || Object.is(score, -0)) return "0";
-  return score > 0 ? `+${score}` : String(score);
-}
-
-function signedPartial(picks, side, knowledge) {
-  const result = scorePartial(picks, knowledge);
-  if (!Number.isFinite(result.score)) return null;
-  const score = side === "blue" ? result.score : -result.score;
-  return { score: Object.is(score, -0) ? 0 : score, result };
-}
-
-// The usual lane is the placement. Another role wins only when its score is
-// strictly higher and the calculator adds a role-specific reason, such as a
-// named matchup. A closed usual lane is not a free seat: Elise does not
-// become an ADC because jungle is taken.
-const ROLE_REASONS = new Set([
-  "named_lane_counter",
-  "hook_into_milio",
-  "yone_into_aatrox",
-  "named_synergy",
-  "named_antisynergy",
-  "early_bot_support",
-]);
-
-function rolePreference(champion, role) {
-  const lanes = LANES[champion] || [];
-  const usual = lanes.indexOf(role);
-  if (usual !== -1) return usual;
-  return lanes.length + ROLES.indexOf(role);
-}
-
-function placementBeats(current, next) {
-  if (!current) return true;
-  if (next.priority !== current.priority) return next.priority > current.priority;
-  if (next.score !== current.score) return next.score > current.score;
-  return next.preference < current.preference;
-}
-
-function signalKey(signal) {
-  return `${signal.id}|${signal.evidence}`;
-}
-
-function offRoleJustified(usual, off) {
-  if (!usual || off.score <= usual.score) return false;
-  const seen = new Set(usual.result.signals.map(signalKey));
-  return off.result.signals.some(
-    (signal) => ROLE_REASONS.has(signal.id) && !seen.has(signalKey(signal)),
-  );
-}
-
-function closedRoleJustified(board, off, offs) {
-  if (!board || !(off.score > board.score)) return false;
-  const seen = new Set(board.result.signals.map(signalKey));
-  const fresh = off.result.signals
-    .filter((signal) => ROLE_REASONS.has(signal.id) && !seen.has(signalKey(signal)))
-    .map(signalKey);
-  if (!fresh.length) return false;
-  return fresh.some((key) =>
-    offs.some(
-      (other) =>
-        other !== off &&
-        !other.result.signals.some((signal) => signalKey(signal) === key),
-    ),
-  );
-}
-
-function rankSide(session, knowledge, side) {
-  const open = ROLES.filter((role) => !session.picks[side][role]);
-  if (!open.length) return [];
-  const board = signedPartial(session.picks, side, knowledge);
-  const rows = [];
-  const remaining = new Set(remainingNames(session, knowledge));
-  for (const champion of remaining) {
-    const lanes = LANES[champion] || [];
-    let usualBest = null;
-    const offs = [];
-    for (const role of open) {
-      const picks = {
-        blue: { ...session.picks.blue },
-        red: { ...session.picks.red },
-      };
-      picks[side][role] = champion;
-      const scored = signedPartial(picks, side, knowledge);
-      if (!scored) continue;
-      const policy = assessPlacement({
-        champion,
-        role,
-        result: scored.result,
-        side,
-        picks,
-        remaining,
-        profile: knowledge.champions[champion],
-      });
-      const candidate = {
-        role,
-        score: scored.score,
-        priority: policy.priority,
-        ordering: policy.ordering,
-        strategy: policy.strategy,
-        preference: rolePreference(champion, role),
-        result: scored.result,
-      };
-      if (lanes.includes(role)) {
-        if (placementBeats(usualBest, candidate)) usualBest = candidate;
-      } else offs.push(candidate);
-    }
-    const legal = [];
-    if (usualBest) legal.push(usualBest);
-    for (const off of offs) {
-      const justified = usualBest
-        ? offRoleJustified(usualBest, off)
-        : closedRoleJustified(board, off, offs);
-      if (justified) legal.push(off);
-    }
-    let best = null;
-    for (const candidate of legal) {
-      if (placementBeats(best, candidate)) best = candidate;
-    }
-    if (!best) {
-      rows.push({
-        champion,
-        role: null,
-        flex: false,
-        playable: false,
-        score: null,
-        priority: null,
-        ordering: null,
-        reasons: [
-          "Aucun rôle habituel n’est libre, et aucun matchup de lane ne justifie un autre rôle.",
-        ],
-      });
-      continue;
-    }
-    const atBest = legal.filter((candidate) => candidate.score === best.score);
-    const usualAtBest = atBest.some((candidate) => lanes.includes(candidate.role));
-    const reasons = [];
-    if (best.strategy) reasons.push(best.strategy);
-    reasons.push(...reasonsFrom(best.result.signals, side, champion));
-    rows.push({
-      champion,
-      role: best.role,
-      flex: !usualAtBest && atBest.length > 1,
-      playable: true,
-      score: best.score,
-      priority: best.priority,
-      ordering: best.ordering,
-      reasons: reasons.slice(0, 3),
-    });
-  }
-  rows.sort((a, b) => {
-    if (a.playable !== b.playable) return a.playable ? -1 : 1;
-    const delta = (b.priority ?? -Infinity) - (a.priority ?? -Infinity);
-    if (delta) return delta;
-    const real = (b.ordering ?? -Infinity) - (a.ordering ?? -Infinity);
-    if (real) return real;
-    const roleDelta = roleOrder(a.role) - roleOrder(b.role);
-    if (roleDelta) return roleDelta;
-    return a.champion.localeCompare(b.champion, "fr");
-  });
-  return rows;
-}
-
-const boardCache = new WeakMap();
-
-function cachedRank(session, knowledge, side) {
-  let byState = boardCache.get(knowledge);
-  if (!byState) {
-    byState = new Map();
-    boardCache.set(knowledge, byState);
-  }
-  const key = JSON.stringify({ side, bans: session.bans, picks: session.picks });
-  if (!byState.has(key)) byState.set(key, rankSide(session, knowledge, side));
-  return byState.get(key);
-}
-
-// A symmetric board makes their best pick our best pick too. Banning it only
-// deletes the opener both sides wanted. Keep that band, and ban the next threat.
-function rankBans(theirs, ours) {
-  const oursByName = new Map(ours.map((row) => [row.champion, row]));
-  const ourBest = ours.find((row) => row.playable !== false)?.priority ?? 0;
-  const ranked = theirs.map((row) => {
-    const mine = oursByName.get(row.champion);
-    const edge = (row.priority ?? -99) - (mine?.priority ?? -99);
-    const kept =
-      mine &&
-      mine.playable !== false &&
-      edge < 1 &&
-      (STABLE_BOT.has(row.champion) || mine.priority >= ourBest - 1);
-    const priority = roundPriority((row.priority ?? 0) - (kept ? 10 : 0));
-    const reasons = kept
-      ? ["Cet ouvreur sert aussi notre côté. On le laisse dans le pool.", ...row.reasons].slice(0, 3)
-      : row.reasons;
-    return {
-      champion: row.champion,
-      role: null,
-      flex: false,
-      playable: row.playable,
-      score: row.score,
-      priority,
-      ordering: row.ordering,
-      reasons,
-    };
-  });
-  ranked.sort((a, b) => {
-    if (a.playable !== b.playable) return a.playable ? -1 : 1;
-    const delta = (b.priority ?? -Infinity) - (a.priority ?? -Infinity);
-    if (delta) return delta;
-    const threat = counterThreat(b.champion) - counterThreat(a.champion);
-    if (threat) return threat;
-    return a.champion.localeCompare(b.champion, "fr");
-  });
-  return ranked;
-}
-
-function counterThreat(champion) {
-  return ROLES.reduce((count, role) => count + laneTargets(champion, role).length, 0);
-}
-
-function roundPriority(value) {
-  const rounded = Math.round(value * 100) / 100;
-  return Object.is(rounded, -0) ? 0 : rounded;
-}
-
-function rankAdvice(session, knowledge) {
-  const step = currentStep(session);
-  if (!step) {
-    return {
-      done: true,
-      step: null,
-      options: [],
-      result: analyzeDraft(session.picks, knowledge),
-      note: "Draft complète. Le score est celui du calculateur sur les dix champions.",
-    };
-  }
-  if (step.action === "ban") {
-    const foe = step.side === "blue" ? "red" : "blue";
-    const options = rankBans(
-      cachedRank(session, knowledge, foe),
-      cachedRank(session, knowledge, step.side),
-    );
-    const best = options.find((row) => row.playable !== false);
-    const leader = calculatorLeader(options);
-    const proposal = best
-      ? `À retirer en premier : ${best.champion} (${formatSigned(best.score)}).`
-      : "";
-    const illusion =
-      leader && best && leader.champion !== best.champion
-        ? `Le calculateur place ${leader.champion} plus haut (${formatSigned(leader.score)}), mais ce blind se fait répondre.`
-        : "";
-    return {
-      done: false,
-      step,
-      options,
-      result: null,
-      note: `Classement du pool entier pour l’autre côté. Le chiffre est le score du calculateur si cet adversaire prenait le champion sur la draft actuelle. On garde notre ouvreur et on retire d’abord un flex qui ferme des lanes. ${proposal} ${illusion}`
-        .replace(/\s+/g, " ")
-        .trim(),
-    };
-  }
-  const options = cachedRank(session, knowledge, step.side);
-  const best = options.find((row) => row.playable !== false);
-  const leader = calculatorLeader(options);
-  const turn = step.ours
-    ? "Suggestion pour ton tour."
-    : "Tour adverse. L’ordre indique le pick le plus solide pour eux.";
-  const proposal = best
-    ? `${best.champion} ${best.flex ? "sur un rôle libre" : `en ${ROLE_NAME[best.role]}`} (${formatSigned(best.score)}).`
-    : "";
-  const illusion =
-    leader && best && leader.champion !== best.champion
-      ? `Le calculateur place ${leader.champion} plus haut (${formatSigned(leader.score)}), mais ce blind se fait répondre.`
-      : "";
+/**
+ * What the coach knows, built once.
+ *   knowledge  the champion catalogue and profiles
+ *   memory     the memory as the site loads it (his arguments)
+ *   relations  cardRelations(champion cards)
+ *   data       data/coach.json: professional figures and his notes per champion
+ * Every part but `knowledge` may be missing: the coach then says less.
+ */
+export function coachContext({ knowledge, memory = null, relations = null, data = null }) {
   return {
-    done: false,
-    step,
-    options,
-    result: null,
-    note: `Le chiffre de chaque champion est le score du calculateur sur la draft actuelle. L’ordre suit la draft : ADC, jungle ou mid avant un soutien réactif ou un top blind, et une réponse nommée dès que la cible est lock. ${turn} ${proposal} ${illusion} Ce n’est pas une probabilité de victoire.`
-      .replace(/\s+/g, " ")
-      .trim(),
+    knowledge,
+    champions: Object.keys(knowledge.champions),
+    profiles: knowledge.champions,
+    tables: coachTables(memory, relations),
+    meta: data?.meta ?? null,
+    notes: data?.notes ?? {},
+    cache: new Map(),
   };
 }
 
-function calculatorLeader(options) {
-  let leader = null;
-  for (const row of options) {
-    if (row.playable === false || !Number.isFinite(row.score)) continue;
-    if (!leader || row.score > leader.score) leader = row;
-  }
-  return leader;
-}
-
-const adviceCache = new WeakMap();
-
-function adviceKey(session) {
-  return JSON.stringify({
-    userSide: session.userSide,
+function rank(session, context, step) {
+  const key = JSON.stringify({
     bans: session.bans,
     picks: session.picks,
-    log: session.log.length,
+    at: session.log.length,
+    ours: step.ours,
   });
-}
-
-export function advise(session, knowledge, options = {}) {
-  const limit = options.limit ?? 5;
-  let byState = adviceCache.get(knowledge);
-  if (!byState) {
-    byState = new Map();
-    adviceCache.set(knowledge, byState);
+  if (!context.cache.has(key)) {
+    const shared = {
+      mine: step.ours,
+      side: step.side,
+      picks: session.picks,
+      bans: session.bans,
+      tables: context.tables,
+      meta: context.meta,
+      champions: context.champions,
+      noteOf: (champion) => context.notes[champion] ?? null,
+    };
+    let rows;
+    if (step.action === "pick")
+      rows = rankPicks({ ...shared, slot: step.slot, profiles: context.profiles });
+    else {
+      // Blue picks first after the first bans, red after the second ones. The
+      // side that picks next does not ban what it is about to take.
+      const picked = session.log.filter((entry) => entry.action === "pick").length;
+      const next = session.log.length < 6 ? "blue" : "red";
+      // Its best pick among the champions the opponent could take too, when
+      // that pick has something for it.
+      const foe = step.side === "blue" ? "red" : "blue";
+      const foeOpen = ROLES.filter((role) => !session.picks[foe][role]);
+      const own =
+        next === step.side
+          ? rankPicks({ ...shared, slot: picked + 1, profiles: context.profiles }).find(
+              (row) =>
+                row.playable &&
+                !row.rare &&
+                playableRoles(context.meta, row.champion).some((role) => foeOpen.includes(role)),
+            )
+          : null;
+      const ownPicks =
+        own && own.reasons.some((reason) => reason.points > 0) ? new Set([own.champion]) : null;
+      rows = rankBans({ ...shared, ownPicks });
+    }
+    // One draft is twenty boards: older ones are let go.
+    if (context.cache.size >= 24) context.cache.delete(context.cache.keys().next().value);
+    context.cache.set(
+      key,
+      rows.map((row) => ({ ...row, notes: context.notes[row.champion] ?? [] })),
+    );
   }
-  const key = adviceKey(session);
-  if (!byState.has(key)) byState.set(key, rankAdvice(session, knowledge));
-  const advice = byState.get(key);
-  return {
-    ...advice,
-    pool: advice.options,
-    options: advice.options.filter((row) => row.playable !== false).slice(0, limit),
-  };
+  return context.cache.get(key);
 }
 
-// A click does not ask for a role. It plays the role already ranked for this
-// champion on the current board. There is no second pass that can replace it.
-export function inferPickRole(session, champion, knowledge = null) {
+/**
+ * The advice for the current step: `pool` is every champion, best first;
+ * `options` the first playable ones that have something to say for them.
+ * Each row carries its reasons, one sentence per point of its score. With no
+ * professional figures and nothing said, there is no suggestion: an order
+ * with no reason behind it is not advice.
+ */
+export function advise(session, context, options = {}) {
+  const limit = options.limit ?? 5;
   const step = currentStep(session);
-  if (!step || step.action !== "pick" || !knowledge) return null;
-  const ranked = cachedRank(session, knowledge, step.side);
-  return ranked.find((action) => action.champion === champion)?.role ?? null;
+  if (!step) return { done: true, step: null, options: [], answers: [], pool: [] };
+  const pool = rank(session, context, step);
+  // Not suggested: a champion in a role it is not played in, and the ban of
+  // one's own best pick. Both stay in the pool, so they can still be clicked.
+  const worth = pool.filter(
+    (row) =>
+      row.playable &&
+      !row.rare &&
+      row.reasons.some((reason) => reason.points > 0) &&
+      !row.reasons.some((reason) => reason.kind === "own"),
+  );
+  const shown = worth.slice(0, limit);
+  // What he said against or with the champions already locked, when the first
+  // suggestions do not carry it: an answer he named is worth seeing.
+  const answers =
+    step.action === "pick"
+      ? worth
+          .slice(limit)
+          .filter((row) => row.reasons.some((reason) => reason.kind === "said" && reason.points > 0))
+          .slice(0, 3)
+      : [];
+  return { done: false, step, pool, options: shown, answers };
 }
 
-export function applyAction(session, champion, role = null, knowledge = null) {
+// A click that names no role: the champion goes to the open role it is most
+// played in. A role given by the caller wins when it is free.
+export function inferPickRole(session, champion, context = null) {
+  const step = currentStep(session);
+  if (!step || step.action !== "pick" || !context) return null;
+  return rank(session, context, step).find((row) => row.champion === champion)?.role ?? null;
+}
+
+export function applyAction(session, champion, role = null, context = null) {
   const step = currentStep(session);
   if (!step) throw new Error("La draft est déjà complète.");
   const name = String(champion || "");
@@ -467,7 +221,7 @@ export function applyAction(session, champion, role = null, knowledge = null) {
   const assigned =
     ROLES.includes(role) && !next.picks[step.side][role]
       ? role
-      : inferPickRole(next, name, knowledge);
+      : inferPickRole(session, name, context);
   if (!assigned || next.picks[step.side][assigned])
     throw new Error("Aucun rôle habituel n’est libre pour ce champion.");
   next.picks[step.side][assigned] = name;
