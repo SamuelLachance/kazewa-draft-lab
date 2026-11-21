@@ -1,6 +1,6 @@
 {
- "version": "2.3.0",
- "evaluatedAt": "2026-11-15T03:45:07.487Z",
+ "version": "2.4.0",
+ "evaluatedAt": "2026-11-20T23:05:05.584Z",
  "memory": {
   "cases": 314,
   "decided": 304,
@@ -242,6 +242,46 @@
     }
    },
    "note": "Each judged draft is given the verdict the site would give it if he had not judged it: his arguments from other groups first, then his champion cards, then the structural calculator. 'heldOut' uses only drafts from videos the cards were written without, and leaves the calculator out on the drafts it was tuned on (those count as a draw at that step): no reading judges a draft it has seen. 'allJudgedOptimistic' uses every judged draft and is inflated: on most of them the cards summarise the very video being tested."
+  },
+  "shaneiGrid": {
+   "n": 278,
+   "agree": 137,
+   "agreement": 0.49280575539568344,
+   "low": 0.4268292682926829,
+   "high": 0.5602605863192183,
+   "interval": "group bootstrap",
+   "coverage": 0.9144736842105263,
+   "draftTiming": {
+    "n": 204,
+    "agree": 93,
+    "agreement": 0.45588235294117646,
+    "low": 0.38578680203045684,
+    "high": 0.5283018867924528,
+    "interval": "group bootstrap"
+   },
+   "winner": {
+    "n": 278,
+    "agree": 139,
+    "agreement": 0.5,
+    "low": 0.4383561643835616,
+    "high": 0.5616883116883117,
+    "interval": "group bootstrap"
+   },
+   "proGames": {
+    "n": 52124,
+    "agree": 25973,
+    "agreement": 0.4982925331900852,
+    "low": 0.494000372822827,
+    "high": 0.5025849452234127,
+    "grid": "7a2e08de9c3c50823d1955682ffadf3a6c35ac3e61cffc60bea48e289e8fa813",
+    "games": 60365,
+    "from": "2021-01-01",
+    "to": "2026-11-13",
+    "faultless": 0.24592064938292058,
+    "note": "Every professional game of the match index since 'from', academies left out. 'n' counts the games where the grid finds one composition healthier; 'faultless' is the share of professional compositions the grid faults in nothing. 'grid' is the fingerprint of the grid (data/method.json, src/method.mjs, data/knowledge.json) the figure was measured with: where the match index is absent the figure is kept only while the grid has not changed."
+   },
+   "usedForTheVerdict": false,
+   "note": "Shanei's grid (src/method.mjs) reads the family of each composition and what he would fault in it, and names the healthier one. Agreement is with Kazewa's verdict on the drafts he judged; 'winner' is with the result of those games; 'proGames' with the result of every professional game. All three stand at a coin flip: the grid describes how a composition is built, it does not say who wins nor what Kazewa thinks. The site shows it as a second opinion and does not use it for the estimated verdict."
   },
   "structuralCalculator": {
    "tunedOn": {

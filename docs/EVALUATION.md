@@ -114,6 +114,25 @@ Les profils de champions (18 traits par équipe, environ 41 %), l’identité de
 
 La première version du site affichait 62 accords sur 62. Les poids et les exceptions du calculateur avaient été réglés sur ces 62 drafts. Le rapport garde les deux nombres côte à côte (`unseen.structuralCalculator`) : 93,5 % sur les drafts de réglage, 50,8 % sur les autres.
 
+## Le second avis : la grille de Shanei
+
+Le site lit aussi chaque draft avec la méthode de Shanei (`src/method.mjs`, `shaneiReading`) : la famille de chaque composition, ce qu’il lui reprocherait, ce qu’il validerait, et laquelle des deux il trouverait la plus saine. Rien n’est réglé sur les verdicts de Kazewa, et aucune de ses vidéos n’a servi à l’écrire : toutes les drafts jugées comptent.
+
+| Mesure | Accord |
+| --- | --- |
+| Même côté que le verdict de Kazewa, 278 drafts où la grille penche | 49,3 % (intervalle 42,7 à 56,0) |
+| … dont ses avis donnés pendant la draft, 204 drafts | 45,6 % |
+| Même côté que le vainqueur de ces parties, 278 drafts | 50,0 % |
+| Même côté que le vainqueur, 52 124 parties pro depuis 2021 | 49,8 % |
+
+Les quatre mesures sont une pièce lancée. La grille n’est donc **pas une lecture du verdict estimé** : elle est affichée à part, comme second avis, et `unseen.shaneiGrid.usedForTheVerdict` vaut `false`. Ce résultat rejoint ce qui est constaté plus bas pour le calculateur et les profils de champions : au niveau professionnel les deux équipes draftent des compositions cohérentes, et la qualité de construction ne départage ni le vainqueur ni l’avis de Kazewa. La grille ne trouve rien à reprocher à 24,6 % des compositions professionnelles ; ses reproches les plus fréquents sont l’absence de vrai tank dans le bloc de quatre, un pick de poke dans un bloc d’engage (ou l’inverse) et un hypercarry sans enchanteur.
+
+Le chiffre sur les parties professionnelles demande l’index des matchs (`.cache/oe-games.json`), qui n’est pas dans le dépôt. Il est recalculé quand l’index est là. Sinon le dernier chiffre est gardé, à condition qu’il ait été mesuré avec la grille livrée : le rapport garde l’empreinte de la grille (`proGames.grid`), et un test échoue si elle ne correspond plus.
+
+### Le coach et la méthode
+
+La méthode des deux coachs entre aussi dans le classement du coach de draft. Sa mesure rejoue de vraies drafts professionnelles et demande où se trouve le champion réellement pris dans la liste du coach. Sur 612 drafts de 2026 : dans les dix premières suggestions 47,4 % du temps avec la méthode, 52,6 % sans elle ; pour les bans, 49,9 % et 45,4 % avec, 49,0 % et 46,8 % sans. Sur les drafts de 2025, qui ont servi à choisir les poids, chaque partie de la méthode retirée faisait remonter l’accord, et diviser tous ses poids par deux aussi : aucune règle n’est fautive à elle seule, c’est l’ensemble qui s’écarte de ce que font les équipes professionnelles. Les poids n’ont donc pas été choisis pour suivre les pros : une règle pèse à peu près autant qu’un argument de Kazewa sur deux champions, et une famille lue sur les picks ne compte qu’à partir de trois picks.
+
 ## Limites
 
 - Une lecture peut sembler réelle sur deux cents drafts et disparaître sur trois cents : l’ordre des picks l’a fait. Le chiffre de ses arguments n’a pas été confirmé sur de nouvelles vidéos.
@@ -121,6 +140,7 @@ La première version du site affichait 62 accords sur 62. Les poids et les excep
 - La lecture par le résultat ne vaut que pour une partie déjà jouée, et elle est mesurée sur les parties qu’il a choisi de commenter.
 - Les avis de revue et les avis tardifs peuvent connaître le résultat. Ils sont gardés, avec leur moment.
 - Les paraphrases de ses raisons viennent d’une transcription automatique, puis d’une traduction relue. Le lien vidéo permet de vérifier.
+- Les règles de Shanei viennent elles aussi de sous-titres automatiques, très dégradés par endroits. Chaque règle a été relue contre la fiche de sa vidéo ; celles que la fiche marque comme incertaines sont gardées avec cette marque et ne comptent pas. Traduire une règle en test sur dix champions est une interprétation : « vrai tank », « full AD » ou « source de désengage » reposent sur une grille de kits qui n’est pas de lui.
 
 ## Reproduire
 

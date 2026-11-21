@@ -13,6 +13,12 @@
  *    Each reading comes with the agreement measured for it on the drafts he
  *    did judge. The last ones are little better than a coin: the site says so.
  *
+ * Next to that, every draft is read with Shanei's grid (src/method.mjs): the
+ * family of each composition and what he would fault in it. It is a second
+ * opinion with its own side, shown as such. It is not part of the readings
+ * above: on the drafts Kazewa judged, the composition Shanei's grid finds
+ * healthier is the one Kazewa preferred about one time in two.
+ *
  * The pick order is not a reading. It looked like one on 195 drafts; on 268 it
  * does no better than always naming the same side, and it adds nothing to his
  * arguments. scripts/evaluate.mjs keeps measuring it so this stays checkable.
@@ -20,6 +26,7 @@
 import { analyzeDraft, ROLES } from "./engine.mjs";
 import { applicableArguments, precedents, recall } from "./memory.mjs";
 import { cardReading } from "./relations.mjs";
+import { shaneiReading } from "./method.mjs";
 
 export const NEAR_SHARED = 8;
 
@@ -63,7 +70,7 @@ const sideOrNull = (side) => (side === "blue" || side === "red" ? side : null);
  */
 export function judgeDraft(
   draft,
-  { knowledge, memory = null, model = null, relations = null, played = null } = {},
+  { knowledge, memory = null, model = null, relations = null, played = null, method = null } = {},
 ) {
   const structure = analyzeDraft(draft, knowledge);
   if (structure.status !== "complete")
@@ -75,6 +82,7 @@ export function judgeDraft(
       arguments: [],
       precedents: [],
       near: null,
+      shanei: null,
       structure,
       warnings: structure.warnings,
     };
@@ -117,6 +125,9 @@ export function judgeDraft(
     arguments: said,
     precedents: close,
     near,
+    // Shanei's reading of the two compositions (method: indexMethod() of
+    // src/method.mjs), whatever Kazewa said.
+    shanei: method ? shaneiReading(canonical, method) : null,
     structure,
     warnings: structure.warnings,
   };

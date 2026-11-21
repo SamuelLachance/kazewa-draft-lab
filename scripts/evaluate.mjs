@@ -9,15 +9,23 @@
  *  - a draft he did not judge: agreement is measured leave-one-group-out, so a
  *    model is always scored on series and videos it never trained on.
  *
- * Needs no corpus and no network: it runs in CI from the committed data.
+ * Shanei's grid is a second opinion, not a reading of Kazewa: it is measured
+ * here against his verdict and against the result of the game, so the site
+ * can say what it is worth.
+ *
+ * Needs no corpus and no network: it runs in CI from the committed data. The
+ * one figure that needs the match index (.cache/oe-games.json), Shanei's grid
+ * against the result of every professional game, is recomputed when the index
+ * is there and carried over from the last report when it is not.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { analyzeDraft, ROLES } from "../src/engine.mjs";
+import { analyzeDraft, normalizeChampion, ROLES } from "../src/engine.mjs";
 import { applicableArguments, indexMemory } from "../src/memory.mjs";
 import { cardReading, cardRelations } from "../src/relations.mjs";
+import { indexMethod, shaneiReading } from "../src/method.mjs";
 import { playedGames, resultKey, shardOf } from "../src/results.mjs";
 import { argumentLean, chooseReading, judgeDraft } from "../src/verdict.mjs";
 import { fitLogistic } from "./lib/logistic.mjs";
@@ -251,11 +259,66 @@ export function signTest(better, worse) {
   return Math.min(1, 2 * tail);
 }
 
+/** What Shanei's grid is made of: its data and its code. */
+export const gridFingerprint = () =>
+  contentHash(
+    ["data/method.json", "src/method.mjs", "data/knowledge.json"]
+      .map((relative) => fs.readFileSync(path.join(root, relative), "utf8").replaceAll("\r\n", "\n"))
+      .join("\n"),
+  );
+
+/**
+ * Shanei's grid against the result of every professional game of the match
+ * index, academies left out: how often the composition it finds healthier is
+ * the one that won. Null when the index is not on this machine.
+ */
+export function shaneiOnProGames(method, knowledge, file = path.join(root, ".cache", "oe-games.json"), from = "2021-01-01") {
+  if (!method || !fs.existsSync(file)) return null;
+  const index = indexMethod(method);
+  const academy = new Set(["LAS", "LCKC", "WSCI", "ASCI"]);
+  const name = (value) => (typeof value === "string" ? normalizeChampion(value, knowledge) : null);
+  let games = 0;
+  let leaning = 0;
+  let agree = 0;
+  let compositions = 0;
+  let faultless = 0;
+  let last = null;
+  for (const game of JSON.parse(fs.readFileSync(file, "utf8"))) {
+    if (!game.date || game.date < from || academy.has(game.league)) continue;
+    if (game.winner !== "blue" && game.winner !== "red") continue;
+    const draft = {
+      blue: Object.fromEntries(ROLES.map((role) => [role, name(game.blue?.[role])])),
+      red: Object.fromEntries(ROLES.map((role) => [role, name(game.red?.[role])])),
+    };
+    if (ROLES.some((role) => !draft.blue[role] || !draft.red[role])) continue;
+    const reading = shaneiReading(draft, index);
+    if (!reading) continue;
+    games++;
+    if (!last || game.date > last) last = game.date;
+    for (const side of ["blue", "red"]) {
+      compositions++;
+      if (!reading[side].items.some((item) => item.kind === "fault")) faultless++;
+    }
+    if (reading.side === "even") continue;
+    leaning++;
+    if (reading.side === game.winner) agree++;
+  }
+  return {
+    ...rate(agree, leaning),
+    grid: gridFingerprint(),
+    games,
+    from,
+    to: last ? last.slice(0, 10) : null,
+    faultless: compositions ? faultless / compositions : null,
+    note: "Every professional game of the match index since 'from', academies left out. 'n' counts the games where the grid finds one composition healthier; 'faultless' is the share of professional compositions the grid faults in nothing. 'grid' is the fingerprint of the grid (data/method.json, src/method.mjs, data/knowledge.json) the figure was measured with: where the match index is absent the figure is kept only while the grid has not changed.",
+  };
+}
+
 export function buildReport(
   memory,
   knowledge,
   tuning,
-  { now = new Date(), site = null, cards = null, holdout = null, played = null } = {},
+  { now = new Date(), site = null, cards = null, holdout = null, played = null, method = null, proGames = null } = {},
 ) {
   const cases = memory.cases;
   const decided = cases.filter((c) => c.verdict.side !== "even");
@@ -472,13 +535,43 @@ export function buildReport(
       }
     : null;
 
+  /* 3e. Shanei's grid: the composition it finds healthier, against Kazewa's
+     verdict and against the result. Nothing is fitted, and no video of Kazewa
+     went into it: every judged draft counts. */
+  const methodIndex = method ? indexMethod(method) : null;
+  const gridRows = methodIndex
+    ? decided
+        .map((c) => {
+          const reading = shaneiReading({ blue: c.blue, red: c.red }, methodIndex);
+          if (!reading || reading.side === "even") return null;
+          return {
+            group: c.group,
+            timing: c.verdict.timing,
+            credit: reading.side === c.verdict.side ? 1 : 0,
+            won: c.winner ? (reading.side === c.winner ? 1 : 0) : null,
+          };
+        })
+        .filter(Boolean)
+    : [];
+  const shaneiGrid = methodIndex
+    ? {
+        ...grouped(gridRows),
+        coverage: decided.length ? gridRows.length / decided.length : 0,
+        draftTiming: grouped(gridRows.filter((row) => row.timing === "draft")),
+        winner: grouped(gridRows.filter((row) => row.won !== null).map((row) => ({ group: row.group, credit: row.won }))),
+        proGames,
+        usedForTheVerdict: false,
+        note: "Shanei's grid (src/method.mjs) reads the family of each composition and what he would fault in it, and names the healthier one. Agreement is with Kazewa's verdict on the drafts he judged; 'winner' is with the result of those games; 'proGames' with the result of every professional game. All three stand at a coin flip: the grid describes how a composition is built, it does not say who wins nor what Kazewa thinks. The site shows it as a second opinion and does not use it for the estimated verdict.",
+      }
+    : null;
+
   /* 4. Context: how often the real winner matches his verdict. */
   const known = decided.filter((c) => c.winner);
   const follows = known.filter((c) => c.winner === c.verdict.side).length;
 
   const neverSeen = { ...grouped(calc.untuned), abstained: calc.abstained };
   const evaluation = {
-    version: "2.3.0",
+    version: "2.4.0",
     evaluatedAt: now.toISOString(),
     memory: {
       cases: cases.length,
@@ -518,6 +611,7 @@ export function buildReport(
       championCards: cardsReport,
       matchResult,
       everyDraft,
+      shaneiGrid,
       structuralCalculator: {
         tunedOn: rate(calc.tuned[0], calc.tuned[1]),
         neverSeen,
@@ -544,7 +638,7 @@ export function buildReport(
     },
   };
   const shipped = {
-    version: "2.3.0",
+    version: "2.4.0",
     measuredAt: now.toISOString(),
     note: "Measured agreement of each reading the site uses for a draft he did not judge. Nothing is fitted: when the draft is a game already played the site names the side that won; otherwise it counts his arguments, then his champion cards, then applies the structural calculator.",
     reliability: {
@@ -579,6 +673,18 @@ export function buildReport(
       principles: { agreement: neverSeen.agreement, n: neverSeen.n, low: neverSeen.low, high: neverSeen.high },
       everyDraft: everyDraft ? everyDraft.heldOut.all : null,
       everyDraftPlayed: everyDraft?.played ? everyDraft.played.heldOut.all : null,
+      // Shanei's grid: a second opinion, not a reading of Kazewa's verdict.
+      shanei: shaneiGrid
+        ? {
+            agreement: shaneiGrid.agreement,
+            n: shaneiGrid.n,
+            low: shaneiGrid.low,
+            high: shaneiGrid.high,
+            winner: shaneiGrid.proGames
+              ? { agreement: shaneiGrid.proGames.agreement, n: shaneiGrid.proGames.n }
+              : { agreement: shaneiGrid.winner.agreement, n: shaneiGrid.winner.n },
+          }
+        : null,
     },
   };
   return { evaluation, model: shipped };
@@ -586,17 +692,30 @@ export function buildReport(
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const memory = read("kazewa-memory.json");
+  const knowledge = read("knowledge.json");
+  const method = fs.existsSync(path.join(root, "data", "method.json")) ? read("method.json") : null;
+  const previous = fs.existsSync(path.join(root, "data", "evaluation.json")) ? read("evaluation.json") : null;
+  // Measured here when the match index is on this machine. Otherwise the last
+  // measure is kept, but only if it was made with this very grid.
+  const grid = method ? gridFingerprint() : null;
+  const kept = previous?.unseen?.shaneiGrid?.proGames ?? null;
+  const proGames = shaneiOnProGames(method, knowledge) ?? (grid && kept?.grid === grid ? kept : null);
+  const dropped = Boolean(method && kept && !proGames);
   const { evaluation, model } = buildReport(
     memory,
-    read("knowledge.json"),
+    knowledge,
     read("calculator-tuning-set.json"),
     {
       site: read("memory-site.json"),
       cards: read("champion-cards.json"),
       holdout: read("card-holdout.json"),
       played: loadResults(),
+      method,
+      proGames,
     },
   );
+  if (dropped)
+    console.log("Grille de Shanei : la mesure sur les parties pro datait d’une autre grille et l’index des matchs est absent ; elle est retirée du rapport. Relance avec .cache/oe-games.json pour la refaire.");
   fs.writeFileSync(path.join(root, "data", "model.json"), JSON.stringify(model, null, 1) + "\n");
   fs.writeFileSync(path.join(root, "data", "evaluation.json"), JSON.stringify(evaluation, null, 1) + "\n");
   const pct = (r) => `${(r.agreement * 100).toFixed(1)} % (${r.agree}/${r.n}, IC95 ${(r.low * 100).toFixed(0)}–${(r.high * 100).toFixed(0)})`;
@@ -620,6 +739,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     console.log(`  face à ses arguments : même côté ${pct(m.withArguments.sameSide)} ; opposés : résultat juste ${m.withArguments.oppositeSides.resultRight}/${m.withArguments.oppositeSides.n}`);
     if (u.everyDraft?.played)
       console.log(`Toute draft d’une partie déjà jouée, vidéos tenues à l’écart : ${pct(u.everyDraft.played.heldOut.all)}`);
+  }
+  if (u.shaneiGrid) {
+    const g = u.shaneiGrid;
+    console.log(`Grille de Shanei (second avis) : même côté que le verdict de Kazewa ${pct(g)} ; que le vainqueur de ces parties ${pct(g.winner)}${g.proGames ? ` ; que le vainqueur sur ${g.proGames.n} parties pro ${(g.proGames.agreement * 100).toFixed(1)} %` : ""}`);
   }
   console.log(`Calculateur structurel : réglé sur ${pct(u.structuralCalculator.tunedOn)} ; jamais vues ${pct(u.structuralCalculator.neverSeen)}`);
   console.log(`Ordre des picks (lecture écartée), poids par lane : ${JSON.stringify(u.pickOrder.weights)}`);

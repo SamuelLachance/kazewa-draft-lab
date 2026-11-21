@@ -14,6 +14,7 @@ import {
   rate,
   signTest,
   wilson,
+  gridFingerprint,
 } from "../scripts/evaluate.mjs";
 
 const file = (name) => new URL(`../data/${name}`, import.meta.url);
@@ -151,7 +152,17 @@ test("the shipped report and model are exactly what the shipped memory gives", a
     cards: await load("champion-cards.json"),
     holdout: await load("card-holdout.json"),
     played: loadResults(),
+    method: await load("method.json"),
+    // Measured on the match index, which is not committed: carried over.
+    proGames: evaluation.unseen.shaneiGrid?.proGames ?? null,
   });
+  // The carried figure was measured with the grid that is shipped.
+  if (evaluation.unseen.shaneiGrid?.proGames)
+    assert.equal(
+      evaluation.unseen.shaneiGrid.proGames.grid,
+      gridFingerprint(),
+      "the grid changed since its measure on professional games: run npm run evaluate with .cache/oe-games.json",
+    );
   assert.deepEqual(
     JSON.parse(JSON.stringify(fresh.evaluation)),
     evaluation,
@@ -182,7 +193,7 @@ test("the report separates recall from prediction and keeps the bar in view", as
   assert.equal(model.process, undefined);
   assert.deepEqual(
     Object.keys(model.reliability).sort(),
-    ["arguments", "cards", "everyDraft", "everyDraftPlayed", "principles", "result"],
+    ["arguments", "cards", "everyDraft", "everyDraftPlayed", "principles", "result", "shanei"],
   );
 
   // His arguments from other groups: counted, never fitted.

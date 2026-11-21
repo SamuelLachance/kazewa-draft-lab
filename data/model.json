@@ -1,6 +1,6 @@
 {
- "version": "2.3.0",
- "measuredAt": "2026-11-15T03:45:07.487Z",
+ "version": "2.4.0",
+ "measuredAt": "2026-11-20T23:05:05.584Z",
  "note": "Measured agreement of each reading the site uses for a draft he did not judge. Nothing is fitted: when the draft is a game already played the site names the side that won; otherwise it counts his arguments, then his champion cards, then applies the structural calculator.",
  "reliability": {
   "result": {
@@ -54,6 +54,16 @@
    "low": 0.7088607594936709,
    "high": 0.9041095890410958,
    "interval": "group bootstrap"
+  },
+  "shanei": {
+   "agreement": 0.49280575539568344,
+   "n": 278,
+   "low": 0.4268292682926829,
+   "high": 0.5602605863192183,
+   "winner": {
+    "agreement": 0.4982925331900852,
+    "n": 52124
+   }
   }
  }
 }

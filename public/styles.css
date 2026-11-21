@@ -2586,3 +2586,179 @@ body[data-view="coach"] .principles-strip {
   font-size: 17px;
   color: var(--muted);
 }
+
+/* The two coaches: who says what, the rules of the step, where a composition stands. */
+.coach-toolbar {
+  flex-wrap: wrap;
+}
+.plan-switch button {
+  padding: 9px 11px;
+}
+.coach-tag {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0 4px;
+  font: 9px var(--mono);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+  vertical-align: 1px;
+}
+.coach-tag[data-coach="shanei"] {
+  border-color: #6d5a9a;
+  color: #c9b8f2;
+}
+.coach-tag[data-coach="kazewa"] {
+  border-color: #45583a;
+  color: var(--lime);
+}
+.coach-brief {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #0d110d;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+}
+.coach-brief h3 {
+  font: 10px var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+.coach-brief ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.coach-brief li {
+  overflow-wrap: anywhere;
+}
+.coach-brief a {
+  display: inline;
+  font-size: 12px;
+}
+.coach-unsure {
+  color: var(--muted);
+}
+.coach-status {
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.coach-status .coach-family {
+  margin: 0 0 6px;
+  color: var(--muted);
+}
+.coach-status .coach-family strong {
+  color: var(--text);
+}
+.coach-status ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.coach-status li {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+.coach-status li.is-ok span {
+  color: var(--lime);
+}
+.coach-status li.is-bad {
+  color: var(--text);
+}
+.coach-status li.is-bad span {
+  color: var(--red);
+}
+.verdict-main .verdict-second {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.shanei-panel {
+  border-color: #4b3f6b;
+}
+.shanei-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+  margin: 12px 0;
+}
+.shanei-side h4 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  border-left: 2px solid var(--blue);
+  padding-left: 8px;
+}
+.shanei-side[data-side="red"] h4 {
+  border-left-color: var(--red);
+}
+.shanei-side h4 .side-tag {
+  margin-left: auto;
+}
+.shanei-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.shanei-items li {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+.shanei-items li > span:last-child {
+  min-width: 0;
+}
+.shanei-mark {
+  font-family: var(--mono);
+  color: var(--muted);
+}
+.shanei-items li.is-fault .shanei-mark {
+  color: var(--red);
+}
+.shanei-items li.is-strength .shanei-mark {
+  color: var(--lime);
+}
+.shanei-items li.is-remark {
+  color: var(--muted);
+}
+.shanei-items a {
+  display: inline;
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .shanei-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.coach-status li.is-note span[aria-hidden] {
+  color: var(--muted);
+}
+/* Four cards since the second opinion: two rows of two. */
+.method-steps {
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (max-width: 760px) {
+  .method-steps {
+    grid-template-columns: 1fr;
+  }
+}

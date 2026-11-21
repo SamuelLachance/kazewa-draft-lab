@@ -267,11 +267,30 @@
                   Second pick
                 </button>
               </div>
+              <div
+                class="view-switch plan-switch"
+                role="group"
+                aria-label="La famille de composition que tu vises"
+              >
+                <button type="button" data-plan="" class="is-active" aria-pressed="true">
+                  Pas de plan
+                </button>
+                <button type="button" data-plan="all-in" aria-pressed="false">All-in</button>
+                <button type="button" data-plan="poke" aria-pressed="false">Poke</button>
+                <button type="button" data-plan="hypercarry" aria-pressed="false">
+                  Hypercarry
+                </button>
+              </div>
               <button type="button" id="coach-undo" class="small-button">
                 Annuler le dernier tour
               </button>
             </div>
             <p id="coach-side-note"></p>
+            <section
+              id="coach-brief"
+              class="coach-brief"
+              aria-label="Ce que disent les deux coachs pour ce tour"
+            ></section>
             <div class="draft-room">
               <section
                 id="coach-blue"
@@ -340,6 +359,7 @@
                 <div>
                   <h2 id="verdict-title"></h2>
                   <p id="verdict-description"></p>
+                  <p id="verdict-second" class="verdict-second" hidden></p>
                 </div>
                 <div class="score-display">
                   <strong id="verdict-margin"></strong
@@ -359,6 +379,12 @@
               id="kazewa-panel"
               class="kazewa-panel"
               aria-label="Les raisons de Kazewa"
+              hidden
+            ></section>
+            <section
+              id="shanei-panel"
+              class="kazewa-panel shanei-panel"
+              aria-label="La lecture de Shanei"
               hidden
             ></section>
             <div class="evidence-grid">
@@ -473,6 +499,18 @@
                   Quand ses arguments ne départagent pas, le site lit ses
                   fiches champion, puis ses principes de composition. Ces
                   lectures sont moins sûres, et le verdict le dit.
+                </p>
+              </article>
+              <article id="method-step-shanei">
+                <span>04</span>
+                <h3>Le second avis : la grille de Shanei</h3>
+                <p>
+                  Chaque draft est aussi lue avec la méthode de Shanei : la
+                  famille de chaque composition (all-in, poke, hypercarry), le
+                  tank du bloc de quatre, les dégâts, les combos, ce qu’il
+                  reprocherait. C’est un avis sur la construction, affiché à
+                  part : il ne prédit ni le vainqueur ni l’avis de Kazewa, et
+                  le site le dit avec sa mesure.
                 </p>
               </article>
             </div>

@@ -10,6 +10,9 @@
  *     left out, as in scripts/build-coach-data.mjs;
  *   - Kazewa's remarks dated before the game only;
  *   - games he commented are not replayed, since his arguments come from them.
+ * The draft method of the two coaches (src/method.mjs) is counted in the
+ * last lines only; no plan is given, since a replayed team never said which
+ * family it was going for.
  * The earlier picks of a draft are written in the role they were really
  * played in. The last line of the pick table does it the way the site does:
  * each earlier pick goes to the role the coach itself gives it on a click.
@@ -21,6 +24,8 @@ import { fileURLToPath } from "node:url";
 import { normalizeChampion, ROLES } from "../src/engine.mjs";
 import { cardRelations } from "../src/relations.mjs";
 import { coachTables, rankBans, rankPicks, WEIGHTS } from "../src/coach.mjs";
+import { ownNextPick } from "../src/draft-coach.mjs";
+import { indexMethod } from "../src/method.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const arg = (name, fallback) => {
@@ -37,6 +42,7 @@ const notes = read("data/coach.json").notes;
 const noteOf = (champion) => notes[champion] ?? null;
 const commented = new Set(full.cases.map((item) => item.match?.gameId).filter(Boolean));
 const tables = coachTables(memory, cardRelations(read("data/champion-cards.json")));
+const method = indexMethod(read("data/method.json"));
 const name = (value) => (typeof value === "string" ? normalizeChampion(value, knowledge) : null);
 const ACADEMY = new Set(["LAS", "LCKC", "WSCI", "ASCI"]);
 
@@ -109,11 +115,21 @@ const VARIANTS = {
   "présence pro seule": { weights: zero },
   "+ moment de la draft": { weights: moment },
   "+ ce qu’il a dit": { weights: { ...WEIGHTS, frontline: 0, own: 0 } },
-  "coach complet": { weights: WEIGHTS },
-  "coach complet, rôles placés": { weights: WEIGHTS, placed: true },
+  "sans la méthode des coachs": { weights: WEIGHTS },
+  "coach complet": { weights: WEIGHTS, method },
+  "coach complet, rôles placés": { weights: WEIGHTS, method, placed: true },
 };
 const extra = arg("--weights", null);
-if (extra) VARIANTS["essai"] = { weights: { ...WEIGHTS, ...JSON.parse(extra) } };
+if (extra) VARIANTS["essai"] = { weights: { ...WEIGHTS, ...JSON.parse(extra) }, method };
+// --trials <file.json> holding {"name": {"family": 0}, …} : the complete coach
+// with other method weights, one line per trial; --only-trials leaves the
+// standard lines out.
+const trials = arg("--trials", null);
+if (trials) {
+  if (process.argv.includes("--only-trials")) for (const key of Object.keys(VARIANTS)) delete VARIANTS[key];
+  for (const [key, change] of Object.entries(JSON.parse(fs.readFileSync(trials, "utf8"))))
+    VARIANTS[key] = { weights: { ...WEIGHTS, method: { ...WEIGHTS.method, ...change } }, method };
+}
 
 const emptyBoard = () => ({
   blue: Object.fromEntries(ROLES.map((role) => [role, null])),
@@ -143,23 +159,15 @@ for (const game of games) {
     const bans = { blue: [], red: [] };
     let picked = 0;
     for (const step of STEPS) {
-      const shared = { picks, bans, tables, meta, champions, noteOf, weights };
+      const shared = { picks, bans, tables, meta, champions, noteOf, weights, method: variant.method ?? null };
       if (step.ban) {
         const [side, i] = step.ban;
         const real = team[side].bans[i];
         if (!real) continue;
         const next = i < 3 ? "blue" : "red";
-        const ownPicks =
-          weights.own && next === side
-            ? new Set(
-                rankPicks({ ...shared, side, slot: picked + 1, profiles })
-                  .filter((row) => row.playable && !row.rare)
-                  .slice(0, 1)
-                  .map((row) => row.champion),
-              )
-            : null;
+        const ownPicks = weights.own && next === side ? ownNextPick({ ...shared, side }, picked + 1, profiles) : null;
         // As on the site: the ban of one's own best pick is not suggested.
-        const rows = rankBans({ ...shared, side, ownPicks }).filter(
+        const rows = rankBans({ ...shared, side, ownPicks, profiles }).filter(
           (row) => row.playable && !row.reasons.some((reason) => reason.kind === "own"),
         );
         const rank = rows.findIndex((row) => row.champion === real);

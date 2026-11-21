@@ -1,8 +1,8 @@
-# Vérifications de la version 2.3.0
+# Vérifications de la version 2.4.0
 
-Vérifications effectuées le 14 novembre 2026.
+Vérifications effectuées le 20 novembre 2026.
 
-Résultat local : **131 tests automatisés réussis**, aucune erreur ; mesure recalculée ; construction statique réussie.
+Résultat local : **152 tests automatisés réussis**, aucune erreur ; mesure recalculée ; construction statique réussie.
 
 ## Mémoire des verdicts
 
@@ -42,6 +42,14 @@ Deux pistes ont ensuite été mesurées hors de la draft elle-même. La force de
 - Une relecture en quatre angles (moteur, intégration, bon sens d’un joueur, données et tests), dont chaque défaut a été contrôlé par un second relecteur, a confirmé 36 défauts de la première réécriture, puis une seconde relecture 22 défauts restants ou créés par les corrections. Tous sont corrigés : champions flex rangés dans un rôle où ils ne sont pas joués, rôles joués en pro absents de la table des lanes, suggestion accompagnée d’une citation de Kazewa disant le pick faible, remarque rangée sous un autre champion que celui dont elle parle, ban conseillé de son propre meilleur pick, matchup jugé dans les deux sens compté pour celui qui choisit, avertissement citant des counters que l’adversaire ne peut plus jouer, liste alphabétique sans raison quand les données manquent ; puis, à la seconde passe, anti-synergies ignorées, avis sur un rôle appliqué à un autre rôle, série d’académies encore dans la fenêtre, parties d’académie rejouées dans la mesure.
 - Les tests vérifient : le classement de ses arguments par relation et par rôle, le sens d’un argument pour le champion qu’il donne perdant, un matchup contesté, le plafond, son avis récent sur un champion, le rôle réel des champions flex sur les données livrées, le ban de son propre pick, les formulations selon le côté qui joue, qu’une draft entière jouée sur la première suggestion donne deux équipes complètes avec une raison lisible à chaque tour, et que sans données le coach ne suggère rien.
 
+## Méthode de Shanei et de Kazewa
+
+- Relevé : 358 règles (258 de Shanei, 100 de Kazewa) tirées des fiches de leurs vidéos par quatre lecteurs, chaque règle relue par un second lecteur contre la fiche citée (vidéo, moment, sens, champions nommés, passages incertains) ; 2 règles rejetées, 128 corrigées. Les 173 champions ont été classés dans les familles de Shanei puis relus de la même façon : 154 sont classés par lui-même, les autres d’après ses définitions.
+- Mesure de la grille de Shanei avant de la brancher : 49,3 % d’accord avec le verdict de Kazewa sur 278 drafts, 49,8 % avec le vainqueur sur 52 124 parties pro. Elle est donc affichée comme second avis et laissée hors du verdict estimé.
+- Mesure du coach avec la méthode, sur 612 drafts de 2026 : pick réel dans les cinq premières suggestions 29,6 % du temps, dans les dix premières 47,4 % (46,0 % avec les rôles placés par le coach), contre 52,6 % sans la méthode ; bans 49,9 % et 45,4 %. Les poids de la méthode ont été fixés sur 2025 par un principe (une règle vaut un argument de Kazewa), pas pour suivre les équipes pro.
+- Une relecture en cinq angles (moteur, fidélité aux deux coachs, interface, bon sens d’un joueur, données et mesures), dont chaque défaut a été contrôlé par un second relecteur, a confirmé 73 défauts, dont beaucoup se recoupent. Les principaux : phrases attribuées à Shanei qui citaient une règle disant autre chose, ou une phrase sans rapport tirée de sa fiche ; Ezreal + Xerath donné comme anti-synergie alors qu’il les joue ensemble ; « duo surcoté » compté comme une faute ; règles incertaines présentées comme sûres ; « full AD » reproché à une compo dont le mid fait des dégâts magiques ; plan annoncé qui cachait à l’adversaire la famille pourtant visible sur le plateau ; plan qui guidait trop peu les suggestions ; champion crédité dans un rôle où Shanei ne le joue pas ; renvois internes aux fiches (« vid. 29 ») affichés tels quels. Tous sont corrigés. Une seconde relecture a ensuite vérifié chaque correction et confirmé 51 défauts restants ou créés par les corrections, corrigés à leur tour.
+- Les tests (`tests/method.test.mjs`) vérifient : que chaque règle citée dans le code existe, sous le bon coach, et qu’une règle incertaine ne donne jamais de point ; la famille lue sur des compositions types ; les reproches de la grille (tank, full AP, hypercarry sans enchanteur, anti-synergie, ultime offert à Sylas) et sa symétrie ; l’ordre des rôles, les first picks et les picks à ne pas blind ; la famille, les pièces manquantes et les duos ; que le dernier pick capable d’apporter une pièce manquante l’apporte ; que le plan n’est jamais vu de l’adversaire ; que la lecture de Shanei ne change jamais le verdict ; et, sur des drafts entières jouées sur la première suggestion depuis les deux côtés et avec chaque plan, qu’aucune ligne n’est dite sans règle ni phrase de sa fiche.
+
 ## Navigateur
 
 Vérifié sur le serveur local, en largeur bureau (1280 px) et mobile (375 px), sans débordement horizontal ni erreur de console :
@@ -55,7 +63,8 @@ Vérifié sur le serveur local, en largeur bureau (1280 px) et mobile (375 px), 
 7. Saisie rapide : même verdict que par rôle.
 8. Draft d’une partie pro qu’il n’a pas commentée (Gen.G contre T1, LCK, 7 août 2025, partie 1) : le site nomme la partie et le vainqueur, donne ce côté avec la fiabilité mesurée, et suit la composition quand les équipes sont inversées.
 9. Coach de draft : les cinq suggestions de chaque tour avec leurs raisons, les citations, les liens vidéo ; une draft entière jouée en cliquant la première suggestion ; first pick et second pick ; un champion flex placé dans un autre rôle par le filtre de rôle ; la recherche (« kar » donne Karma, Karthus, Skarner) ; largeur mobile sans débordement.
-10. Direct pro et méthode : rendu sans erreur ; le tableau de mesure lit `data/evaluation.json`.
+10. Lecture de Shanei sous le verdict : famille et score de chaque côté, reproches, validations et remarques avec leur lien vidéo, mention « avis moins net » sur les règles incertaines, phrase de second avis dans la carte du verdict. Coach : choix d’un plan, règles des deux coachs à chaque tour, état des deux compositions, étiquette Shanei, Kazewa ou Pro sur chaque ligne ; une draft entière avec le plan hypercarry.
+11. Direct pro et méthode : rendu sans erreur ; le tableau de mesure lit `data/evaluation.json`.
 
 ## Sources live et HTTP
 

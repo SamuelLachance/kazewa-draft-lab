@@ -8,6 +8,7 @@
  */
 import { ROLES } from "./engine.mjs";
 import { coachTables, playableRoles, rankBans, rankPicks } from "./coach.mjs";
+import { compositionStatus, FAMILY_FR, indexMethod, stepBrief } from "./method.mjs";
 
 // Blue opens bans and the first pick. Red opens the second ban phase and the last pick.
 export const DRAFT_STEPS = Object.freeze([
@@ -87,10 +88,12 @@ function taken(session) {
  *   memory     the memory as the site loads it (his arguments)
  *   relations  cardRelations(champion cards)
  *   data       data/coach.json: professional figures and his notes per champion
+ *   method     data/method.json: the draft method of Shanei and Kazewa
  * Every part but `knowledge` may be missing: the coach then says less.
  */
-export function coachContext({ knowledge, memory = null, relations = null, data = null }) {
+export function coachContext({ knowledge, memory = null, relations = null, data = null, method = null }) {
   return {
+    method: indexMethod(method),
     knowledge,
     champions: Object.keys(knowledge.champions),
     profiles: knowledge.champions,
@@ -101,12 +104,36 @@ export function coachContext({ knowledge, memory = null, relations = null, data 
   };
 }
 
-function rank(session, context, step) {
+/**
+ * The pick the banning side would take itself right after these bans: its
+ * best pick among the champions the opponent could take too, when that pick
+ * has something for it. `shared` holds what rankPicks() needs (side, picks,
+ * bans, tables, meta, champions…); `slot` is the number of that next pick.
+ * Returns a set of one champion, or null. The measure of the coach
+ * (research/coach-eval.mjs) calls it too, so it replays what the site does.
+ */
+export function ownNextPick(shared, slot, profiles = null) {
+  const foe = shared.side === "blue" ? "red" : "blue";
+  const foeOpen = ROLES.filter((role) => !shared.picks[foe][role]);
+  const own = rankPicks({ ...shared, slot, profiles }).find(
+    (row) =>
+      row.playable &&
+      !row.rare &&
+      playableRoles(shared.meta, row.champion).some((role) => foeOpen.includes(role)),
+  );
+  return own && own.reasons.some((reason) => reason.points > 0) ? new Set([own.champion]) : null;
+}
+
+/** The families a drafter can say they are going for. */
+export const PLANS = Object.freeze(Object.keys(FAMILY_FR));
+
+function rank(session, context, step, plan = null) {
   const key = JSON.stringify({
     bans: session.bans,
     picks: session.picks,
     at: session.log.length,
     ours: step.ours,
+    plan,
   });
   if (!context.cache.has(key)) {
     const shared = {
@@ -118,6 +145,9 @@ function rank(session, context, step) {
       meta: context.meta,
       champions: context.champions,
       noteOf: (champion) => context.notes[champion] ?? null,
+      method: context.method,
+      // The plan is the reader's: it says nothing of the other side's draft.
+      plan,
     };
     let rows;
     if (step.action === "pick")
@@ -127,22 +157,8 @@ function rank(session, context, step) {
       // side that picks next does not ban what it is about to take.
       const picked = session.log.filter((entry) => entry.action === "pick").length;
       const next = session.log.length < 6 ? "blue" : "red";
-      // Its best pick among the champions the opponent could take too, when
-      // that pick has something for it.
-      const foe = step.side === "blue" ? "red" : "blue";
-      const foeOpen = ROLES.filter((role) => !session.picks[foe][role]);
-      const own =
-        next === step.side
-          ? rankPicks({ ...shared, slot: picked + 1, profiles: context.profiles }).find(
-              (row) =>
-                row.playable &&
-                !row.rare &&
-                playableRoles(context.meta, row.champion).some((role) => foeOpen.includes(role)),
-            )
-          : null;
-      const ownPicks =
-        own && own.reasons.some((reason) => reason.points > 0) ? new Set([own.champion]) : null;
-      rows = rankBans({ ...shared, ownPicks });
+      const ownPicks = next === step.side ? ownNextPick(shared, picked + 1, context.profiles) : null;
+      rows = rankBans({ ...shared, ownPicks, profiles: context.profiles });
     }
     // One draft is twenty boards: older ones are let go.
     if (context.cache.size >= 24) context.cache.delete(context.cache.keys().next().value);
@@ -160,12 +176,30 @@ function rank(session, context, step) {
  * Each row carries its reasons, one sentence per point of its score. With no
  * professional figures and nothing said, there is no suggestion: an order
  * with no reason behind it is not advice.
+ * `options.plan`: the family the reader is going for ("all-in", "poke",
+ * "hypercarry"), or nothing. `brief` are the rules of the two coaches for
+ * this step, `status` where each composition stands for them.
  */
 export function advise(session, context, options = {}) {
   const limit = options.limit ?? 5;
+  const plan = PLANS.includes(options.plan) ? options.plan : null;
   const step = currentStep(session);
-  if (!step) return { done: true, step: null, options: [], answers: [], pool: [] };
-  const pool = rank(session, context, step);
+  const status = context.method
+    ? Object.fromEntries(
+        SIDES.map((side) => [
+          side,
+          compositionStatus(session.picks[side], session.picks[side === "blue" ? "red" : "blue"], context.method, {
+            // The plan is an intention: once the draft is finished, the five
+            // picks alone say what the composition is, as in Shanei's reading.
+            plan: step && side === session.userSide ? plan : null,
+            profiles: context.profiles,
+          }),
+        ]),
+      )
+    : null;
+  const brief = stepBrief(step, context.method);
+  if (!step) return { done: true, step: null, options: [], answers: [], pool: [], brief, status };
+  const pool = rank(session, context, step, plan);
   // Not suggested: a champion in a role it is not played in, and the ban of
   // one's own best pick. Both stay in the pool, so they can still be clicked.
   const worth = pool.filter(
@@ -185,18 +219,18 @@ export function advise(session, context, options = {}) {
           .filter((row) => row.reasons.some((reason) => reason.kind === "said" && reason.points > 0))
           .slice(0, 3)
       : [];
-  return { done: false, step, pool, options: shown, answers };
+  return { done: false, step, pool, options: shown, answers, brief, status };
 }
 
 // A click that names no role: the champion goes to the open role it is most
 // played in. A role given by the caller wins when it is free.
-export function inferPickRole(session, champion, context = null) {
+export function inferPickRole(session, champion, context = null, plan = null) {
   const step = currentStep(session);
   if (!step || step.action !== "pick" || !context) return null;
-  return rank(session, context, step).find((row) => row.champion === champion)?.role ?? null;
+  return rank(session, context, step, plan).find((row) => row.champion === champion)?.role ?? null;
 }
 
-export function applyAction(session, champion, role = null, context = null) {
+export function applyAction(session, champion, role = null, context = null, plan = null) {
   const step = currentStep(session);
   if (!step) throw new Error("La draft est déjà complète.");
   const name = String(champion || "");
@@ -221,7 +255,7 @@ export function applyAction(session, champion, role = null, context = null) {
   const assigned =
     ROLES.includes(role) && !next.picks[step.side][role]
       ? role
-      : inferPickRole(session, name, context);
+      : inferPickRole(session, name, context, plan);
   if (!assigned || next.picks[step.side][assigned])
     throw new Error("Aucun rôle habituel n’est libre pour ce champion.");
   next.picks[step.side][assigned] = name;

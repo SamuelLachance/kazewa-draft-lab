@@ -10,7 +10,11 @@
  *   - how much professional teams pick or ban it right now, in that role;
  *   - whether professionals lock that role, and that champion, at this point
  *     of a draft;
- *   - his first rule of composition: a draft needs a frontline.
+ *   - his first rule of composition: a draft needs a frontline;
+ *   - the draft method of the two coaches (src/method.mjs): the order of
+ *     roles, the first pick, blind picks and flex picks, the family of the
+ *     composition and the pieces it still lacks, the duos Shanei names, the
+ *     answers to what the opponent shows, and bans that protect the plan.
  *
  * It also lists who can still answer a pick: the counters he named that are
  * neither banned nor picked, in a role the opponent has yet to fill. That is
@@ -21,6 +25,7 @@
  */
 import { ROLES } from "./engine.mjs";
 import { LANES } from "./lanes.mjs";
+import { banNotes, METHOD_WEIGHTS, pickNotes } from "./method.mjs";
 
 const SIDES = ["blue", "red"];
 const other = (side) => (side === "blue" ? "red" : "blue");
@@ -73,6 +78,8 @@ export const WEIGHTS = Object.freeze({
   // real professional drafts, counting it against the champion made the list
   // worse (research/coach-eval.mjs).
   answer: 0,
+  // The draft method of the two coaches: see METHOD_WEIGHTS in src/method.mjs.
+  method: METHOD_WEIGHTS,
 });
 
 /* ------------------------------------------------------------------ */
@@ -275,7 +282,9 @@ export function recentOpinion(notes, meta, role = null) {
  * One champion in one role: its points and the sentence behind each of them.
  * `slot` is the number of the pick in the draft, 1 to 10 (null in a ban
  * list). `mine`: the side that picks is the reader's side. `notes` are his
- * dated remarks on this champion (data/coach.json).
+ * dated remarks on this champion (data/coach.json). `method` is
+ * indexMethod() of src/method.mjs and `plan` the family the reader said they
+ * are going for: with them the draft method of the two coaches is counted.
  */
 export function scorePick({
   champion,
@@ -289,6 +298,8 @@ export function scorePick({
   profiles = null,
   notes = null,
   mine = true,
+  method = null,
+  plan = null,
   weights = WEIGHTS,
 }) {
   const foe = other(side);
@@ -387,7 +398,7 @@ export function scorePick({
       say(-weights.said, `Va mal avec ${ally.champion} d’après lui.`, bad[0], ally.champion);
     else {
       counted.add(ally.champion);
-      add(0, "note", `Avec ${ally.champion}, il a jugé ce duo dans les deux sens selon la draft.`);
+      add(0, "note", `Avec ${ally.champion}, il a jugé ce duo dans les deux sens selon la draft.`, { coach: "kazewa" });
     }
   }
   for (const enemy of locked(picks, foe)) {
@@ -405,7 +416,7 @@ export function scorePick({
     else {
       // He said it both ways, in different drafts: no point either way.
       counted.add(enemy.champion);
-      add(0, "note", `Contre ${enemy.champion}, il a jugé le matchup dans les deux sens selon la draft.`);
+      add(0, "note", `Contre ${enemy.champion}, il a jugé le matchup dans les deux sens selon la draft.`, { coach: "kazewa" });
     }
   }
 
@@ -448,8 +459,19 @@ export function scorePick({
     }
   }
 
+  // 4a. The draft method of the two coaches. Each line names its coach and
+  //     carries the id of its rule.
+  const process =
+    method && slot
+      ? pickNotes({ champion, role, side, picks, slot, taken: unavailable(picks, bans), plan, index: method, profiles, mine, weights: weights.method ?? METHOD_WEIGHTS })
+      : [];
+  for (const note of process) reasons.push(note);
+  // Shanei's tank of the block of four, when the champion brings it, says the
+  // same thing as Kazewa's frontline: it is counted once.
+  const tankSaid = process.some((note) => note.tank && note.points > 0);
+
   // 4b. His first rule of composition: a draft needs a frontline.
-  if (profiles && weights.frontline) {
+  if (profiles && weights.frontline && !tankSaid) {
     const team = locked(picks, side);
     const front = (name) => profiles[name]?.frontline ?? 0;
     if (team.length >= 3 && !team.some((ally) => front(ally.champion) >= 1) && front(champion) >= 1)
@@ -518,6 +540,8 @@ export function rankPicks({
   profiles = null,
   noteOf = null,
   mine = true,
+  method = null,
+  plan = null,
   weights = WEIGHTS,
 }) {
   const taken = unavailable(picks, bans);
@@ -537,7 +561,7 @@ export function rankPicks({
     const candidates = real.length ? real : roles;
     const scored = candidates
       .map((role) =>
-        scorePick({ champion, role, side, picks, bans, slot, tables, meta, profiles, notes: noteOf?.(champion), mine, weights }),
+        scorePick({ champion, role, side, picks, bans, slot, tables, meta, profiles, notes: noteOf?.(champion), mine, method, plan, weights }),
       )
       .sort(
         (a, b) =>
@@ -576,6 +600,9 @@ export function rankBans({
   noteOf = null,
   ownPicks = null,
   mine = true,
+  method = null,
+  plan = null,
+  profiles = null,
   weights = WEIGHTS,
 }) {
   const foe = other(side);
@@ -618,6 +645,10 @@ export function rankBans({
           : "Absent des parties pro récentes.",
       });
     }
+    // The method: a ban that protects the composition, never one's own piece.
+    if (method)
+      for (const note of banNotes({ champion, side, picks, plan, index: method, profiles, mine, roles: playableRoles(meta, champion), weights: weights.method ?? METHOD_WEIGHTS }))
+        reasons.push({ ...note, points: round(note.points > 0 ? note.points * usable : note.points) });
     if (ownPicks?.has(champion))
       reasons.push({
         points: -weights.own,
