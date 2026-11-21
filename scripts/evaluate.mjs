@@ -26,6 +26,7 @@ import { analyzeDraft, normalizeChampion, ROLES } from "../src/engine.mjs";
 import { applicableArguments, indexMemory } from "../src/memory.mjs";
 import { cardReading, cardRelations } from "../src/relations.mjs";
 import { indexMethod, shaneiReading } from "../src/method.mjs";
+import { evaluateDraft, theoryContext } from "../src/theory.mjs";
 import { playedGames, resultKey, shardOf } from "../src/results.mjs";
 import { argumentLean, chooseReading, judgeDraft } from "../src/verdict.mjs";
 import { fitLogistic } from "./lib/logistic.mjs";
@@ -314,6 +315,30 @@ export function shaneiOnProGames(method, knowledge, file = path.join(root, ".cac
   };
 }
 
+// Five hundred drafts drawn from the whole catalogue with a fixed generator, so
+// that every run draws the same ones (the same draws as tests/verdict.test.mjs).
+// It counts how often the site has no estimate at all: nothing is fitted.
+function randomDraftCoverage(options, count = 500) {
+  const names = Object.keys(options.knowledge.champions);
+  let state = 20261114;
+  const random = () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+  const byBasis = {};
+  for (let i = 0; i < count; i += 1) {
+    const pool = [...names];
+    const pick = () => pool.splice(Math.floor(random() * pool.length), 1)[0];
+    const team = () => ({ top: pick(), jng: pick(), mid: pick(), bot: pick(), sup: pick() });
+    const draft = { blue: team(), red: team() };
+    const result = judgeDraft(draft, options);
+    const basis = result.status === "complete" ? result.lean.basis : result.status;
+    byBasis[basis] = (byBasis[basis] ?? 0) + 1;
+  }
+  const withoutEstimate = byBasis.balance ?? 0;
+  return { n: count, withoutEstimate, share: withoutEstimate / count, byBasis };
+}
+
 export function buildReport(
   memory,
   knowledge,
@@ -428,11 +453,14 @@ export function buildReport(
 
   /* 3c. Every draft gets a verdict: the readings in the order the site uses them. */
   const relations = cards ? cardRelations(cards) : null;
+  // The procedure of the two coaches (src/theory.mjs): read only, never fitted.
+  const theoryCtx = method ? theoryContext({ knowledge, index: indexMethod(method) }) : null;
   const heldOutVideos = new Set(holdout?.videos ?? []);
   const saidById = new Map(said.map((row) => [row.id, row]));
   const perDraft = decided.map((c) => {
     const draft = { blue: c.blue, red: c.red };
     const calculator = analyzeDraft(draft, knowledge);
+    const theory = theoryCtx ? evaluateDraft(draft, theoryCtx).side : "even";
     const cardSide = relations ? cardReading(draft, relations).side : "even";
     // The result of the game, read the way the site reads it: every game
     // played with these two rosters, and a side only when they all agree.
@@ -453,6 +481,7 @@ export function buildReport(
         c.sources.every((source) => heldOutVideos.has(source.video)),
       argumentSide: saidById.get(c.id)?.side ?? null,
       cardSide: cardSide === "even" ? null : cardSide,
+      theorySide: theory === "even" ? null : theory,
       // On a draft it was tuned on, the calculator's answer proves nothing:
       // it is left out, and the draft counts as undecided at that step.
       calculatorSide:
@@ -462,14 +491,21 @@ export function buildReport(
     };
   });
   // `withResult`: the draft is a game already played and its result is known.
+  // A draft that no reading separates gets no estimate: it is counted apart,
+  // and is not credited with half a point for a coin toss.
   const cascade = (drafts, withResult = false) => {
     const byReading = {};
     const all = [];
+    const unanswered = [];
     for (const d of drafts) {
       const reading = chooseReading({ ...d, resultSide: withResult ? d.resultSide : null });
+      if (reading.basis === "balance") {
+        unanswered.push({ group: d.group });
+        continue;
+      }
       const row = {
         group: d.group,
-        credit: reading.side === "even" ? 0.5 : reading.side === d.label ? 1 : 0,
+        credit: reading.side === d.label ? 1 : 0,
       };
       (byReading[reading.basis] ??= []).push(row);
       all.push(row);
@@ -479,6 +515,11 @@ export function buildReport(
       byReading: Object.fromEntries(
         Object.entries(byReading).map(([basis, rows]) => [basis, grouped(rows)]),
       ),
+      unanswered: {
+        n: unanswered.length,
+        groups: new Set(unanswered.map((row) => row.group)).size,
+      },
+      coverage: drafts.length ? all.length / drafts.length : null,
     };
   };
   // The cards were written from most of his videos. Only the drafts of the
@@ -521,17 +562,27 @@ export function buildReport(
         note: "For a draft that is a professional game already played, the side that won is compared with his verdict. Nothing is fitted. 'draftTiming' keeps the verdicts he states in the draft phase of his video, before he watches the game; the videos known to be recorded with the result are marked by hand in data/memory-overrides.json and counted as late. 'afterTheGame' are review and late opinions, which can know the result. 'everyDraft.played' runs over every held-out draft: where no result is found the other readings answer, and byReading says how many used the result. 'withArguments' sets this reading next to his arguments from other groups on the drafts where both speak. It says nothing about a draft that has not been played.",
       }
     : null;
+  /* 3d. Random drafts: how often the site has no estimate at all. */
+  const randomDrafts = site && method
+    ? randomDraftCoverage({
+        knowledge,
+        memory: indexMemory(site),
+        relations,
+        method: indexMethod(method),
+      })
+    : null;
   const everyDraft = site
     ? {
         // Honest headline: drafts no reading has seen (arguments from other
         // groups, cards written without these videos).
         heldOut: { ...cascade(fresh), groups: new Set(fresh.map((d) => d.group)).size },
         allJudgedOptimistic: cascade(perDraft).all,
+        allJudged: cascade(perDraft),
         // Same held-out drafts, when the game was played and its result is known.
         played: matchResult
           ? { heldOut: { ...cascade(fresh, true), groups: new Set(fresh.map((d) => d.group)).size } }
           : null,
-        note: "Each judged draft is given the verdict the site would give it if he had not judged it: his arguments from other groups first, then his champion cards, then the structural calculator. 'heldOut' uses only drafts from videos the cards were written without, and leaves the calculator out on the drafts it was tuned on (those count as a draw at that step): no reading judges a draft it has seen. 'allJudgedOptimistic' uses every judged draft and is inflated: on most of them the cards summarise the very video being tested.",
+        note: "Each judged draft is given the estimate the site would give it if he had not judged it: his arguments from other groups first, then his champion cards. When neither separates the two compositions the draft gets no estimate: it is counted in 'unanswered', and 'coverage' is the share of drafts that get one. 'heldOut' uses only drafts from videos the cards were written without: no reading judges a draft it has seen. 'allJudgedOptimistic' uses every judged draft and is inflated: on most of them the cards summarise the very video being tested. The decision grid of the two coaches is a second opinion and is measured apart (reliability.theory). 'played' is a measure, not the estimate: it answers each draft with the result of its game first, to measure how often that side is his verdict. The site never shows that answer as the estimate.",
       }
     : null;
 
@@ -565,13 +616,26 @@ export function buildReport(
       }
     : null;
 
+  /* 3f. The procedure of the two coaches, against his verdict. Nothing is
+     fitted: the rubric is applied as it stands. */
+  const theoryRows = perDraft
+    .filter((d) => d.theorySide)
+    .map((d) => ({ group: d.group, credit: d.theorySide === d.label ? 1 : 0, confidence: d.theoryConfidence ?? null }));
+  const theoryMeasure = theoryRows.length
+    ? {
+        ...grouped(theoryRows),
+        coverage: theoryRows.length / decided.length,
+        note: "The draft procedure of the two coaches (src/theory.mjs): identity, structural holes, grid of axes, bonuses, timing and verdict of Kazewa's decision rubric, with Shanei's construction checks. Nothing is fitted; it reads no professional game. Agreement is with his verdict on the drafts where it leans to a side.",
+      }
+    : null;
+
   /* 4. Context: how often the real winner matches his verdict. */
   const known = decided.filter((c) => c.winner);
   const follows = known.filter((c) => c.winner === c.verdict.side).length;
 
   const neverSeen = { ...grouped(calc.untuned), abstained: calc.abstained };
   const evaluation = {
-    version: "2.4.0",
+    version: "2.5.0",
     evaluatedAt: now.toISOString(),
     memory: {
       cases: cases.length,
@@ -590,7 +654,7 @@ export function buildReport(
     },
     unseen: {
       protocol:
-        "Leave-one-group-out. A group joins every draft that shares a video or a professional series. Ties count as half. Intervals redraw whole groups.",
+        "Leave-one-group-out. A group joins every draft that shares a video or a professional series. Intervals redraw whole groups. The pick-order measure gives a tie half a point; the estimate readings give no answer on a tie, and a draft that no reading separates is counted apart as unanswered.",
       groups: new Set(decided.map((c) => c.group)).size,
       pickOrder: {
         ...pickOrder,
@@ -611,7 +675,9 @@ export function buildReport(
       championCards: cardsReport,
       matchResult,
       everyDraft,
+      randomDrafts,
       shaneiGrid,
+      theory: theoryMeasure,
       structuralCalculator: {
         tunedOn: rate(calc.tuned[0], calc.tuned[1]),
         neverSeen,
@@ -638,9 +704,9 @@ export function buildReport(
     },
   };
   const shipped = {
-    version: "2.4.0",
+    version: "2.5.0",
     measuredAt: now.toISOString(),
-    note: "Measured agreement of each reading the site uses for a draft he did not judge. Nothing is fitted: when the draft is a game already played the site names the side that won; otherwise it counts his arguments, then his champion cards, then applies the structural calculator.",
+    note: "Measured agreement of each reading the site uses for a draft he did not judge. Nothing is fitted: a game already played gives a fact, which never sets the estimate; the estimate counts his arguments, then his champion cards, and is absent when neither separates the two compositions.",
     reliability: {
       // A game already played: how often the team he preferred is the one that won.
       result: matchResult
@@ -673,6 +739,9 @@ export function buildReport(
       principles: { agreement: neverSeen.agreement, n: neverSeen.n, low: neverSeen.low, high: neverSeen.high },
       everyDraft: everyDraft ? everyDraft.heldOut.all : null,
       everyDraftPlayed: everyDraft?.played ? everyDraft.played.heldOut.all : null,
+      theory: theoryMeasure
+        ? { agreement: theoryMeasure.agreement, n: theoryMeasure.n, low: theoryMeasure.low, high: theoryMeasure.high }
+        : null,
       // Shanei's grid: a second opinion, not a reading of Kazewa's verdict.
       shanei: shaneiGrid
         ? {
@@ -723,13 +792,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   console.log(`Mémoire : ${evaluation.memory.decided} drafts jugées, verdict restitué ${pct(evaluation.memory.selfRecall)}`);
   console.log(`Draft inédite, ordre des picks : ${pct(u.pickOrder)} sur ${u.pickOrder.groups} groupes ; hasard ${(u.pickOrder.chance.mean * 100).toFixed(1)} ± ${(u.pickOrder.chance.sd * 100).toFixed(1)}, p=${u.pickOrder.chance.p.toFixed(3)}`);
   console.log(`Toujours « ${u.pickOrder.sideOnly.side} » : ${pct(u.pickOrder.sideOnly)} ; écart avec le modèle : ${u.pickOrder.overSideOnly.modelRightRuleWrong} contre ${u.pickOrder.overSideOnly.ruleRightModelWrong}, p=${u.pickOrder.overSideOnly.p.toFixed(3)}`);
-  if (u.arguments)
+  if (u.arguments) {
     console.log(`Ses arguments contre « toujours le même côté » sur les mêmes drafts : ${pct(u.arguments.sideOnly)} ; écart ${u.arguments.overSideOnly.argumentsRightRuleWrong} contre ${u.arguments.overSideOnly.ruleRightArgumentsWrong}, p=${u.arguments.overSideOnly.p.toFixed(3)}`);
     console.log(`Draft inédite, ses arguments venus d’autres vidéos : ${pct(u.arguments)} ; couverture ${(u.arguments.coverage * 100).toFixed(0)} % ; d’accord avec l’ordre des picks : ${pct(u.arguments.withPickOrder.sameSide)} ; opposés : arguments justes ${u.arguments.withPickOrder.oppositeSides.argumentsRight}/${u.arguments.withPickOrder.oppositeSides.n}`);
+  }
   if (u.everyDraft) {
     const line = (c) => Object.entries(c.byReading).map(([k, r]) => `${k} ${r.agree}/${r.n}`).join(" · ");
-    console.log(`Toute draft, vidéos jamais vues par aucune lecture : ${pct(u.everyDraft.heldOut.all)} | ${line(u.everyDraft.heldOut)}`);
+    console.log(`Estimation sur les drafts jamais vues par aucune lecture : ${pct(u.everyDraft.heldOut.all)} | ${line(u.everyDraft.heldOut)} | sans estimation ${u.everyDraft.heldOut.unanswered.n} sur ${u.everyDraft.heldOut.all.n + u.everyDraft.heldOut.unanswered.n}`);
     console.log(`Sur toutes les drafts jugées (gonflé par les fiches) : ${pct(u.everyDraft.allJudgedOptimistic)}`);
+    if (u.randomDrafts)
+      console.log(`Drafts tirées au hasard, sans aucune estimation : ${u.randomDrafts.withoutEstimate} sur ${u.randomDrafts.n} (${(u.randomDrafts.share * 100).toFixed(1)} %)`);
     if (u.championCards)
       console.log(`Fiches champion : vidéos jamais vues ${pct(u.championCards.heldOut)} ; vidéos qui ont servi à les écrire ${pct(u.championCards.writtenFrom)}`);
   }

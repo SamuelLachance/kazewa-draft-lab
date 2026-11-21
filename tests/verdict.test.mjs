@@ -4,10 +4,12 @@ import { readFile } from "node:fs/promises";
 import { fingerprint, indexMemory } from "../src/memory.mjs";
 import { cardReading, cardRelations, mentionedChampions } from "../src/relations.mjs";
 import { argumentLean, chooseReading, judgeDraft } from "../src/verdict.mjs";
+import { indexMethod } from "../src/method.mjs";
 
 const load = async (name) =>
   JSON.parse(await readFile(new URL(`../data/${name}`, import.meta.url), "utf8"));
 const knowledge = await load("knowledge.json");
+const methodIndex = indexMethod(await load("method.json"));
 const team = (top, jng, mid, bot, sup) => ({ top, jng, mid, bot, sup });
 const judged = {
   id: "case_a",
@@ -83,41 +85,28 @@ test("a draft he commented without choosing stays undecided", () => {
   assert.deepEqual(result.lean, { basis: "undecided", side: "even" });
 });
 
-test("the readings are tried from the most reliable to the coarsest", () => {
-  assert.deepEqual(
-    chooseReading({ argumentSide: "red", cardSide: "blue", calculatorSide: "blue" }),
-    { basis: "arguments", side: "red" },
-  );
-  assert.deepEqual(chooseReading({ argumentSide: null, cardSide: "blue", calculatorSide: "red" }), {
-    basis: "cards",
-    side: "blue",
-  });
-  assert.deepEqual(chooseReading({ argumentSide: null, cardSide: null, calculatorSide: "red" }), {
-    basis: "principles",
-    side: "red",
-  });
-  assert.deepEqual(chooseReading({ argumentSide: null, cardSide: null, calculatorSide: null }), {
-    basis: "balance",
-    side: "even",
-  });
-  assert.deepEqual(argumentLean([{ favours: "blue" }, { favours: "red" }]), {
-    blue: 1,
-    red: 1,
-    side: "even",
-  });
+test("the estimate is read from the most reliable reading, and none when nothing separates", () => {
+  assert.deepEqual(chooseReading({ argumentSide: "red", cardSide: "blue" }), { basis: "arguments", side: "red" });
+  assert.deepEqual(chooseReading({ argumentSide: null, cardSide: "blue" }), { basis: "cards", side: "blue" });
+  assert.deepEqual(chooseReading({ argumentSide: null, cardSide: null }), { basis: "balance", side: "even" });
+  // The decision grid of the two coaches is a second opinion: it never sets the estimate.
+  assert.deepEqual(chooseReading({ argumentSide: null, cardSide: null, theorySide: "red" }), { basis: "balance", side: "even" });
+  // The result of a game already played is measured, never the estimate.
+  assert.deepEqual(chooseReading({ resultSide: "blue", argumentSide: "red" }), { basis: "result", side: "blue" });
+  assert.deepEqual(argumentLean([{ favours: "blue" }, { favours: "red" }]), { blue: 1, red: 1, side: "even" });
 });
 
-test("an unseen draft still gets a verdict, and says it comes from the coarsest reading", () => {
-  const result = judgeDraft(unseen, { knowledge, memory, model });
+test("an unseen draft with no argument and no card gets no estimate, and the grid stays a second opinion", () => {
+  const result = judgeDraft(unseen, { knowledge, memory, model, method: methodIndex });
   assert.equal(result.source, "unseen");
   // `winner` is his verdict only: the site never passes its estimate off as his.
   assert.equal(result.winner, null);
   assert.equal(result.kazewa, null);
-  // No argument, no card: his composition principles decide.
-  assert.equal(result.lean.basis, "principles");
-  assert.equal(result.lean.side, result.structure.winner);
-  assert.ok(["blue", "red"].includes(result.lean.side));
-  assert.equal(result.reliability.principles.agreement, 0.5);
+  // No argument, no card: no estimate. The grid of the two coaches is shown apart.
+  assert.equal(result.lean.basis, "balance");
+  assert.equal(result.lean.side, "even");
+  assert.ok(result.theory, "the grid is still computed as a second opinion");
+  assert.equal(result.reliability, model.reliability);
 });
 
 test("his arguments from another draft give the side, and follow the compositions", () => {
@@ -160,7 +149,7 @@ test("a draft one champion away keeps the closest judged draft in view, without 
   assert.equal(result.winner, null);
 });
 
-test("his champion cards speak when no argument applies, before his principles", () => {
+test("his champion cards speak when no argument applies, and nothing speaks when neither does", () => {
   const names = ["Vi", "Viego", "Nocturne", "Twisted Fate", "Pantheon", "Akali"];
   // Whole names only: "Vi" is not found inside "Viego".
   assert.deepEqual(mentionedChampions("Viego puis Twisted Fate.", names), ["Viego", "Twisted Fate"]);
@@ -213,17 +202,18 @@ test("incomplete, duplicated and unknown drafts abstain before any lookup", () =
   assert.equal(duplicated.status, "invalid");
 });
 
-test("without a memory, a model or cards the site still gives a verdict from his principles", () => {
-  const result = judgeDraft(unseen, { knowledge });
+test("without a memory, a model or cards the site gives no estimate, and still shows the grid", () => {
+  const result = judgeDraft(unseen, { knowledge, method: methodIndex });
   assert.equal(result.status, "complete");
   assert.equal(result.source, "unseen");
-  assert.equal(result.lean.basis, "principles");
+  assert.equal(result.lean.basis, "balance");
+  assert.ok(result.theory);
   assert.equal(result.reliability, null);
   assert.deepEqual(result.precedents, []);
   assert.deepEqual(result.arguments, []);
 });
 
-test("with the shipped data every complete draft gets a verdict, whatever the champions", async () => {
+test("with the shipped data every complete draft gets an estimate or says it has none, whatever the champions", async () => {
   const [site, shipped, cards] = await Promise.all([
     load("memory-site.json"),
     load("model.json"),
@@ -234,6 +224,7 @@ test("with the shipped data every complete draft gets a verdict, whatever the ch
     memory: indexMemory(site),
     model: shipped,
     relations: cardRelations(cards),
+    method: methodIndex,
   };
   // The draft from the report: no argument applies to it.
   const reported = judgeDraft(
@@ -273,8 +264,9 @@ test("with the shipped data every complete draft gets a verdict, whatever the ch
         `no reliability for ${result.lean.basis}`,
       );
   }
-  // A draw is a verdict too, but it must stay the exception.
-  assert.ok((counts.balance ?? 0) <= 25, `too many draws: ${JSON.stringify(counts)}`);
+  // No estimate is a result too: the site says so rather than invent a side.
+  for (const basis of Object.keys(counts))
+    assert.ok(["arguments", "cards", "result", "balance"].includes(basis), basis);
 });
 
 test("a card clause is read for what it says: partner, victim, punisher or bad partner", () => {

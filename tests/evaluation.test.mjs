@@ -193,15 +193,15 @@ test("the report separates recall from prediction and keeps the bar in view", as
   assert.equal(model.process, undefined);
   assert.deepEqual(
     Object.keys(model.reliability).sort(),
-    ["arguments", "cards", "everyDraft", "everyDraftPlayed", "principles", "result", "shanei"],
+    ["arguments", "cards", "everyDraft", "everyDraftPlayed", "principles", "result", "shanei", "theory"],
   );
 
   // His arguments from other groups: counted, never fitted.
   const said = evaluation.unseen.arguments;
   assert.equal(model.reliability.arguments.agreement, said.agreement);
-  // Every judged draft gets a verdict from the chain of readings, none is skipped.
+  // Every judged draft gets an estimate or is counted as unanswered; none is skipped.
   const every = evaluation.unseen.everyDraft;
-  assert.equal(every.allJudgedOptimistic.n, evaluation.memory.decided);
+  assert.equal(every.allJudged.all.n + every.allJudged.unanswered.n, evaluation.memory.decided);
   assert.equal(
     Object.values(every.heldOut.byReading).reduce((n, r) => n + r.n, 0),
     every.heldOut.all.n,

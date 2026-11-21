@@ -54,7 +54,7 @@ test("the winner follows the composition, not the side it is entered on", () => 
   assert.deepEqual(playedGames(draft, split).wins, { blue: 1, red: 1 });
 });
 
-test("the result of a played game comes first for a draft he did not judge, never for one he judged", async () => {
+test("the result of a played game is measured first, but is never the estimate of a draft he did not judge", async () => {
   assert.deepEqual(
     chooseReading({ resultSide: "red", argumentSide: "blue", cardSide: "blue", calculatorSide: "blue" }),
     { basis: "result", side: "red" },
@@ -70,7 +70,8 @@ test("the result of a played game comes first for a draft he did not judge, neve
   };
   const unseen = judgeDraft(draft, { knowledge, memory: index, played });
   assert.equal(unseen.source, "unseen");
-  assert.deepEqual(unseen.lean, { basis: "result", side: first });
+  // The result of the game is a fact shown with the draft: it is not the verdict.
+  assert.notEqual(unseen.lean.basis, "result");
   assert.equal(unseen.played.games.length, 1);
   assert.equal(calls, 1);
   // Without a results lookup the same draft falls back to the other readings.
@@ -163,7 +164,12 @@ test("the report measures the result reading and keeps it apart from a draft nev
   const every = evaluation.unseen.everyDraft;
   assert.equal(every.heldOut.byReading.result, undefined);
   assert.ok(every.played.heldOut.byReading.result.n > 0);
-  assert.equal(every.played.heldOut.all.n, every.heldOut.all.n);
+  // Both chains see the same drafts; the played one answers the ones with no estimate too.
+  assert.equal(
+    every.played.heldOut.all.n + every.played.heldOut.unanswered.n,
+    every.heldOut.all.n + every.heldOut.unanswered.n,
+  );
+  assert.ok(every.played.heldOut.all.n >= every.heldOut.all.n);
   assert.equal(model.reliability.everyDraftPlayed.agreement, every.played.heldOut.all.agreement);
   assert.equal(model.reliability.everyDraft.agreement, every.heldOut.all.agreement);
 });

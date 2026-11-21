@@ -1,31 +1,33 @@
 /**
  * What to ban or pick next, and why.
  *
- * A suggestion is ranked on things a player can check:
+ * A suggestion is ranked on what the two coaches said, and on the procedure
+ * they teach. Each point of the score comes with its sentence and, where there
+ * is one, its video:
  *   - what Kazewa said about this champion with the champions already locked:
  *     the matchups, answers and synergies he named in the drafts he judged,
  *     and the relations written on his champion cards;
- *   - what he said of the champion itself in the last months: strong or weak
- *     in the meta of the day;
- *   - how much professional teams pick or ban it right now, in that role;
- *   - whether professionals lock that role, and that champion, at this point
- *     of a draft;
- *   - his first rule of composition: a draft needs a frontline;
- *   - the draft method of the two coaches (src/method.mjs): the order of
- *     roles, the first pick, blind picks and flex picks, the family of the
- *     composition and the pieces it still lacks, the duos Shanei names, the
- *     answers to what the opponent shows, and bans that protect the plan.
+ *   - what he said of the champion's strength in the last months;
+ *   - his decision rubric (src/theory.mjs): what the champion changes for its
+ *     side, in holes filled or created and axes won or lost;
+ *   - the draft method of Shanei (src/method.mjs): the order of roles, the
+ *     first pick, blind picks and flex picks, the family of the composition
+ *     and the pieces it still lacks, the duos he names, the answers to what the
+ *     opponent shows, and bans that protect the plan.
+ *
+ * No professional statistic decides anything here. The roles a champion can
+ * take come from the lane table (src/lanes.mjs). The professional figures of
+ * data/coach.json are kept for the measure of the coach (research/coach-eval.mjs)
+ * and the notes are read for their dates and their text only.
  *
  * It also lists who can still answer a pick: the counters he named that are
  * neither banned nor picked, in a role the opponent has yet to fill. That is
  * a warning, not a penalty.
- *
- * Every point of the score comes with its sentence. Nothing here predicts who
- * wins: the structural calculator is not part of the ranking.
  */
 import { ROLES } from "./engine.mjs";
 import { LANES } from "./lanes.mjs";
 import { banNotes, METHOD_WEIGHTS, pickNotes } from "./method.mjs";
+import { banReason, pickReason } from "./theory.mjs";
 
 const SIDES = ["blue", "red"];
 const other = (side) => (side === "blue" ? "red" : "blue");
@@ -49,12 +51,6 @@ const FACING_TAGS = new Set([
 ]);
 
 export const WEIGHTS = Object.freeze({
-  // Share of recent professional games where the champion is picked or banned.
-  presence: 6,
-  // How usual the role is at this pick, against one role in five.
-  timing: 1,
-  // How usual this champion is at this stage of the draft (log2 of the lift).
-  stage: 0.5,
   // One statement of his for or against, on a champion already locked; more
   // when it is the opponent of the same lane.
   said: 1,
@@ -68,17 +64,15 @@ export const WEIGHTS = Object.freeze({
   cardCap: 1.5,
   // What he said of the champion itself in the last months: strong or weak.
   opinion: 1,
-  // A frontline when three picks are locked without one.
-  frontline: 1,
-  // In a ban list, how much the ban rate counts against the pick rate.
-  banMix: 0.5,
   // A ban of the champion the banning side would take itself right after.
   own: 4,
-  // A counter he named that the opponent can still take: a warning only. On
-  // real professional drafts, counting it against the champion made the list
-  // worse (research/coach-eval.mjs).
+  // A counter he named that the opponent can still take: shown as a warning,
+  // with no points. Switched off on purpose: his named counters are used only
+  // as the warning of the sentence, not to rank.
   answer: 0,
-  // The draft method of the two coaches: see METHOD_WEIGHTS in src/method.mjs.
+  // The procedure of the two coaches (src/theory.mjs), in its own points.
+  theory: 1,
+  // The draft method of Shanei (src/method.mjs): see METHOD_WEIGHTS there.
   method: METHOD_WEIGHTS,
 });
 
@@ -154,84 +148,23 @@ export function coachTables(memory, relations = null) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Professional play                                                   */
+/* Roles, from the lane table                                          */
 /* ------------------------------------------------------------------ */
 
-const proPicks = (meta, champion) => sum(Object.values(meta?.picks?.[champion] ?? {}));
-
-/** Share of recent professional games where the champion is picked or banned. */
-export function presence(meta, champion) {
-  if (!meta?.games) return 0;
-  return (proPicks(meta, champion) + (meta.bans?.[champion] ?? 0)) / meta.games;
-}
-
-/** Among the games where it is picked, the share played in this role. */
-export function roleShare(meta, champion, role) {
-  const total = proPicks(meta, champion);
-  if (!total) return (LANES[champion] ?? [])[0] === role ? 1 : 0;
-  return (meta.picks[champion][role] ?? 0) / total;
-}
-
 /**
- * The roles a champion can be given, most played first: the lane table, plus
- * the roles professionals really play it in, minus a listed lane they never
- * use when there is enough professional play to tell.
+ * The roles a champion can be given, from the lane table. `meta` is not read:
+ * what teams play decides nothing here. Kept in the signature for the callers.
  */
 export function playableRoles(meta, champion) {
   const listed = LANES[champion] ?? [];
-  const total = proPicks(meta, champion);
-  if (!total) return [...listed];
-  const byRole = meta.picks[champion];
-  const roles = new Set();
-  for (const role of ROLES) {
-    const games = byRole[role] ?? 0;
-    if (games >= 5 && games / total >= 0.1) roles.add(role);
-  }
-  for (const role of listed) {
-    const games = byRole[role] ?? 0;
-    if (total < 10 || games >= 3 || games / total >= 0.05) roles.add(role);
-  }
-  if (!roles.size) roles.add(listed[0] ?? ROLES[0]);
-  return [...roles].sort(
-    (a, b) => (byRole[b] ?? 0) - (byRole[a] ?? 0) || listed.indexOf(a) - listed.indexOf(b),
-  );
-}
-
-/** How often professionals lock this role at this pick (1 to 10). */
-export function timingShare(meta, slot, role) {
-  const row = meta?.slots?.[slot - 1];
-  const total = row ? sum(ROLES.map((r) => row[r] ?? 0)) : 0;
-  return total ? (row[role] ?? 0) / total : 0.2;
-}
-
-const STAGE_BASE = [0.3, 0.3, 0.4];
-const STAGE_FR = ["en début de draft", "en milieu de draft", "en fin de draft"];
-export const stageOf = (slot) => (slot <= 3 ? 0 : slot <= 6 ? 1 : 2);
-/**
- * How much more (or less) often than an average champion this one is locked
- * at this stage: picks 1-3, 4-6 or 7-10. Pulled towards 1 when it is rare.
- */
-export function stageLift(meta, champion, slot) {
-  const counts = meta?.stages?.[champion];
-  if (!counts) return { lift: 1, share: null, total: 0 };
-  const stage = stageOf(slot);
-  const total = counts[0] + counts[1] + counts[2];
-  const base = STAGE_BASE[stage];
-  return {
-    lift: (counts[stage] + 6 * base) / (total + 6) / base,
-    share: total ? counts[stage] / total : null,
-    total,
-  };
+  return listed.length ? [...listed] : [ROLES[0]];
 }
 
 /* ------------------------------------------------------------------ */
 /* Sentences                                                           */
 /* ------------------------------------------------------------------ */
 
-const percent = (value) => `${Math.round(value * 100)} %`;
 const ROLE_FR = { top: "top", jng: "jungle", mid: "mid", bot: "ADC", sup: "support" };
-// "le top", "l’ADC".
-const theRole = (role) => (role === "bot" ? "l’ADC" : `le ${ROLE_FR[role]}`);
 // "d’Orianna", but "de Yasuo" and "de Hwei".
 const vowel = (name) => /^[aeiouàâéèêëîïôöûü]/i.test(name);
 const de = (name) => (vowel(name) ? `d’${name}` : `de ${name}`);
@@ -258,12 +191,22 @@ function unavailable(picks, bans) {
   return names;
 }
 
+/** The date of his newest dated remark, over all the champions: the reference of "recent". */
+export function latestNoteDate(notes) {
+  let latest = null;
+  for (const list of Object.values(notes ?? {}))
+    for (const note of list ?? []) if (note.date && (!latest || note.date > latest)) latest = note.date;
+  return latest;
+}
+
 /**
- * His latest word on the champion's strength, when it is recent enough. A
- * remark that names a role ("Shen support never works") holds for that role.
+ * His latest word on the champion's strength, when it is recent enough, that
+ * is within six months of `asOf` (the date of his newest remark, which comes
+ * from his own notes and not from the professional data). A remark that names
+ * a role ("Shen support never works") holds for that role.
  */
-export function recentOpinion(notes, meta, role = null) {
-  const end = Date.parse(meta?.to ?? "");
+export function recentOpinion(notes, asOf, role = null) {
+  const end = Date.parse(asOf ?? "");
   if (!Number.isFinite(end)) return null;
   for (const note of notes ?? []) {
     if (note.tag !== "meta_strong" && note.tag !== "meta_weak") continue;
@@ -282,9 +225,9 @@ export function recentOpinion(notes, meta, role = null) {
  * One champion in one role: its points and the sentence behind each of them.
  * `slot` is the number of the pick in the draft, 1 to 10 (null in a ban
  * list). `mine`: the side that picks is the reader's side. `notes` are his
- * dated remarks on this champion (data/coach.json). `method` is
- * indexMethod() of src/method.mjs and `plan` the family the reader said they
- * are going for: with them the draft method of the two coaches is counted.
+ * dated remarks on this champion (data/coach.json), `asOf` the date of his
+ * newest remark. `method` is indexMethod() of src/method.mjs and `plan` the
+ * family the reader said they are going for.
  */
 export function scorePick({
   champion,
@@ -294,16 +237,15 @@ export function scorePick({
   bans,
   slot,
   tables,
-  meta,
   profiles = null,
   notes = null,
+  asOf = null,
   mine = true,
   method = null,
   plan = null,
   weights = WEIGHTS,
 }) {
   const foe = other(side);
-  const myOpen = ROLES.filter((lane) => !picks[side][lane]);
   const foeOpen = ROLES.filter((lane) => !picks[foe][lane]);
   const reasons = [];
   const add = (points, kind, text, extra = {}) => {
@@ -311,52 +253,8 @@ export function scorePick({
     reasons.push({ points: round(points), kind, text, ...extra });
   };
 
-  // 1. Professional play.
-  const seen = presence(meta, champion);
-  const share = roleShare(meta, champion, role);
-  if (meta?.games)
-    add(
-      weights.presence * seen * share,
-      "meta",
-      seen
-        ? `Pris ou banni dans ${percent(seen)} des parties pro récentes${share < 0.95 ? `, joué ${ROLE_FR[role]} dans ${percent(share)} de ses parties` : ""}.`
-        : "Absent des parties pro récentes.",
-    );
-
-  // 2. The moment of the draft. It says nothing when one role is left, and
-  //    a role is not "answered" when its opponent is already locked.
-  if (slot && meta?.slots && myOpen.length > 1) {
-    const usual = timingShare(meta, slot, role);
-    const points = weights.timing * (usual - 0.2) * 5;
-    const exposed = foeOpen.includes(role);
-    if (points >= 0 || exposed)
-      add(
-        points,
-        "timing",
-        usual >= 0.3
-          ? `Les équipes pro prennent souvent ${theRole(role)} à ce moment de la draft (${percent(usual)} des cas).`
-          : usual <= 0.12
-            ? `Les équipes pro prennent rarement ${theRole(role)} à ce moment de la draft (${percent(usual)} des cas) : il peut se faire répondre.`
-            : `Les équipes pro prennent parfois ${theRole(role)} à ce moment de la draft (${percent(usual)} des cas).`,
-      );
-  }
-
-  // 2b. The stage of the draft where this champion is usually locked.
-  if (slot && meta?.stages) {
-    const { lift, share: at, total } = stageLift(meta, champion, slot);
-    const points = weights.stage * Math.max(-1.5, Math.min(1.5, Math.log2(lift)));
-    if (total >= 15 && Math.abs(points) >= 0.25)
-      add(
-        points,
-        "stage",
-        points > 0
-          ? `Un pick que les équipes pro prennent volontiers ${STAGE_FR[stageOf(slot)]} (${percent(at)} de ses picks).`
-          : `Les équipes pro le prennent rarement ${STAGE_FR[stageOf(slot)]} (${percent(at)} de ses picks).`,
-      );
-  }
-
-  // 2c. What he said of the champion itself, lately.
-  const opinion = recentOpinion(notes, meta, role);
+  // 1. What he said of the champion itself, lately.
+  const opinion = recentOpinion(notes, asOf, role);
   if (opinion && weights.opinion) {
     const strong = opinion.tag === "meta_strong";
     add(
@@ -367,7 +265,7 @@ export function scorePick({
     );
   }
 
-  // 3. What he said, on the champions already locked. A cap limits how much
+  // 2. What he said, on the champions already locked. A cap limits how much
   //    statements of the same direction can pile up; a contrary one always counts.
   const counted = new Set();
   const capped = (total, cap) => (points) => {
@@ -420,7 +318,7 @@ export function scorePick({
     }
   }
 
-  // 4. His champion cards, where he said nothing more precise.
+  // 3. His champion cards, where he said nothing more precise.
   const relations = tables.relations;
   if (relations) {
     const cardTotal = { value: 0 };
@@ -435,8 +333,7 @@ export function scorePick({
     };
     // A card describes a champion in the role it is known for: nothing is
     // read from it when either champion sits somewhere else.
-    const usual = (name, lane) =>
-      proPicks(meta, name) ? roleShare(meta, name, lane) >= 0.5 : (LANES[name] ?? [])[0] === lane;
+    const usual = (name, lane) => (LANES[name] ?? [])[0] === lane;
     const here = usual(champion, role);
     for (const ally of locked(picks, side)) {
       if (!here || !usual(ally.champion, ally.role)) continue;
@@ -459,50 +356,32 @@ export function scorePick({
     }
   }
 
-  // 4a. The draft method of the two coaches. Each line names its coach and
-  //     carries the id of its rule.
+  // 4. The draft method of Shanei. Each line names its coach and its rule.
   const process =
     method && slot
       ? pickNotes({ champion, role, side, picks, slot, taken: unavailable(picks, bans), plan, index: method, profiles, mine, weights: weights.method ?? METHOD_WEIGHTS })
       : [];
   for (const note of process) reasons.push(note);
-  // Shanei's tank of the block of four, when the champion brings it, says the
-  // same thing as Kazewa's frontline: it is counted once.
-  const tankSaid = process.some((note) => note.tank && note.points > 0);
-
-  // 4b. His first rule of composition: a draft needs a frontline.
-  if (profiles && weights.frontline && !tankSaid) {
-    const team = locked(picks, side);
-    const front = (name) => profiles[name]?.frontline ?? 0;
-    if (team.length >= 3 && !team.some((ally) => front(ally.champion) >= 1) && front(champion) >= 1)
-      add(
-        weights.frontline * Math.min(2, front(champion)),
-        "need",
-        mine
-          ? "Ta composition n’a pas encore de frontline : il en apporte une."
-          : "Leur composition n’a pas encore de frontline : il en apporterait une.",
-      );
-  }
 
   // 5. Who can still answer it: his named counters, still free, in a role the
-  //    opponent has yet to fill and where that counter is really played.
+  //    opponent has yet to fill. A warning, shown with no points.
   const taken = unavailable(picks, bans);
   taken.add(champion);
   const named = new Set();
   for (const entry of tables.beatenBy.get(champion) ?? []) {
     if (entry.roles[champion] !== role || taken.has(entry.winner)) continue;
     const lane = entry.roles[entry.winner];
-    if (foeOpen.includes(lane) && playableRoles(meta, entry.winner).includes(lane)) named.add(entry.winner);
+    if (foeOpen.includes(lane) && playableRoles(null, entry.winner).includes(lane)) named.add(entry.winner);
   }
   const fromCards = new Set();
   for (const name of relations?.badAgainst.get(champion) ?? []) {
     if (taken.has(name) || named.has(name)) continue;
-    const lanes = playableRoles(meta, name).filter((lane) => foeOpen.includes(lane));
-    if (lanes.some((lane) => !proPicks(meta, name) || roleShare(meta, name, lane) >= 0.1)) fromCards.add(name);
+    const lanes = playableRoles(null, name).filter((lane) => foeOpen.includes(lane));
+    if (lanes.length) fromCards.add(name);
   }
   if (named.size + fromCards.size) {
-    const byPresence = (a, b) => presence(meta, b) - presence(meta, a) || a.localeCompare(b, "fr");
-    const names = [...[...named].sort(byPresence), ...[...fromCards].sort(byPresence)];
+    const byName = (a, b) => a.localeCompare(b, "fr");
+    const names = [...[...named].sort(byName), ...[...fromCards].sort(byName)];
     reasons.push({
       points: round(-weights.answer * Math.min(3, names.length)),
       kind: "answer",
@@ -517,17 +396,26 @@ export function scorePick({
 
 const byScore = (a, b) =>
   b.score - a.score || a.champion.localeCompare(b.champion, "fr");
-const timingOf = (row) => row.reasons.find((reason) => reason.kind === "timing")?.points ?? 0;
 
 /* ------------------------------------------------------------------ */
 /* Lists                                                               */
 /* ------------------------------------------------------------------ */
 
+// Adds the reason of the procedure to a candidate row, and recomputes its score.
+function withTheory(row, { theory, side, picks, weights }) {
+  if (!theory || !row.role || !weights.theory) return row;
+  const reason = pickReason(side, { blue: picks.blue, red: picks.red }, row.role, row.champion, theory, weights.theory);
+  if (!reason) return row;
+  const reasons = [...row.reasons, reason];
+  return { ...row, reasons, score: round(sum(reasons.map((item) => item.points))) };
+}
+
 /**
  * Every available champion with its role, best first. `side` is the side
  * that picks; `slot` the number of the pick, 1 to 10. A champion goes to the
- * role it is played in: the moment of the draft ranks it, it does not choose
- * its role. `noteOf` gives his dated remarks on a champion.
+ * role of its lane table that scores best: the procedure and the method rank
+ * it, the professional figures do not. `noteOf` gives his dated remarks on a
+ * champion, `asOf` the date of his newest remark.
  */
 export function rankPicks({
   side,
@@ -535,13 +423,14 @@ export function rankPicks({
   bans,
   slot,
   tables,
-  meta,
   champions,
   profiles = null,
   noteOf = null,
+  asOf = null,
   mine = true,
   method = null,
   plan = null,
+  theory = null,
   weights = WEIGHTS,
 }) {
   const taken = unavailable(picks, bans);
@@ -549,34 +438,24 @@ export function rankPicks({
   const rows = [];
   for (const champion of champions) {
     if (taken.has(champion)) continue;
-    const roles = playableRoles(meta, champion).filter((role) => open.includes(role));
+    const roles = playableRoles(null, champion).filter((role) => open.includes(role));
     if (!roles.length) {
       rows.push({ champion, role: null, playable: false, score: null, flex: false, reasons: [], roles: [] });
       continue;
     }
-    // A role it is rarely played in is only used when nothing else is open.
-    const real = proPicks(meta, champion)
-      ? roles.filter((role) => roleShare(meta, champion, role) >= 0.2)
-      : roles;
-    const candidates = real.length ? real : roles;
-    const scored = candidates
+    const scored = roles
       .map((role) =>
-        scorePick({ champion, role, side, picks, bans, slot, tables, meta, profiles, notes: noteOf?.(champion), mine, method, plan, weights }),
+        withTheory(
+          scorePick({ champion, role, side, picks, bans, slot, tables, profiles, notes: noteOf?.(champion), asOf, mine, method, plan, weights }),
+          { theory, side, picks, weights },
+        ),
       )
-      .sort(
-        (a, b) =>
-          b.score - timingOf(b) - (a.score - timingOf(a)) ||
-          candidates.indexOf(a.role) - candidates.indexOf(b.role),
-      );
+      .sort((a, b) => b.score - a.score || roles.indexOf(a.role) - roles.indexOf(b.role));
     rows.push({
       ...scored[0],
       playable: true,
-      flex: candidates.length > 1,
+      flex: roles.length > 1,
       roles,
-      // Enough professional play to know it, and none of it in a role still open.
-      rare:
-        proPicks(meta, champion) >= 10 &&
-        !roles.some((role) => roleShare(meta, champion, role) >= 0.1),
     });
   }
   return rows.sort((a, b) => Number(b.playable) - Number(a.playable) || byScore(a, b));
@@ -584,25 +463,25 @@ export function rankPicks({
 
 /**
  * What to take away from the opponent, best first. `side` is the side that
- * bans. Before the first pick it is the professional ban list; afterwards a
- * ban is worth what the champion would do to the picks already locked.
- * `mine`: the side that bans is the reader's side. `ownPicks`: the champions
- * the banning side would take itself at its next pick, when it picks first
- * after these bans.
+ * bans. A ban is worth what the champion would do to the picks already
+ * locked, and what Kazewa said of it. `mine`: the side that bans is the
+ * reader's side. `ownPicks`: the champions the banning side would take itself
+ * at its next pick, when it picks first after these bans.
  */
 export function rankBans({
   side,
   picks,
   bans,
   tables,
-  meta,
   champions,
   noteOf = null,
+  asOf = null,
   ownPicks = null,
   mine = true,
   method = null,
   plan = null,
   profiles = null,
+  theory = null,
   weights = WEIGHTS,
 }) {
   const foe = other(side);
@@ -611,44 +490,32 @@ export function rankBans({
   const rows = [];
   for (const champion of champions) {
     if (taken.has(champion)) continue;
-    const roles = playableRoles(meta, champion).filter((role) => foeOpen.includes(role));
-    const known = proPicks(meta, champion);
-    // The part of its professional play the opponent can still use.
-    const usable = known ? Math.min(1, sum(roles.map((role) => roleShare(meta, champion, role)))) : 1;
-    if (!roles.length || (known >= 10 && usable < 0.1)) {
+    const roles = playableRoles(null, champion).filter((role) => foeOpen.includes(role));
+    if (!roles.length) {
       rows.push({ champion, role: null, playable: false, score: null, flex: false, reasons: [] });
       continue;
     }
     // The champion as the opponent would take it.
     const asTheirs = roles
       .map((role) =>
-        scorePick({ champion, role, side: foe, picks, bans, slot: null, tables, meta, notes: noteOf?.(champion), weights }),
+        scorePick({ champion, role, side: foe, picks, bans, slot: null, tables, notes: noteOf?.(champion), asOf, weights }),
       )
       .sort((a, b) => b.score - a.score)[0];
     const reasons = asTheirs.reasons
       .filter((reason) => ["said", "card", "opinion"].includes(reason.kind))
       .map((reason) => ({
         ...reason,
-        points: round(reason.points * usable),
         text: reason.kind === "opinion" ? reason.text : banText(reason, champion, mine),
       }));
-    if (meta?.games) {
-      const banned = (meta.bans?.[champion] ?? 0) / meta.games;
-      const seen = presence(meta, champion);
-      reasons.unshift({
-        points: round(
-          weights.presence * (weights.banMix * banned + (1 - weights.banMix) * seen) * usable,
-        ),
-        kind: "meta",
-        text: seen
-          ? `Banni dans ${percent(banned)} des parties pro récentes, pris ou banni dans ${percent(seen)}.`
-          : "Absent des parties pro récentes.",
-      });
+    // The procedure: what the champion would bring to the other side.
+    if (theory) {
+      const reason = banReason(foe, picks, roles, champion, theory, weights.theory);
+      if (reason) reasons.push(reason);
     }
     // The method: a ban that protects the composition, never one's own piece.
     if (method)
-      for (const note of banNotes({ champion, side, picks, plan, index: method, profiles, mine, roles: playableRoles(meta, champion), weights: weights.method ?? METHOD_WEIGHTS }))
-        reasons.push({ ...note, points: round(note.points > 0 ? note.points * usable : note.points) });
+      for (const note of banNotes({ champion, side, picks, plan, index: method, profiles, mine, roles: playableRoles(null, champion), weights: weights.method ?? METHOD_WEIGHTS }))
+        reasons.push(note);
     if (ownPicks?.has(champion))
       reasons.push({
         points: -weights.own,

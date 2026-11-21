@@ -1,6 +1,6 @@
 {
- "version": "2.4.0",
- "evaluatedAt": "2026-11-20T23:05:05.584Z",
+ "version": "2.5.0",
+ "evaluatedAt": "2026-11-21T15:04:11.493Z",
  "memory": {
   "cases": 314,
   "decided": 304,
@@ -22,7 +22,7 @@
   "note": "A judged draft is answered by lookup. This 100% is a property of the lookup, not a measure of a model."
  },
  "unseen": {
-  "protocol": "Leave-one-group-out. A group joins every draft that shares a video or a professional series. Ties count as half. Intervals redraw whole groups.",
+  "protocol": "Leave-one-group-out. A group joins every draft that shares a video or a professional series. Intervals redraw whole groups. The pick-order measure gives a tie half a point; the estimate readings give no answer on a tie, and a draft that no reading separates is counted apart as unanswered.",
   "groups": 100,
   "pickOrder": {
    "n": 302,
@@ -175,11 +175,11 @@
   "everyDraft": {
    "heldOut": {
     "all": {
-     "n": 71,
-     "agree": 41.5,
-     "agreement": 0.5845070422535211,
-     "low": 0.47794117647058826,
-     "high": 0.6818181818181818,
+     "n": 70,
+     "agree": 41,
+     "agreement": 0.5857142857142857,
+     "low": 0.48,
+     "high": 0.6842105263157895,
      "interval": "group bootstrap"
     },
     "byReading": {
@@ -198,25 +198,55 @@
       "low": 0.26666666666666666,
       "high": 0.7368421052631579,
       "interval": "group bootstrap"
-     },
-     "balance": {
-      "n": 1,
-      "agree": 0.5,
-      "agreement": 0.5,
-      "low": 0.5,
-      "high": 0.5,
-      "interval": "group bootstrap"
      }
     },
+    "unanswered": {
+     "n": 1,
+     "groups": 1
+    },
+    "coverage": 0.9859154929577465,
     "groups": 27
    },
    "allJudgedOptimistic": {
-    "n": 304,
-    "agree": 194.5,
-    "agreement": 0.6398026315789473,
-    "low": 0.5845588235294118,
-    "high": 0.6882352941176471,
+    "n": 296,
+    "agree": 192,
+    "agreement": 0.6486486486486487,
+    "low": 0.5909090909090909,
+    "high": 0.7008310249307479,
     "interval": "group bootstrap"
+   },
+   "allJudged": {
+    "all": {
+     "n": 296,
+     "agree": 192,
+     "agreement": 0.6486486486486487,
+     "low": 0.5909090909090909,
+     "high": 0.7008310249307479,
+     "interval": "group bootstrap"
+    },
+    "byReading": {
+     "arguments": {
+      "n": 233,
+      "agree": 144,
+      "agreement": 0.6180257510729614,
+      "low": 0.5528846153846154,
+      "high": 0.6751054852320675,
+      "interval": "group bootstrap"
+     },
+     "cards": {
+      "n": 63,
+      "agree": 48,
+      "agreement": 0.7619047619047619,
+      "low": 0.6538461538461539,
+      "high": 0.8571428571428571,
+      "interval": "group bootstrap"
+     }
+    },
+    "unanswered": {
+     "n": 8,
+     "groups": 8
+    },
+    "coverage": 0.9736842105263158
    },
    "played": {
     "heldOut": {
@@ -238,50 +268,75 @@
        "interval": "group bootstrap"
       }
      },
+     "unanswered": {
+      "n": 0,
+      "groups": 0
+     },
+     "coverage": 1,
      "groups": 27
     }
    },
-   "note": "Each judged draft is given the verdict the site would give it if he had not judged it: his arguments from other groups first, then his champion cards, then the structural calculator. 'heldOut' uses only drafts from videos the cards were written without, and leaves the calculator out on the drafts it was tuned on (those count as a draw at that step): no reading judges a draft it has seen. 'allJudgedOptimistic' uses every judged draft and is inflated: on most of them the cards summarise the very video being tested."
+   "note": "Each judged draft is given the estimate the site would give it if he had not judged it: his arguments from other groups first, then his champion cards. When neither separates the two compositions the draft gets no estimate: it is counted in 'unanswered', and 'coverage' is the share of drafts that get one. 'heldOut' uses only drafts from videos the cards were written without: no reading judges a draft it has seen. 'allJudgedOptimistic' uses every judged draft and is inflated: on most of them the cards summarise the very video being tested. The decision grid of the two coaches is a second opinion and is measured apart (reliability.theory). 'played' is a measure, not the estimate: it answers each draft with the result of its game first, to measure how often that side is his verdict. The site never shows that answer as the estimate."
+  },
+  "randomDrafts": {
+   "n": 500,
+   "withoutEstimate": 123,
+   "share": 0.246,
+   "byBasis": {
+    "cards": 363,
+    "arguments": 14,
+    "balance": 123
+   }
   },
   "shaneiGrid": {
-   "n": 278,
-   "agree": 137,
-   "agreement": 0.49280575539568344,
-   "low": 0.4268292682926829,
-   "high": 0.5602605863192183,
+   "n": 283,
+   "agree": 140,
+   "agreement": 0.49469964664310956,
+   "low": 0.4307692307692308,
+   "high": 0.5598705501618123,
    "interval": "group bootstrap",
-   "coverage": 0.9144736842105263,
+   "coverage": 0.930921052631579,
    "draftTiming": {
-    "n": 204,
-    "agree": 93,
-    "agreement": 0.45588235294117646,
-    "low": 0.38578680203045684,
-    "high": 0.5283018867924528,
+    "n": 208,
+    "agree": 95,
+    "agreement": 0.4567307692307692,
+    "low": 0.38565022421524664,
+    "high": 0.5285714285714286,
     "interval": "group bootstrap"
    },
    "winner": {
-    "n": 278,
-    "agree": 139,
-    "agreement": 0.5,
-    "low": 0.4383561643835616,
-    "high": 0.5616883116883117,
+    "n": 283,
+    "agree": 146,
+    "agreement": 0.5159010600706714,
+    "low": 0.452,
+    "high": 0.5803921568627451,
     "interval": "group bootstrap"
    },
    "proGames": {
-    "n": 52124,
-    "agree": 25973,
-    "agreement": 0.4982925331900852,
-    "low": 0.494000372822827,
-    "high": 0.5025849452234127,
-    "grid": "7a2e08de9c3c50823d1955682ffadf3a6c35ac3e61cffc60bea48e289e8fa813",
+    "n": 52089,
+    "agree": 25877,
+    "agreement": 0.49678434986273495,
+    "low": 0.4924909228566402,
+    "high": 0.5010782511467223,
+    "grid": "1d28ff5345f22267ab82060cbe3267d9d525b5a4d4f2578cd65dc1a265c8ff01",
     "games": 60365,
     "from": "2021-01-01",
     "to": "2026-11-13",
-    "faultless": 0.24592064938292058,
+    "faultless": 0.24405698666445788,
     "note": "Every professional game of the match index since 'from', academies left out. 'n' counts the games where the grid finds one composition healthier; 'faultless' is the share of professional compositions the grid faults in nothing. 'grid' is the fingerprint of the grid (data/method.json, src/method.mjs, data/knowledge.json) the figure was measured with: where the match index is absent the figure is kept only while the grid has not changed."
    },
    "usedForTheVerdict": false,
    "note": "Shanei's grid (src/method.mjs) reads the family of each composition and what he would fault in it, and names the healthier one. Agreement is with Kazewa's verdict on the drafts he judged; 'winner' is with the result of those games; 'proGames' with the result of every professional game. All three stand at a coin flip: the grid describes how a composition is built, it does not say who wins nor what Kazewa thinks. The site shows it as a second opinion and does not use it for the estimated verdict."
+  },
+  "theory": {
+   "n": 292,
+   "agree": 147,
+   "agreement": 0.5034246575342466,
+   "low": 0.4467455621301775,
+   "high": 0.56640625,
+   "interval": "group bootstrap",
+   "coverage": 0.9605263157894737,
+   "note": "The draft procedure of the two coaches (src/theory.mjs): identity, structural holes, grid of axes, bonuses, timing and verdict of Kazewa's decision rubric, with Shanei's construction checks. Nothing is fitted; it reads no professional game. Agreement is with his verdict on the drafts where it leans to a side."
   },
   "structuralCalculator": {
    "tunedOn": {

@@ -1,8 +1,8 @@
 # Kazewa — Draft Lab
 
-Le verdict de Kazewa sur les drafts de League of Legends qu’il a commentées, avec ses raisons et sa vidéo. Toute autre draft reçoit un verdict estimé : d’après le résultat du match quand la partie a déjà été jouée, sinon d’après ses arguments sur les mêmes champions, puis ses fiches champion, puis ses principes de composition. Chaque verdict dit quelle lecture a servi et ce qu’elle vaut.
+Le verdict de Kazewa sur les drafts de League of Legends qu’il a commentées, avec ses raisons et sa vidéo. Pour toute autre draft, le site donne un verdict estimé d’après ses propres arguments sur les mêmes champions, puis d’après ses fiches champion. Si ni l’un ni l’autre ne départage les deux compositions, il ne donne pas d’estimation. La grille de décision de Kazewa et la vérification de construction de Shanei, un second coach, sont des seconds avis, affichés à part. Aucun résultat de partie professionnelle ne décide du verdict. Chaque verdict dit quelle lecture a servi et ce qu’elle vaut.
 
-Chaque draft est aussi lue avec la méthode d’un second coach, Shanei : c’est un second avis sur la construction des deux compositions, affiché à part. Le coach de draft suit le processus que les deux coachs enseignent.
+Le coach de draft suit le processus que les deux coachs enseignent : l’ordre des picks, les premiers picks, la famille de la composition, les pièces qui manquent, les bans qui protègent le plan. Il ne lit pas la méta professionnelle pour choisir.
 
 Site : [samuellachance.github.io/kazewa-draft-lab](https://samuellachance.github.io/kazewa-draft-lab/). Dépôt : [SamuelLachance/kazewa-draft-lab](https://github.com/SamuelLachance/kazewa-draft-lab).
 
@@ -11,14 +11,12 @@ Site : [samuellachance.github.io/kazewa-draft-lab](https://samuellachance.github
 | Situation | Réponse | Fiabilité |
 | --- | --- | --- |
 | Draft que Kazewa a jugée | Son verdict, sa confiance, ses raisons en français, le lien vers le passage de la vidéo | Restitution : c’est son avis, pas une prédiction |
-| Draft d’une partie pro déjà jouée, qu’il n’a pas commentée | La partie, l’équipe qui a gagné, et ce côté comme verdict estimé | Environ 80 % : sur les parties qu’il a commentées, il préférait le plus souvent l’équipe gagnante |
 | Draft jamais jouée, ses arguments s’y appliquent | Le côté que désignent les matchups, synergies et réponses qu’il a nommés dans d’autres vidéos | Environ 62 %, mesuré en ne gardant que ses arguments venus d’autres vidéos |
-| Ses arguments ne départagent pas (aucun, ou autant de chaque côté) | Le côté que désignent ses fiches champion (qui va bien avec qui, qui prend le dessus sur qui) | Environ 60 %, mesuré sur des vidéos que les fiches n’ont jamais vues |
-| Ses fiches ne départagent pas | Le côté que désignent ses principes de composition | Environ 50 % : une pièce lancée |
+| Ses arguments ne départagent pas, ses fiches oui | Le côté que désignent ses fiches champion (qui va bien avec qui, qui prend le dessus sur qui) | Environ 60 %, mesuré sur des vidéos que les fiches n’ont jamais vues |
+| Ni ses arguments ni ses fiches ne départagent | Pas d’estimation. La grille de décision de Kazewa est affichée à part, comme second avis | Aucune : le site le dit |
+| Partie pro déjà jouée | Le fait : l’équipe qui a gagné. Ce n’est pas le verdict de la draft | Le résultat est un fait ; il ne sert pas à prédire |
 
-Aucune draft complète n’est laissée sans verdict. Sur les drafts de vidéos tenues à l’écart de toutes les lectures, le verdict estimé coïncide avec le sien 58,5 % du temps pour une draft jamais jouée, et 80,3 % quand la partie a été jouée et que son résultat est connu.
-
-La lecture par le résultat n’est pas un jugement sur la draft. Elle dit qui a gagné, parce que c’est le plus souvent l’équipe dont il préférait la draft. Elle n’existe pas pour une draft qui n’a pas été jouée.
+Quand ses arguments ou ses fiches départagent les deux compositions, le site donne une estimation. Sur les drafts de vidéos tenues à l’écart, elle coïncide avec son avis 58,6 % du temps pour une draft jamais jouée (41 sur 70, intervalle 48 à 68 %) ; une seule de ces 71 drafts n’a reçu aucune estimation. Sur 500 drafts tirées au hasard parmi tous les champions, 123 n’ont aucune estimation (24,6 %). Une autre lecture, celle du résultat d’une partie déjà jouée, coïncide avec son avis 80 % du temps ; elle est affichée comme un fait et non comme un verdict, parce qu’elle ne vient pas de sa méthode.
 
 Un constat borne ce que dix champions peuvent dire : sur les vidéos dont ses fiches champion sont tirées, les fiches retrouvent son verdict 78,6 % du temps ; sur les vidéos qu’elles n’ont jamais vues, 59,6 %. Ce qu’il dit d’une draft permet de retrouver son verdict ; des règles générales sur les champions ne le permettent pas.
 
@@ -29,54 +27,56 @@ Pour toute draft, le site montre aussi :
 - **les drafts proches qu’il a jugées**, avec son verdict replacé sur les côtés de la draft affichée ;
 - **ses arguments** donnés ailleurs et encore valables ici (mêmes champions, même relation allié ou adverse, mêmes rôles), comptés par côté ;
 - **la fiche de chaque champion** : ce qu’il en dit, résumé de ses vidéos, pour les 173 champions du catalogue ;
-- **la lecture de Shanei** : la famille de chaque composition (all-in, poke, hypercarry) et ce que sa méthode lui reprocherait ou validerait, chaque ligne avec la vidéo où il donne la règle ([détail plus bas](#le-second-avis--la-méthode-de-shanei)) ;
-- **la lecture structurelle du calculateur** (frontline, dégâts, catch, scaling…). C’est une description des deux compositions. Sur les drafts qu’il n’a jamais vues, son côté coïncide avec celui de Kazewa une fois sur deux : son score n’est pas présenté comme un verdict.
+- **la grille de décision**, comme second avis hors de l’estimation : identité, trous structurels, axes gagnés, bonus et timing de chaque côté, avec la phrase qui les motive ;
+- **la lecture de Shanei** : la famille de chaque composition et ce qu’il reprocherait ou validerait, chaque ligne avec sa vidéo ([détail plus bas](#le-second-avis--la-méthode-de-shanei)) ;
+- **la lecture structurelle du calculateur**, une description des deux compositions dont le score n’est pas un verdict.
+
+## La grille de décision de Kazewa
+
+`src/theory.mjs` applique sa grille de décision telle qu’il la décrit (son document de méthode, section 8) :
+
+- **A. Identité** : une phrase par camp ; sans identité lisible, ou avec des identités incompatibles, −2 ;
+- **B. Trous structurels**, chacun retranché : pas de vrai tank ni de frontline (−3), moins de deux sources de dégâts soutenus (−3), trois immobiles face à un catch (−3), engage contre un bloc de désengagement (−2), poke avec un support qui engage et sans peel (−2), un pick qui a besoin d’un partenaire qu’il n’a pas (−1), une compo qui doit gagner tôt sans outil pour conclure (−2) ;
+- **C. Axes** : la phase de lane, le combat d’équipe, le scaling, les objectifs, le catch, le split et les globaux, la portée. Le camp qui gagne un axe prend un point, deux s’il le gagne nettement ;
+- **D. Bonus** : +2 si chaque pick s’enchaîne avec un autre, +1 par condition de victoire indépendante au-delà de la première (jusqu’à +3), +1 pour un plan simple et cohérent ;
+- **E. Timing** : un camp qui compte sur l’avance tôt sans gagner ses lanes cède un point au camp qui scale ;
+- **F. Verdict** : l’écart et les trous donnent la confiance de 0 à 3, comme dans sa grille.
+
+Les vérifications de Shanei s’y ajoutent : pas de tank dans le bloc de quatre (−2), jamais full AD ni full AP (−2), un hypercarry sans enchanteur (−1). Ses points ne sont pas les siens : sa grille ne les chiffre pas. Quand il nomme un axe que les profils de champions ne mesurent pas, la grandeur la plus proche est utilisée, et la phrase le dit.
+
+Cette grille **ne lit aucune partie professionnelle** et n’entre pas dans l’estimation : c’est un second avis. Elle est mesurée sur les drafts qu’il a jugées sans être réglée sur elles : sur 292 drafts où elle penche, son côté est celui de Kazewa 147 fois, soit 50,3 % (intervalle 45 à 57 %), une pièce lancée. La confiance ne fait pas monter l’accord. Mesure : `node research/theory-eval.mjs`. Ses verdicts reposent sur les joueurs, la forme des équipes et des décisions de draft que les profils ne décrivent pas : c’est ce qu’il dit lui-même dans les limites de sa méthode.
+
+Non appliqué, et dit comme tel dans le code : la pénalité d’un pick bloqué par un contre (blind, contre faux, premier pick qui cède son contre), le pick décisif laissé à l’adversaire (étape D), et la dégradation d’un cran quand le plan dépend du confort d’un joueur ou de l’exécution (étape F). Ces points demandent l’ordre des picks, les bans et ses contres nommés ; le coach applique lui-même les règles de premier pick et de blind de Shanei. Le catch ne compte que sa valeur : un carry atteignable par un dash ou un engage n’est pas compté. Le second flex, que Shanei proscrit, n’est pas encore pénalisé.
 
 ## Le second avis : la méthode de Shanei
 
-Le site lit chaque draft complète avec la grille de Shanei, tirée de ses vidéos (`data/method.json`, 258 règles) :
+Le site lit aussi chaque draft complète avec la grille de Shanei, tirée de ses vidéos (`data/method.json`, 258 règles) :
 
 - **une seule identité** : la famille est lue sur le bloc jungle, mid, ADC et support (le top est à part). Trois familles : all-in (catch, wombo combo, full early), poke / disengage, hypercarry (un carry et son enchanteur). Un pick du bloc hors de la famille est relevé, deux cassent la cohérence ;
 - **un vrai tank dans le bloc de quatre**, jamais full AD ni full AP ;
 - **les pièces de chaque famille** : l’enchanteur de l’hypercarry, le tank au mid d’un hypercarry jungle, le mid de poke, trois à cinq sources de désengage pour une compo qui n’engage pas ;
-- **les duos** : les combos et anti-synergies qu’il nomme (70 duos tirés de ses vidéos, 170 de la table des combos de son cours) ;
+- **les duos** : les combos et anti-synergies qu’il nomme (170 tirés de la table des combos de son cours, 70 de ses vidéos) ;
 - **face à l’autre composition** : ce qui tient un all-in, les réponses à une compo poke, un ultime offert à Sylas, une botlane sacrifiée.
 
-Chaque ligne cite la règle qui la porte et renvoie à la vidéo. Il classe lui-même 154 des 173 champions dans ses familles ; les autres sont classés d’après ses définitions et ne sont jamais retenus contre une draft. Les faits de kit (tank, enchanteur, type de dégâts, engage…) viennent d’une grille d’analyste, pas de ses mots. Une règle que la fiche de la vidéo marque comme mal transcrite ou non tranchée est affichée avec la mention « avis moins net » et ne compte pas.
+Chaque ligne cite la règle qui la porte et renvoie à la vidéo, sauf les duos de la table du cours. Il classe lui-même 154 des 173 champions dans ses familles ; les autres sont classés d’après ses définitions et n’entrent pas dans la lecture de la famille. Les faits de kit (tank, enchanteur, type de dégâts, engage…) viennent d’une grille d’analyste, pas de ses mots. Une règle que la fiche de la vidéo marque comme mal transcrite ou non tranchée est affichée avec la mention « avis moins net » et ne compte pas.
 
-Ce second avis **n’entre pas dans le verdict estimé**, et le site dit pourquoi : sur 278 drafts jugées par Kazewa, la composition que la grille trouve la plus saine est celle qu’il préférait 49,3 % du temps ; sur 52 124 parties professionnelles, c’est celle qui a gagné 49,8 % du temps. À ce niveau les deux équipes draftent des compositions cohérentes : la grille dit comment une draft est bâtie, pas qui gagne ni ce qu’en pense Kazewa. Elle ne trouve rien à reprocher à 24,6 % des compositions professionnelles. `node research/shanei-eval.mjs` refait ces mesures.
+Ce second avis **n’entre pas dans le verdict estimé**, et le site dit pourquoi : sur les drafts jugées par Kazewa où elle penche d’un côté, la composition qu’elle trouve la plus saine est celle qu’il préférait 49,5 % du temps. La grille dit comment une draft est bâtie, pas qui gagne ni ce qu’en pense Kazewa. `node research/shanei-eval.mjs` refait ces mesures.
 
 ## Le coach de draft
 
 Le coach suit les vingt tours d’une draft (bans et picks) et dit à chaque tour quoi bannir ou prendre, avec la phrase qui justifie chaque point du classement :
 
-- **ce que Kazewa a dit** de ce champion avec ceux déjà pris : les matchups, réponses et synergies qu’il a nommés dans les drafts qu’il a jugées, dans les mêmes rôles, avec le lien vers la vidéo ; à défaut, ce qu’en disent ses fiches champion. L’adversaire direct de la lane compte davantage, et une lane qu’il juge perdue plus qu’une lane qu’il juge gagnée. Une anti-synergie qu’il a nommée compte contre le duo. Un matchup ou un duo qu’il a jugé dans les deux sens ne donne aucun point ;
-- **ce qu’il disait du champion ces six derniers mois** : fort ou faible dans la méta du moment, dans le rôle dont il parlait ;
-- **la méta pro** : la part des parties professionnelles récentes où le champion est pris ou banni, dans ce rôle (744 parties du 2026-09-15 au 2026-11-13, toutes ligues sauf les académies) ;
-- **le moment de la draft** : le rôle que les équipes pro prennent à ce pick, et le stade où elles prennent ce champion ;
-- **la frontline** : quand trois picks sont posés sans frontline, un champion qui en apporte une passe devant ;
-- **le processus de draft des deux coachs** (`src/method.mjs`, 258 règles de Shanei et 100 de Kazewa, chacune avec sa vidéo) :
-  - l’ordre des rôles de Shanei : l’ADC tôt, pas de support en première rotation, le support avant le top, le top en dernier pick ; Kazewa garde lui aussi le dernier pick rouge pour le top ;
-  - le premier pick : les ADC sûrs et les vrais flex de Shanei, les picks qu’il ne blind pas, et ce que Kazewa dit d’un premier pick ;
-  - la famille de la composition : une pièce de la famille passe devant, un pick hors thème derrière. Sans plan annoncé, la famille ne compte qu’à partir de trois picks posés, comme Shanei le demande ;
-  - les pièces qui manquent : l’enchanteur d’un hypercarry, le vrai tank du bloc de quatre, le mid de poke, et sur le dernier pick qui peut encore les apporter elles comptent double ;
-  - les combos et anti-synergies que Shanei nomme, ses réponses à ce que montre l’adversaire, jamais full AD ni full AP ;
-  - les règles de construction de Kazewa : pas d’immobiles empilés, deux picks de scaling au maximum, un tank dans les deux premiers picks ;
-  - les bans de Shanei : un ban protège la composition selon sa famille et ne retire jamais une de ses pièces.
+- **ce que Kazewa a dit** de ce champion avec ceux déjà pris : matchups, réponses et synergies nommés dans les drafts qu’il a jugées, dans les mêmes rôles, avec le lien vers la vidéo ; à défaut, ce qu’en disent ses fiches champion ;
+- **ce qu’il disait de la force du champion ces six derniers mois** : fort ou faible dans la méta du moment, dans le rôle dont il parlait ;
+- **sa grille de décision** : ce que le champion comble ou crée dans son camp, et les axes qu’il fait gagner ou perdre ;
+- **les règles des deux coachs** pour le moment de la draft : l’ordre des rôles (ADC tôt, pas de support en première rotation, support avant le top, top en dernier pick, comme Shanei le veut), les premiers picks, les picks à ne pas blind, la famille de la composition et les pièces qui manquent, les combos et les réponses à ce que montre l’adversaire ;
+- **les bans** qui protègent le plan : un ban protège la composition selon sa famille, et ne retire jamais une de ses pièces.
 
-Tu peux dire au coach quelle famille tu vises (all-in, poke, hypercarry) : ce plan guide alors les picks et les bans dès le premier tour, et il n’est jamais montré à l’adversaire. À chaque tour le coach affiche les règles des deux coachs pour ce moment de la draft, et sous chaque côté l’état de la composition : sa famille, son tank, ce qui lui manque. Chaque ligne d’une suggestion dit de qui elle vient : Shanei, Kazewa ou la méta pro.
+Tu peux dire au coach quelle famille tu vises (all-in, poke, hypercarry) : ce plan guide alors les picks et les bans dès le premier tour, et il n’est jamais montré à l’adversaire. À chaque tour le coach affiche les règles des deux coachs pour ce moment de la draft, et sous chaque côté l’état de la composition : sa famille, son tank, ce qui lui manque. Chaque ligne d’une suggestion dit de qui elle vient : Shanei, Kazewa ou la grille de décision.
 
-Un champion est proposé dans le rôle où il est réellement joué : la table des lanes est complétée par les rôles joués en pro. Pour les bans, le camp qui prend juste après ne bannit pas son propre meilleur pick. Sous les cinq suggestions, le coach montre jusqu’à trois champions moins joués en ce moment mais que Kazewa a nommés contre ou avec ceux déjà pris. Il affiche aussi, sans que cela change le classement, les champions qui peuvent encore répondre à un pick d’après lui, et ce qu’il disait de ce pick dans une vidéo datée (365 remarques, chacune rangée sous le champion dont elle parle).
+Un champion est proposé dans le rôle où il est réellement joué : la table des lanes est complétée par les rôles joués en pro. Les statistiques des parties professionnelles ne classent rien : elles ne servent qu’à lire les rôles. Pour les bans, le camp qui prend juste après ne bannit pas son propre meilleur pick. Sous les cinq suggestions, le coach montre jusqu’à trois champions moins joués en ce moment mais que Kazewa a nommés contre ou avec ceux déjà pris.
 
-Le coach ne prédit pas le vainqueur et n’utilise pas le calculateur structurel. Sa mesure est un contrôle de bon sens : sur 612 drafts professionnelles de 2026 rejouées tour par tour, avec les seuls chiffres des 60 jours précédents, le champion réellement pris figure dans ses cinq premières suggestions 29,6 % du temps et dans ses dix premières 47,4 % du temps (rang médian 11) ; 46,0 % quand les picks précédents sont rangés dans le rôle que le coach leur donne lui-même, comme sur le site. Le champion réellement banni figure dans ses dix premières suggestions 49,9 % du temps en première phase et 45,4 % en seconde. Suivre la méthode des deux coachs éloigne le coach de ce que font les équipes professionnelles : sans elle, le même classement place le pick réel dans ses dix premières suggestions 52,6 % du temps. Sur les drafts de 2025, chaque partie de la méthode fait baisser cet accord, et d’autant plus qu’elle pèse : les équipes pro ne draftent pas selon ces règles. La méthode est gardée parce que le coach doit dire ce que feraient Shanei et Kazewa ; une règle pèse à peu près autant qu’un argument de Kazewa sur deux champions. Aucun plan n’est donné dans cette mesure. L’ancienne version, classée par le calculateur, plaçait le pick réel dans ses dix premières suggestions 16 % du temps (rang médian 39). `node research/coach-eval.mjs` refait la mesure.
-
-## Pourquoi pas « 100 % d’accord » sur les drafts futures
-
-Les verdicts de Kazewa s’appuient sur l’ordre des picks, les bans, les joueurs, la forme des équipes et la méta du moment. Dix champions ne portent pas cette information. Les profils de champions, leur identité, les règles structurelles et les statistiques de 44 000 matchs pros restent au niveau du hasard quand on les mesure sur des vidéos tenues à l’écart. Une lecture fait un peu mieux : ses propres arguments, repris d’une vidéo à l’autre, 61,8 % du temps, contre 54,1 % en répondant toujours le même côté. Cet avantage va dans le bon sens mais n’est pas encore établi statistiquement. La force des équipes avant la partie ne suit pas ses avis non plus. Le résultat de la partie, lui, les suit 79,8 % du temps : c’est pourquoi le site le nomme quand la partie a été jouée. L’ordre des picks avait paru utile sur 195 drafts ; sur 268 il ne fait pas mieux que répondre toujours le même côté, et il a été retiré. Personne ne peut promettre son avis sur une draft qu’il n’a pas encore commentée.
-
-L’ancienne version affichait 100 % d’accord. Ce chiffre venait de 62 drafts sur lesquelles le calculateur avait été réglé. Sur les autres drafts jugées, le même calculateur tombait à une sur deux. Ce chiffre a été retiré.
-
-Une draft future rejoint la mémoire quand Kazewa la commente : on ajoute l’extraction de sa vidéo au corpus et on relance `npm run memory`.
+Le coach ne prédit pas le vainqueur. Il applique les règles de deux coachs, et ce qu’elles donnent n’a pas été réglé sur des parties professionnelles : un coach qui suivrait ce que font les équipes pro ne suivrait pas ces règles. La mesure sur des drafts professionnelles de 2026 reste dans [`docs/EVALUATION.md`](docs/EVALUATION.md) : elle ne sert plus de cible.
 
 ## Démarrer
 
@@ -89,7 +89,7 @@ npm run dev
 Ouvrir <http://127.0.0.1:4173>. Tout le calcul se fait dans le navigateur.
 
 ```powershell
-npm test          # mémoire, verdict, mesure, calculateur, coach, flux live, serveur
+npm test          # mémoire, verdict, grille de décision, méthode, mesure, coach, flux live, serveur
 npm run evaluate  # recalcule data/evaluation.json et data/model.json depuis la mémoire
 npm run build     # site statique dans dist/, compatible GitHub Pages
 ```
@@ -104,7 +104,7 @@ La mémoire se reconstruit depuis le corpus local (extractions des vidéos), qui
 npm run oe:index -- --csv-dir <dossier des CSV Oracle's Elixir>[,<autre dossier>]   # index local des matchs pros, dans .cache/
 npm run memory -- --corpus <dossier du corpus>                     # data/kazewa-memory.json + data/memory-site.json
 npm run pro:results                                                # data/pro-results/ : résultat de chaque partie de l’index
-npm run coach:data                                                 # data/coach.json : méta pro récente et remarques de Kazewa par champion
+npm run coach:data                                                 # data/coach.json : remarques datées de Kazewa par champion
 npm run method                                                     # data/method.json : règles, familles, duos et bans de la méthode des deux coachs
 npm run evaluate
 ```
@@ -125,12 +125,13 @@ Les extractions qu’aucune partie ne permet de compléter restent hors mémoire
 | --- | --- |
 | `src/memory.mjs` | Recherche d’une draft jugée, drafts proches, arguments applicables |
 | `src/verdict.mjs` | Réponse du site : sa mémoire d’abord, sinon la chaîne de lectures |
+| `src/theory.mjs` | Grille de décision de Kazewa (identité, trous, axes, bonus, timing, verdict) et son usage par le coach |
+| `src/method.mjs` | Méthode de draft de Shanei et de Kazewa : lecture d’une draft, raisons d’un pick ou d’un ban, règles du tour |
 | `src/relations.mjs` | Lecture d’après ses fiches champion |
-| `src/results.mjs` | Parties pro déjà jouées avec les dix champions d’une draft |
+| `src/results.mjs` | Parties pro déjà jouées avec les dix champions d’une draft (fait affiché, pas verdict) |
 | `src/engine.mjs` | Calculateur structurel (description des compositions) |
 | `src/draft-coach.mjs` | Coach de draft : les vingt tours, la session |
 | `src/coach.mjs` | Classement des bans et des picks, avec la phrase derrière chaque point |
-| `src/method.mjs` | Méthode de draft de Shanei et de Kazewa : lecture d’une draft, raisons d’un pick ou d’un ban, règles du tour |
 | `data/kazewa-memory.json` | Mémoire complète, avec la trace de chaque source |
 | `data/memory-site.json` | Version chargée par le site |
 | `data/champion-cards.json` | Fiche Kazewa des 173 champions |
@@ -139,7 +140,8 @@ Les extractions qu’aucune partie ne permet de compléter restent hors mémoire
 | `data/evaluation.json` | Rapport de mesure |
 | `data/method.json` | Règles des deux coachs avec leur vidéo, familles de Shanei par champion, duos, listes de bans |
 | `research/method-extraction.json` | Relevé des règles dans les fiches des vidéos, relu règle par règle, et grille de kits |
-| `data/coach.json` | Méta pro récente et remarques datées de Kazewa par champion (données Oracle’s Elixir pour la méta) |
+| `research/theory-eval.mjs` | Mesure de la grille de décision sur les verdicts de Kazewa, sans réglage |
+| `data/coach.json` | Remarques datées de Kazewa par champion |
 | `data/pro-results/` | Résultat des parties pro, par empreinte des dix champions (données Oracle’s Elixir) |
 | `scripts/` | Construction de la mémoire, mesure, build |
 | `research/` | Banc d’essai hors groupe et modèles essayés |

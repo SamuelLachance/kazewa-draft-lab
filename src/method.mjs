@@ -145,7 +145,9 @@ const enchants = (carry, info, declared = false) =>
   (declared || carry.info.carry === 2 || info.families[0] === "hypercarry");
 // A source of damage for the "never full AD nor full AP" rule: every lane
 // but the support, enchanters left out. A tank mid still deals its damage.
-const dealsDamage = (role, info) => role !== "sup" && !info.enchanter;
+// Every locked champion counts as a source of damage: his "never full AD nor
+// full AP" rule counts the damage of the whole team, support and enchanters too.
+const dealsDamage = () => true;
 
 /* ------------------------------------------------------------------ */
 /* A composition, finished or not                                      */
@@ -176,7 +178,7 @@ export function composition(team, index, plan = null) {
       const partner = hyper.find(
         (member) =>
           member.name !== carry.name &&
-          ["sup", "jng"].includes(member.role) &&
+          (member.role === "sup" || (member.role === "jng" && carry.role === "top")) &&
           enchants(carry, member.info, plan === "hypercarry"),
       );
       if (partner) {
@@ -650,12 +652,13 @@ export function pickNotes({
       if (slot === 1) {
         if (!flexFirst)
           add(-weights.first, "order", "shanei", "Shanei ne first pick jamais un top : c’est le rôle le plus puni par le counter-pick.", "sp-6");
-      } else if (BLIND_TOPS[champion])
+      } else if (BLIND_TOPS[champion] && (BLIND_TOPS[champion] !== "sp-42" || own.family === "hypercarry"))
         add(-weights.order / 3, "order", "shanei", "Shanei garde le top pour la fin, mais ce top-là se blind sans trop de risque.", BLIND_TOPS[champion]);
       else if (firstPhase)
-        add(-weights.order, "order", "shanei", "Shanei garde le top pour le dernier pick : pris maintenant, il se fait counter.", "sp-0");
+        // His rule "the top is always the last pick" is a principle, not a preference: three times the order weight.
+        add(-weights.order * 3, "order", "shanei", "Shanei garde le top pour le dernier pick : pris maintenant, il se fait counter.", "sp-0");
       else if (!team.sup)
-        add(-weights.order * 0.67, "order", "shanei", "Shanei garde top et support pour la dernière rotation, et prend le support avant le top.", side === "red" ? "sp-3" : "sp-6");
+        add(-weights.order * 3, "order", "shanei", "Shanei garde top et support pour la dernière rotation, et prend le support avant le top.", side === "red" ? "sp-3" : "sp-6");
       else if (!team.mid)
         add(-weights.order / 3, "order", "shanei", "S’il faut blind une solo lane, Shanei blind le mid plutôt que le top.", "sp-5");
     }
@@ -715,8 +718,8 @@ export function pickNotes({
         add(-weights.blind, "blind", "shanei", "Shanei ne prend Sylas qu’en deuxième rotation : son intérêt est de voler les ultimes adverses.", "sp-39");
     } else if (champion === "Jarvan IV") {
       // His rule is about the opposing carries, not about the opposing jungler.
-      if (!enemy.bot || !enemy.mid)
-        add(-weights.blind, "blind", "shanei", "Shanei ne lock pas Jarvan IV avant d’avoir vu les carries adverses : ils prennent des dashs et il ne peut plus engager.", "sp-11");
+      if (!team.bot && (!enemy.top || !enemy.mid || !enemy.bot))
+        add(-weights.blind, "blind", "shanei", "Shanei ne lock pas Jarvan IV avant d’avoir vu les carries adverses et l’ADC de son équipe : ils prennent des dashs et il ne peut plus engager.", "sp-11");
     } else if (blind && info.neverBlind && (!info.blindRole || info.blindRole === role)) {
       if (info.blindRule) add(-weights.blind, "blind", "shanei", "Shanei ne le blind pas.", info.blindRule);
       else if (info.blindSaid)
@@ -725,11 +728,11 @@ export function pickNotes({
     if (blind && KAZEWA_BLIND[champion])
       add(-0.5, "blind", "kazewa", "Pour Kazewa aussi : pris en aveugle, il se fait contre-picker.", KAZEWA_BLIND[champion]);
   }
-  if (champion === "Galio" && role === "mid" && !taken.has("Gangplank") && !enemy.top)
+  if (champion === "Galio" && blind && !taken.has("Gangplank") && !enemy.top)
     add(-weights.blind * 0.67, "blind", "shanei", "Shanei ne blind pas Galio tant que Gangplank est ouvert en face.", "sp-38");
 
   /* --- Flex --------------------------------------------------------- */
-  if (firstPhase && hidden.length >= 2 && !(slot === 1 && info.firstPick === "flex"))
+  if (firstPhase && hidden.length >= 2 && !(slot === 1 && info.firstPick === "flex") && !(slot === 1 && info.firstPick == null && info.flexRoles.length >= 2))
     add(weights.flex, "flex", "shanei", `Un flex validé par Shanei (${hidden.map((lane) => ROLE_FR[lane]).join(" ou ")}) : garde l’ambiguïté le plus longtemps possible.`, info.flexRule);
 
   /* --- The family of the composition -------------------------------- */
@@ -804,8 +807,8 @@ export function pickNotes({
   }
   // A real tank among jungle, mid, ADC and support.
   if (BLOCK.includes(role) && !own.tank && !speedException(own, champion)) {
-    // The slots of the block that can still hold a tank: not the ADC.
-    const tankSlots = BLOCK.filter((lane) => !team[lane] && lane !== "bot");
+    // The open slots of the block of four, the ADC included (sp-74).
+    const tankSlots = BLOCK.filter((lane) => !team[lane]);
     const lastSlot = tankSlots.length === 1 && tankSlots[0] === role;
     const jungle = own.at("jng");
     if (info.tank && !offRole && (own.block.length >= 2 || (jungle && !jungle.info.tank)))
@@ -933,8 +936,6 @@ export function pickNotes({
   if (STEALABLE.includes(champion)) {
     if (foe.has("Sylas"))
       versus(-weights.offPlan, "Sylas est en face : Shanei ne lui offre jamais un bon ultime à voler.", "sp-48");
-    else if (!taken.has("Sylas") && !enemy.mid && !own.has("Sylas"))
-      versus(-weights.counter * 0.5, "Sylas est encore ouvert pour le mid adverse : Shanei ne lui offre jamais un bon ultime à voler.", "sp-48");
   }
   if (foe.has("Poppy") && champion === "Alistar")
     versus(-weights.counter * 1.5, "Poppy est en face : elle annule les engages d’Alistar, Shanei prend Nautilus.", "sr-31");
@@ -1087,7 +1088,7 @@ export function compositionStatus(team, enemy, index, { plan = null, profiles = 
     if (bare.family !== own.family)
       add("todo", "shanei", bare.family ? `Sans ton plan, tes picks se liraient plutôt ${bare.label}.` : "Sans ton plan, tes picks ne dessinent aucune famille.", "sf-1");
   }
-  const tankSlots = BLOCK.filter((role) => !team[role] && role !== "bot");
+  const tankSlots = BLOCK.filter((role) => !team[role]);
   if (own.tank) add("ok", "shanei", `Tank du bloc de quatre : ${own.tank.name}.`, "sp-74");
   else if (speedException(own)) add("ok", "shanei", "Pas de tank : la compo full speed Kled, Sivir et Karma est la seule exception qu’il donne.", "sp-74");
   else if (tankSlots.length) add("todo", "shanei", "Il faudra un vrai tank parmi jungle, mid, ADC et support.", "sp-74");

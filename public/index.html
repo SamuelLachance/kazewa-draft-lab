@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#111511" />
     <meta
       name="description"
-      content="Retrouvez le verdict de Kazewa sur les drafts de League of Legends qu’il a commentées, ses raisons et sa vidéo. Pour toute autre draft : un verdict estimé d’après le résultat du match si la partie a été jouée, sinon d’après ses arguments, avec la fiabilité mesurée de la lecture utilisée."
+      content="Retrouvez le verdict de Kazewa sur les drafts de League of Legends qu’il a commentées, ses raisons et sa vidéo. Pour toute autre draft : un verdict estimé d’après ses arguments ou ses fiches champion, avec la fiabilité mesurée de la lecture utilisée ; si ni l’un ni l’autre ne départage les deux compositions, pas d’estimation. Le résultat d’une partie déjà jouée est un fait, pas un verdict. La grille de décision de Kazewa est un second avis."
     />
     <title>Kazewa — Draft Lab</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
@@ -57,7 +57,7 @@
             <p class="hero-description">
               Deux compositions. Si Kazewa a jugé cette draft, voici son verdict
               et ses raisons. Sinon, un verdict estimé d’après ce qu’il a dit des
-              mêmes champions, avec sa fiabilité mesurée.
+              mêmes champions, avec sa fiabilité mesurée. Si ni l’un ni l’autre ne départage les deux compositions, le site ne donne pas d’estimation.
             </p>
           </div>
           <div class="hero-aside" aria-label="Périmètre de l’analyse">
@@ -151,7 +151,7 @@
                 Écris ou colle les champions de chaque côté, séparés par des
                 virgules. Dès que les deux comps sont reconnues, le verdict de
                 Kazewa s’affiche s’il a jugé cette draft ; sinon un verdict estimé
-                d’après ce qu’il a dit des mêmes champions. Les rôles suivent le rôle habituel de chaque
+                d’après ce qu’il a dit des mêmes champions, quand cela départage les compositions ; sinon, pas d’estimation. Les rôles suivent le rôle habituel de chaque
                 champion. Clique deux rôles du même côté pour échanger leurs
                 champions.
               </p>
@@ -387,6 +387,12 @@
               aria-label="La lecture de Shanei"
               hidden
             ></section>
+            <section
+              id="grid-panel"
+              class="kazewa-panel grid-panel"
+              aria-label="La grille de décision de Kazewa, second avis"
+              hidden
+            ></section>
             <div class="evidence-grid">
               <section
                 id="arguments-panel"
@@ -464,11 +470,9 @@
                 Chaque draft que Kazewa a commentée est gardée en mémoire avec
                 son verdict, ses raisons et sa vidéo. Pour une draft qu’il n’a
                 pas jugée, le site montre ses avis les plus proches et ce qu’il a
-                dit des mêmes champions, et en tire un verdict estimé dont la
-                fiabilité a été mesurée. Si la draft est celle d’une partie pro
-                déjà jouée, le site nomme l’équipe qui a gagné : c’est le plus
-                souvent celle que Kazewa préfère. Ce n’est pas son avis sur
-                cette draft.
+                dit des mêmes champions. Quand cela départage les compositions, il en tire un verdict estimé dont la fiabilité a été mesurée ; sinon le site ne donne pas d’estimation, et sa grille de décision reste un second avis. Si la draft est celle d’une partie pro
+                déjà jouée, le site l’indique comme un fait : l’équipe qui a
+                gagné. Ce n’est pas le verdict de la draft, ni son avis.
               </p>
             </div>
             <div class="method-steps">
@@ -483,22 +487,27 @@
               </article>
               <article>
                 <span>02</span>
-                <h3>Le résultat, sinon ses arguments</h3>
+                <h3>Ses arguments d’abord</h3>
                 <p>
-                  Une draft déjà jouée en pro : le site nomme l’équipe qui a
-                  gagné. Une draft jamais jouée : un matchup, une synergie ou
-                  une réponse qu’il a nommés ailleurs restent valables quand
-                  les mêmes champions se retrouvent dans la même relation, et
-                  le côté qu’ils désignent donne le verdict estimé.
+                  Un matchup, une synergie ou une réponse qu’il a nommés ailleurs
+                  restent valables quand les mêmes champions se retrouvent dans
+                  la même relation, et le côté qu’ils désignent donne le verdict
+                  estimé. Le résultat d’une partie déjà jouée est affiché comme
+                  un fait, sans peser sur ce verdict.
                 </p>
               </article>
               <article>
                 <span>03</span>
-                <h3>Ses fiches, puis ses principes</h3>
+                <h3>Ses fiches, sinon aucune estimation</h3>
                 <p>
                   Quand ses arguments ne départagent pas, le site lit ses
-                  fiches champion, puis ses principes de composition. Ces
-                  lectures sont moins sûres, et le verdict le dit.
+                  fiches champion. Si elles ne départagent pas non plus, il ne
+                  donne pas d’estimation. La grille de décision qu’il applique à
+                  une draft (identité, trous structurels, axes, bonus, timing)
+                  est affichée à part, comme second avis, avec la vérification
+                  de construction de Shanei : elle ne lit aucune partie
+                  professionnelle, et elle est à peine mieux qu’une pièce
+                  lancée, le site le dit.
                 </p>
               </article>
               <article id="method-step-shanei">
@@ -531,14 +540,15 @@
                 Dix champions ne portent pas cette information : personne ne
                 peut promettre son avis sur une draft qu’il n’a pas encore
                 commentée. Le site sépare donc ce qu’il sait (sa mémoire) de ce
-                qu’il estime (un verdict tiré du résultat du match ou de ses
-                propres arguments, avec la fiabilité mesurée de la lecture
-                utilisée).
+                qu’il estime (un verdict tiré de ses propres arguments ou de ses
+                fiches champion, avec la fiabilité mesurée de la lecture
+                utilisée, et rien quand ni l’un ni l’autre ne départage).
               </p>
               <p>
                 La mesure porte sur l’accord avec ses jugements de draft, pas
-                sur le taux de victoire réel. Le calculateur structurel décrit
-                les deux compositions ; son score n’est pas son verdict.
+                sur le taux de victoire réel. La grille de décision et le
+                calculateur structurel décrivent les deux compositions ; leur
+                score n’est pas un pronostic de victoire.
               </p>
             </div>
           </section>
@@ -577,7 +587,7 @@
           Projet indépendant fondé sur un corpus d’analyses. Non affilié à Riot
           Games ni approuvé par Kazewa.
         </p>
-        <span class="mono">MÉMOIRE → RÉSULTAT → ARGUMENTS → VERDICT ESTIMÉ</span>
+        <span class="mono">MÉMOIRE → ARGUMENTS → FICHES → VERDICT ESTIMÉ · RÉSULTAT : UN FAIT</span>
       </footer>
     </div>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

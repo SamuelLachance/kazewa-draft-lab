@@ -100,6 +100,8 @@ const leftover = Object.entries(rules).filter(([, rule]) =>
 // who engages; the rest of these two flags comes from the kit grid.
 const SAID_TANK = new Set(["Trundle", "Dr. Mundo", "Tahm Kench", "Galio", "Cho'Gath", "Sion", "Nautilus", "Volibear", "Udyr"]);
 const SAID_NOT_TANK = new Set(["Jarvan IV", "Diana", "Ashe"]);
+// His sheet leaves the tank status open ("statut final incertain"): not counted as a tank.
+const TANK_HEDGED = new Set(["Poppy"]);
 const SAID_ENGAGE = new Set(["Jarvan IV", "Vi", "Xin Zhao"]);
 // He says they do not engage: they zone, cut the fight or send divers back.
 const SAID_NOT_ENGAGE = new Set(["Nunu & Willump", "Neeko", "Poppy"]);
@@ -117,7 +119,7 @@ const FIRST_RULE = {
   Gwen: "sp-23", "Jarvan IV": "sp-11", Jinx: "sp-15", Karma: "sp-22", Karthus: "sp-31",
   LeBlanc: "sp-35", Maokai: "sp-19", "Miss Fortune": "sp-16", Pantheon: "sp-28", Ryze: "sp-20",
   Samira: "sp-16", Shen: "sp-41", Sylas: "sp-39", Trundle: "sp-28",
-  Varus: "sp-17", Viktor: "sp-35", Wukong: "sp-20", Xayah: "sp-15",
+  Varus: "sp-17", Wukong: "sp-20", Xayah: "sp-15", Sivir: "sp-16",
 };
 const BLIND_RULE = {
   Darius: "sp-37", Gangplank: "sp-40", Shen: "sp-41", LeBlanc: "sp-35", Sylas: "sp-39",
@@ -132,6 +134,8 @@ const FLEX_RULE = {
   Cassiopeia: "sp-29", Ashe: "sp-31", Brand: "sp-31", "Cho'Gath": "sp-31",
   Galio: "sp-31", "Dr. Mundo": "sp-31", Karthus: "sp-31", Twitch: "sp-31", Varus: "sp-31",
 };
+// Shanei's first-pick verdict where the profile flag and his words differ.
+const FIRST_PICK_OVERRIDE = { Sivir: "no" };
 // He names them both ways (Ashe: "OK, pas OP en blind"; Volibear: "viable mais
 // risqué", in a rule the notes mark uncertain): no first-pick flag.
 // Gragas: listed "en retrait", he does not like him jungle. Smolder: a first
@@ -183,6 +187,7 @@ for (const entry of source.champions) {
   const enchanter = kit.class === "enchanter";
   const tank =
     !SAID_NOT_TANK.has(name) &&
+    !TANK_HEDGED.has(name) &&
     (SAID_TANK.has(name) || ((kit.class === "tank" || kit.class === "warden") && kit.tankiness >= 4));
   const physical = kit.ad + (kit.true ?? 0);
   const cited = entry.basis === "cited" && source.playlist[entry.video];
@@ -196,10 +201,14 @@ for (const entry of source.champions) {
       : saidAbout(entry.comment, /\bblind|lock|on le prend tard/i);
   const neverBlind = (Boolean(entry.neverBlind) || name === "Malphite") && Boolean(BLIND_RULE[name] || blindSaid);
   // A flag stays only with something to cite for it.
+  // The first-pick flag needs a rule that is about the first pick (its topic),
+  // or his sheet's clause on it. Sivir: named "le first pick Sivir est déconseillé" (sp-16).
+  const firstRuleTopic = FIRST_RULE[name] ? rules[FIRST_RULE[name]].topic : null;
   const firstPick =
-    entry.firstPick === "unsaid" || FIRST_UNSETTLED.has(name) || !(FIRST_RULE[name] || firstSaid)
+    FIRST_PICK_OVERRIDE[name] ??
+    (entry.firstPick === "unsaid" || FIRST_UNSETTLED.has(name) || !((firstRuleTopic && firstRuleTopic !== "blind") || firstSaid)
       ? null
-      : entry.firstPick;
+      : entry.firstPick);
   const notHyper = /pas un hypercarry/i.test(`${entry.piece} ${entry.comment}`);
   champions[name] = {
     families,

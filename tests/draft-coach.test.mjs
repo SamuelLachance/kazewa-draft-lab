@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -15,13 +16,10 @@ import {
   WEIGHTS,
   coachTables,
   playableRoles,
-  presence,
   rankBans,
   rankPicks,
   recentOpinion,
-  roleShare,
   scorePick,
-  stageLift,
 } from "../src/coach.mjs";
 import { ROLES } from "../src/engine.mjs";
 import { LANES } from "../src/lanes.mjs";
@@ -29,14 +27,15 @@ import { cardRelations } from "../src/relations.mjs";
 
 const load = async (name) =>
   JSON.parse(await readFile(new URL(`../data/${name}`, import.meta.url), "utf8"));
-const [knowledge, memory, cards, data] = await Promise.all([
+const [knowledge, memory, cards, data, method] = await Promise.all([
   load("knowledge.json"),
   load("memory-site.json"),
   load("champion-cards.json"),
   load("coach.json"),
+  load("method.json"),
 ]);
 const context = () =>
-  coachContext({ knowledge, memory, relations: cardRelations(cards), data });
+  coachContext({ knowledge, memory, relations: cardRelations(cards), data, method });
 const team = (top, jng, mid, bot, sup) => ({ top, jng, mid, bot, sup });
 const empty = () => ({ blue: team(null, null, null, null, null), red: team(null, null, null, null, null) });
 const noBans = () => ({ blue: [], red: [] });
@@ -138,26 +137,23 @@ test("what he said about two champions is filed by relation and by role", () => 
   assert.equal(tables.beats.get("Jax>Gnar").length + (tables.beats.get("Jax>Vi")?.length ?? 0), 1);
 });
 
-test("a pick scores what he said, what professionals do, and says so in sentences", () => {
+test("a pick scores what he said; the professional figures do not move it", () => {
   const picks = empty();
   picks.red.top = "Gnar";
   const jax = pick({ champion: "Jax", role: "top", picks });
-  assert.deepEqual(jax.reasons.map((reason) => reason.kind), ["meta", "timing", "stage", "said"]);
-  const said = jax.reasons.find((reason) => reason.kind === "said");
+  assert.deepEqual(jax.reasons.map((reason) => reason.kind), ["said"]);
+  const said = jax.reasons[0];
   // The opponent of his own lane weighs more than another champion.
   assert.equal(said.points, WEIGHTS.saidLane);
   assert.equal(said.detail, "Jax bat Gnar en lane");
   assert.equal(said.sources[0].video, "aaaaaaaaaaa");
   assert.match(said.text, /Prend le dessus en lane sur Gnar/);
-  // Presence 80 %, played top in 80 % of his games.
-  assert.equal(jax.reasons[0].points, Math.round(WEIGHTS.presence * 0.8 * 0.8 * 100) / 100);
-  assert.match(jax.reasons[0].text, /80 %/);
   assert.equal(jax.score, Math.round(jax.reasons.reduce((n, r) => n + r.points, 0) * 100) / 100);
+  // Presence, moment and stage of the pro games carry no weight.
   // The same statement counts against the champion it names as the loser.
   const other = empty();
   other.red.top = "Jax";
   const gnar = pick({ champion: "Gnar", role: "top", picks: other });
-  // A lane he calls lost weighs more than a lane he calls won.
   assert.equal(gnar.reasons.find((reason) => reason.kind === "said").points, -WEIGHTS.saidLaneLost);
   assert.ok(WEIGHTS.saidLaneLost > WEIGHTS.saidLane);
   assert.match(gnar.reasons.find((reason) => reason.kind === "said").text, /Jax prend le dessus en lane sur lui/);
@@ -308,27 +304,21 @@ test("his champion cards speak where he said nothing more precise, of champions 
 });
 
 test("his recent word on a champion's strength counts; an old one does not", () => {
+  // The reference is the date of his newest remark, not any professional file.
   const strong = [{ date: "2026-08-10", patch: "16.15", tag: "meta_strong", text: "Très fort en ce moment", video: "ccccccccccc", ts: 5 }];
   const weak = [{ date: "2026-09-20", patch: "16.18", tag: "meta_weak", text: "Trop faible", video: "ddddddddddd", ts: null }];
   const old = [{ date: "2025-01-10", patch: "15.1", tag: "meta_strong", text: "Fort à l’époque", video: "eeeeeeeeeee", ts: null }];
   const order = [{ date: "2026-10-01", patch: "16.20", tag: "pick_order", text: "Pris trop tôt", video: "fffffffffff", ts: null }];
-  assert.equal(recentOpinion(strong, meta).text, "Très fort en ce moment");
-  assert.equal(recentOpinion(old, meta), null);
-  assert.equal(recentOpinion(order, meta), null);
-  assert.equal(recentOpinion(strong, { ...meta, to: null }), null);
-  const up = pick({ champion: "Jinx", role: "bot", notes: strong }).reasons.find((reason) => reason.kind === "opinion");
+  const asOf = "2026-09-20";
+  assert.equal(recentOpinion(strong, asOf).text, "Très fort en ce moment");
+  assert.equal(recentOpinion(weak, asOf).text, "Trop faible");
+  assert.equal(recentOpinion(old, asOf), null);
+  assert.equal(recentOpinion(order, asOf), null);
+  assert.equal(recentOpinion(strong, null), null);
+  const up = pick({ champion: "Jinx", role: "bot", notes: strong, asOf }).reasons.find((reason) => reason.kind === "opinion");
   assert.equal(up.points, WEIGHTS.opinion);
-  assert.match(up.text, /Il le jugeait fort en août 2026 \(patch 16\.15\)/);
-  assert.equal(up.detail, "Très fort en ce moment");
-  assert.equal(up.sources[0].video, "ccccccccccc");
-  const down = pick({ champion: "Jinx", role: "bot", notes: weak }).reasons.find((reason) => reason.kind === "opinion");
-  assert.equal(down.points, -WEIGHTS.opinion);
-  assert.match(down.text, /faible en septembre 2026/);
-  assert.equal(pick({ champion: "Jinx", role: "bot", notes: old }).reasons.some((reason) => reason.kind === "opinion"), false);
-  // A remark that names a role holds for that role only.
-  const asTop = [{ ...weak[0], role: "top", text: "Jax top est trop faible" }];
-  assert.equal(pick({ champion: "Jax", role: "top", notes: asTop }).reasons.some((reason) => reason.kind === "opinion"), true);
-  assert.equal(pick({ champion: "Jax", role: "jng", notes: asTop }).reasons.some((reason) => reason.kind === "opinion"), false);
+  assert.match(up.text, /Il le jugeait fort en août 2026/);
+  assert.equal(pick({ champion: "Jinx", role: "bot", notes: strong, asOf: null }).reasons.some((reason) => reason.kind === "opinion"), false);
 });
 
 test("a counter still available is a warning, not a penalty", () => {
@@ -345,115 +335,50 @@ test("a counter still available is a warning, not a penalty", () => {
   assert.equal(pick({ champion: "Lulu", role: "sup", slot: 5, picks: filled }).reasons.some((reason) => reason.kind === "answer"), false);
 });
 
-test("the moment of the draft: silent when one role is left, and no blame once the lane opponent is locked", () => {
-  // Top at pick 1 is rare (5 %): a penalty, with the reason why.
-  const early = pick({ champion: "Gnar", role: "top", slot: 1 });
-  const timing = early.reasons.find((reason) => reason.kind === "timing");
-  assert.ok(timing.points < 0);
-  assert.match(timing.text, /rarement le top .* il peut se faire répondre/);
-  // The opposing top is already there: nothing to be answered by.
-  const facing = empty();
-  facing.red.top = "Jax";
-  assert.equal(pick({ champion: "Gnar", role: "top", slot: 2, picks: facing }).reasons.some((reason) => reason.kind === "timing"), false);
-  // One role left: the same sentence for every candidate says nothing.
-  const last = empty();
-  Object.assign(last.blue, { jng: "Vi", mid: "Azir", bot: "Jinx", sup: "Lulu" });
-  assert.equal(pick({ champion: "Gnar", role: "top", slot: 9, picks: last }).reasons.some((reason) => reason.kind === "timing"), false);
-  // "L’ADC", not "le ADC".
-  assert.match(pick({ champion: "Jinx", role: "bot", slot: 2 }).reasons.find((reason) => reason.kind === "timing").text, /souvent l’ADC/);
+test("the moment of the draft is no reason: the professional timing does not move a pick", () => {
+  assert.equal(pick({ champion: "Gnar", role: "top", slot: 1 }).reasons.some((reason) => reason.kind === "timing"), false);
+  assert.equal(pick({ champion: "Gnar", role: "top", slot: 1 }).reasons.some((reason) => reason.kind === "stage"), false);
 });
 
-test("the stage of the draft a champion is locked at is read from professional play", () => {
-  // Jax: 35 of 50 picks in the last four picks; Jinx: 20 of 30 in the first three.
-  assert.ok(stageLift(meta, "Jax", 9).lift > 1.5);
-  assert.ok(stageLift(meta, "Jax", 1).lift < 0.5);
-  assert.ok(stageLift(meta, "Jinx", 2).lift > 1.5);
-  assert.equal(stageLift(meta, "Gnar", 2).lift, 1);
-  assert.equal(presence(meta, "Nautilus"), 0.7);
-  assert.equal(presence(meta, "Teemo"), 0);
-  // Too few picks to speak of a habit: no sentence.
-  const thin = { ...meta, stages: { ...meta.stages, Gnar: [0, 0, 4] } };
-  assert.equal(pick({ champion: "Gnar", role: "top", slot: 1, meta: thin }).reasons.some((reason) => reason.kind === "stage"), false);
-});
 
-test("a champion goes to the role it is played in, whatever the moment of the draft", () => {
-  // Jax: 40 games top, 10 jungle. Pick 1 favours the jungle; Jax stays top.
-  assert.deepEqual(playableRoles(meta, "Jax"), ["top", "jng"]);
-  assert.equal(roleShare(meta, "Jax", "top"), 0.8);
+test("a champion goes to the role of its lane table, whatever the moment of the draft and the professional roles", () => {
+  // The lane table decides the roles; professional play does not.
+  assert.deepEqual(playableRoles(meta, "Jax"), LANES.Jax);
+  assert.deepEqual(playableRoles(null, "Jax"), LANES.Jax);
+  const stray = { ...meta, picks: { Jax: { top: 60, jng: 1 } } };
+  assert.deepEqual(playableRoles(stray, "Jax"), LANES.Jax);
   for (let slot = 1; slot <= 10; slot += 1) {
-    const rows = rankPicks({ side: "blue", picks: empty(), bans: noBans(), slot, tables: coachTables(sample), meta, champions: ["Jax", "Gnar", "Jinx"] });
-    assert.equal(rows.find((row) => row.champion === "Jax").role, "top", `slot ${slot}`);
+    const rows = rankPicks({ side: "blue", picks: empty(), bans: noBans(), slot, tables: coachTables(sample), champions: ["Jax", "Gnar", "Jinx"] });
+    const jax = rows.find((row) => row.champion === "Jax");
+    assert.ok(LANES.Jax.includes(jax.role), `slot ${slot}`);
   }
   // Top taken: the jungle is then the only place left for him.
   const taken = empty();
   taken.blue.top = "Gnar";
-  const rows = rankPicks({ side: "blue", picks: taken, bans: noBans(), slot: 4, tables: coachTables(sample), meta, champions: ["Jax"] });
+  const rows = rankPicks({ side: "blue", picks: taken, bans: noBans(), slot: 4, tables: coachTables(sample), champions: ["Jax"] });
   assert.equal(rows[0].role, "jng");
-  // The professional roles complete the lane table, and replace a listed lane nobody plays.
-  const shipped = data.meta;
-  for (const [name, byRole] of Object.entries(shipped.picks)) {
-    const total = Object.values(byRole).reduce((n, v) => n + v, 0);
-    const roles = playableRoles(shipped, name);
-    assert.ok(roles.length >= 1, name);
-    for (const role of ROLES)
-      if ((byRole[role] ?? 0) >= 5 && byRole[role] / total >= 0.1) assert.ok(roles.includes(role), `${name} ${role}`);
-    if (total >= 10)
-      for (const role of roles)
-        assert.ok((byRole[role] ?? 0) >= 3 || (byRole[role] ?? 0) / total >= 0.05, `${name} ${role}`);
-  }
-  assert.deepEqual(playableRoles(null, "Jax"), LANES.Jax);
-  // One stray game does not make a role: a listed lane needs three games or 5 %.
-  const stray = { ...meta, picks: { Jax: { top: 60, jng: 1 } } };
-  assert.deepEqual(playableRoles(stray, "Jax"), ["top"]);
-  // Top taken, and Jax is never played elsewhere: he can be clicked, not suggested.
-  const closed = empty();
-  closed.blue.top = "Gnar";
-  const few = { ...meta, picks: { ...meta.picks, Jax: { top: 60, jng: 3 } } };
-  const offRole = rankPicks({ side: "blue", picks: closed, bans: noBans(), slot: 4, tables: coachTables(sample), meta: few, champions: ["Jax"] })[0];
-  assert.equal(offRole.role, "jng");
-  assert.equal(offRole.playable, true);
-  assert.equal(offRole.rare, true);
-  // On the shipped data, at every pick of an empty board, no champion with ten
-  // professional games or more is put in a role it is played in less than one
-  // time in five.
-  const brain = context();
-  for (let slot = 1; slot <= 10; slot += 1) {
-    const all = rankPicks({ side: "blue", picks: empty(), bans: noBans(), slot, tables: brain.tables, meta: shipped, champions: brain.champions });
-    for (const row of all) {
-      // Enough professional play to know its roles.
-      const seen = Object.values(shipped.picks[row.champion] ?? {}).reduce((n, v) => n + v, 0);
-      if (seen < 10) continue;
-      assert.ok(roleShare(shipped, row.champion, row.role) >= 0.2, `${row.champion} ${row.role} at pick ${slot}`);
-    }
-  }
+  assert.equal(rows[0].playable, true);
+  // Every champion of the catalogue has a lane, and the coach never reads the professional roles to choose one.
+  for (const name of Object.keys(LANES)) assert.ok(playableRoles(null, name).length >= 1, name);
+  const source = readFileSync(new URL("../src/coach.mjs", import.meta.url), "utf8");
+  assert.ok(!/roleShare|proPicks|presence\(/.test(source), "the coach still reads a professional share");
 });
 
-test("a composition without a frontline after three picks is told so", () => {
+test("the frontline is read by the procedure of the two coaches, not by a count of the profiles", () => {
   const picks = empty();
   Object.assign(picks.blue, { mid: "Azir", bot: "Jinx", sup: "Lulu" });
-  const profiles = knowledge.champions;
-  const frontliner = Object.keys(profiles).find(
-    (name) => profiles[name].frontline >= 2 && (LANES[name] ?? []).includes("top"),
+  const frontliner = Object.keys(knowledge.champions).find(
+    (name) => knowledge.champions[name].frontline >= 2 && (LANES[name] ?? []).includes("top"),
   );
-  const mine = pick({ champion: frontliner, role: "top", picks, profiles }).reasons.find((reason) => reason.kind === "need");
-  assert.match(mine.text, /Ta composition n’a pas encore de frontline/);
-  assert.ok(mine.points > 0);
-  const theirs = pick({ champion: frontliner, role: "top", picks, profiles, mine: false }).reasons.find((reason) => reason.kind === "need");
-  assert.match(theirs.text, /Leur composition/);
-  // Not before three picks.
-  const early = empty();
-  Object.assign(early.blue, { bot: "Jinx", sup: "Lulu" });
-  assert.equal(pick({ champion: frontliner, role: "top", picks: early, profiles }).reasons.some((reason) => reason.kind === "need"), false);
+  assert.equal(pick({ champion: frontliner, role: "top", picks, profiles: knowledge.champions }).reasons.some((reason) => reason.kind === "need"), false);
 });
 
-test("bans: the professional ban list first, then what the champion would do to the picks locked", () => {
+test("bans: what he said and what the picks locked change, not the professional ban list", () => {
   const tables = coachTables(sample);
   const champions = ["Jax", "Gnar", "Jinx", "Lulu", "Nautilus", "Teemo"];
   const first = rankBans({ side: "blue", picks: empty(), bans: noBans(), tables, meta, champions });
-  // Nautilus: banned in 60 % of games. Jax: banned in 30 %, present in 80 %.
-  assert.deepEqual(first.slice(0, 2).map((row) => row.champion), ["Nautilus", "Jax"]);
-  assert.match(first[0].reasons[0].text, /Banni dans 60 %/);
   assert.ok(first.every((row) => row.role === null));
+  assert.ok(first.every((row) => row.reasons.every((reason) => reason.kind !== "meta" && reason.kind !== "timing")));
   // We locked Gnar top: Jax, who beats him, is worth more as a ban.
   const picks = empty();
   picks.blue.top = "Gnar";
@@ -477,32 +402,18 @@ test("bans: the professional ban list first, then what the champion would do to 
   closed.red.sup = "Karma";
   const third = rankBans({ side: "blue", picks: closed, bans: noBans(), tables, meta, champions });
   assert.equal(third.find((row) => row.champion === "Nautilus").playable, false);
-  // Jax with the opponent's top filled: only his jungle share is left to ban.
-  const half = empty();
-  half.red.top = "Gnar";
-  const partial = rankBans({ side: "blue", picks: half, bans: noBans(), tables, meta, champions }).find((row) => row.champion === "Jax");
-  assert.equal(partial.reasons[0].points, Math.round(first.find((row) => row.champion === "Jax").reasons[0].points * 0.2 * 100) / 100);
 });
 
 test("the side that picks right after the bans does not ban its own best pick", () => {
   const tables = coachTables(sample);
   const champions = ["Jax", "Nautilus", "Jinx"];
   const plain = rankBans({ side: "blue", picks: empty(), bans: noBans(), tables, meta, champions });
-  const held = rankBans({ side: "blue", picks: empty(), bans: noBans(), tables, meta, champions, ownPicks: new Set(["Nautilus"]) });
-  assert.equal(plain[0].champion, "Nautilus");
-  assert.notEqual(held[0].champion, "Nautilus");
-  const own = held.find((row) => row.champion === "Nautilus").reasons.find((reason) => reason.kind === "own");
+  const best = plain[0].champion;
+  const held = rankBans({ side: "blue", picks: empty(), bans: noBans(), tables, meta, champions, ownPicks: new Set([best]) });
+  assert.notEqual(held[0].champion, best);
+  const own = held.find((row) => row.champion === best).reasons.find((reason) => reason.kind === "own");
   assert.equal(own.points, -WEIGHTS.own);
   assert.match(own.text, /ton meilleur pick/);
-  // In the coach: blue picks first after the first bans, red after the second ones.
-  const brain = context();
-  const opening = advise(createSession("first"), brain, { limit: 173 });
-  assert.equal(opening.pool.filter((row) => row.reasons.some((reason) => reason.kind === "own")).length, 1);
-  // It stays in the pool, to be clicked, and is not among the suggestions.
-  assert.equal(opening.options.some((row) => row.reasons.some((reason) => reason.kind === "own")), false);
-  let session = applyAction(createSession("first"), opening.options[0].champion, null, brain);
-  // Red bans next and picks second: nothing is held back for it.
-  assert.equal(advise(session, brain, { limit: 173 }).pool.some((row) => row.reasons.some((reason) => reason.kind === "own")), false);
 });
 
 test("picks: only roles the champion is played in, and never a champion already taken", () => {
@@ -525,20 +436,18 @@ test("picks: only roles the champion is played in, and never a champion already 
     assert.ok(playable[index - 1].score >= playable[index].score);
 });
 
-test("with the shipped data, the first bans are champions professionals ban, each with its figures", () => {
+test("with the shipped data, the first bans come from what he said, never from the professional ban rates", () => {
   const brain = context();
   const advice = advise(createSession("first"), brain, { limit: 5 });
   assert.equal(advice.step.action, "ban");
-  assert.equal(advice.options.length, 5);
   assert.equal(advice.pool.length, Object.keys(knowledge.champions).length);
-  const banRate = (name) => (data.meta.bans[name] ?? 0) / data.meta.games;
   for (const option of advice.options) {
-    assert.ok(banRate(option.champion) >= 0.1, option.champion);
-    assert.match(option.reasons[0].text, /Banni dans \d+ % des parties pro récentes/);
+    assert.ok(option.reasons.every((reason) => reason.kind !== "meta" && reason.kind !== "timing"), option.champion);
+    assert.ok(
+      option.reasons.some((reason) => reason.points > 0 && (reason.coach === "kazewa" || reason.kind === "opinion" || reason.kind === "said")),
+      option.champion,
+    );
   }
-  // Not an alphabetical list.
-  const names = advice.options.map((option) => option.champion);
-  assert.notDeepEqual(names, [...names].sort((a, b) => a.localeCompare(b, "fr")));
 });
 
 test("a whole draft played on the first suggestion gives two playable teams, with a reason at every step", () => {
@@ -589,13 +498,16 @@ test("a whole draft played on the first suggestion gives two playable teams, wit
 test("a click without a role puts the champion in its usual role, an explicit role wins, an undo replays the log", () => {
   const brain = context();
   let session = createSession("first");
-  const bans = advise(session, brain, { limit: 6 }).options.map((option) => option.champion);
+  // Six bans, none of them one of the two champions the test checks.
+  const bans = ["Bard", "Mel", "Nocturne", "Cassiopeia", "Varus", "Yone"];
   for (const name of bans) session = applyAction(session, name, null, brain);
   // Ashe is played ADC, never support; Cho'Gath jungle more than top.
   for (const [name, role] of [["Ashe", "bot"], ["Jax", "top"]]) {
     if (bans.includes(name)) continue;
-    assert.equal(inferPickRole(session, name, brain), role, name);
-    assert.equal(applyAction(session, name, null, brain).picks.blue[role], name);
+    // Shanei never first-picks a top: Jax goes where his lane table lets him.
+    assert.ok(LANES[name].includes(inferPickRole(session, name, brain)), name);
+    // An explicit role wins over the inferred one.
+    assert.equal(applyAction(session, name, role, brain).picks.blue[role], name);
   }
   const flex = advise(session, brain, { limit: 173 }).pool.find((row) => row.playable && row.roles.length > 1);
   assert.ok(flex);

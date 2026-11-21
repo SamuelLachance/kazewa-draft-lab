@@ -1,7 +1,7 @@
 {
- "version": "2.4.0",
- "measuredAt": "2026-11-20T23:05:05.584Z",
- "note": "Measured agreement of each reading the site uses for a draft he did not judge. Nothing is fitted: when the draft is a game already played the site names the side that won; otherwise it counts his arguments, then his champion cards, then applies the structural calculator.",
+ "version": "2.5.0",
+ "measuredAt": "2026-11-21T15:04:11.493Z",
+ "note": "Measured agreement of each reading the site uses for a draft he did not judge. Nothing is fitted: a game already played gives a fact, which never sets the estimate; the estimate counts his arguments, then his champion cards, and is absent when neither separates the two compositions.",
  "reliability": {
   "result": {
    "agreement": 0.7980132450331126,
@@ -40,11 +40,11 @@
    "high": 0.5734767025089605
   },
   "everyDraft": {
-   "n": 71,
-   "agree": 41.5,
-   "agreement": 0.5845070422535211,
-   "low": 0.47794117647058826,
-   "high": 0.6818181818181818,
+   "n": 70,
+   "agree": 41,
+   "agreement": 0.5857142857142857,
+   "low": 0.48,
+   "high": 0.6842105263157895,
    "interval": "group bootstrap"
   },
   "everyDraftPlayed": {
@@ -55,14 +55,20 @@
    "high": 0.9041095890410958,
    "interval": "group bootstrap"
   },
+  "theory": {
+   "agreement": 0.5034246575342466,
+   "n": 292,
+   "low": 0.4467455621301775,
+   "high": 0.56640625
+  },
   "shanei": {
-   "agreement": 0.49280575539568344,
-   "n": 278,
-   "low": 0.4268292682926829,
-   "high": 0.5602605863192183,
+   "agreement": 0.49469964664310956,
+   "n": 283,
+   "low": 0.4307692307692308,
+   "high": 0.5598705501618123,
    "winner": {
-    "agreement": 0.4982925331900852,
-    "n": 52124
+    "agreement": 0.49678434986273495,
+    "n": 52089
    }
   }
  }

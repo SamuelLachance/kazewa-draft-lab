@@ -7,7 +7,7 @@ import {
   createSession,
   undo,
 } from "./src/draft-coach.mjs";
-import { playableRoles, presence } from "./src/coach.mjs";
+import { playableRoles } from "./src/coach.mjs";
 import { LANES } from "./src/lanes.mjs";
 import { indexMethod } from "./src/method.mjs";
 import { championReads, indexMemory } from "./src/memory.mjs";
@@ -414,6 +414,7 @@ function renderVerdictCard(judgement, names) {
   const range = (r) =>
     r ? `entre ${formatPct(r.low)} et ${formatPct(r.high)}` : "";
   const side = lean.side;
+  const playedFact = judgement.played?.side === "even" ? "" : playedFactLine(judgement.played);
   let eyebrow,
     badge,
     title,
@@ -443,41 +444,6 @@ function renderVerdictCard(judgement, names) {
     margin = "—";
     marginLabel = "SON VERDICT";
     note = "Il ne tranche pas · le site non plus";
-  } else if (lean.basis === "result") {
-    const r = all?.result;
-    const played = judgement.played;
-    const games = played.games;
-    const last = games[games.length - 1];
-    // Team names only when every game played with these champions has the same ones.
-    const sameTeams = games.every(
-      (game) => game.teams.blue === last.teams.blue && game.teams.red === last.teams.red,
-    );
-    const winner = sameTeams ? last.teams[side] : null;
-    const opposed = evaluation?.unseen?.matchResult?.withArguments?.oppositeSides;
-    const together = evaluation?.unseen?.matchResult?.withArguments?.sameSide;
-    eyebrow = "PARTIE DÉJÀ JOUÉE · PAS D’AVIS DE KAZEWA EN MÉMOIRE";
-    badge = r ? `Fiabilité mesurée : ${formatPct(r.agreement)}` : "D’après le résultat du match";
-    title = `Verdict estimé : ${sidePhrase(side, winner ? { teams: last.teams } : null, names)}.`;
-    description = [
-      games.length === 1
-        ? `Ces dix champions sont ceux d’une partie pro déjà jouée : ${playedLine(last)}. ${winner ? `${winner} a gagné.` : `Le ${side === "blue" ? "côté bleu" : "côté rouge"} a gagné.`}`
-        : `Ces dix champions ont été joués dans ${games.length} parties pro, la dernière : ${playedLine(last)}. Le même côté a gagné chaque fois.`,
-      r
-        ? `Sur ${r.n} parties qu’il a commentées, il préférait la draft de l’équipe gagnante ${formatPct(r.agreement)} du temps (${range(r)})${r.draftTiming?.n ? `, et ${formatPct(r.draftTiming.agreement)} quand son avis est donné pendant la draft` : ""}.`
-        : "",
-      said.side !== "even" && said.side !== side && opposed?.n
-        ? `Ses arguments sur ces champions penchent pour l’autre côté (${saidCount}) : sur ${opposed.n} drafts dans ce cas, le résultat désignait son verdict ${opposed.resultRight} fois.`
-        : said.side === side && together?.n
-          ? `Ses arguments sur ces champions vont dans le même sens (${saidCount}) : dans ce cas l’accord mesuré est de ${formatPct(together.agreement)}.`
-          : "",
-      "Ce n’est pas son avis, et ce n’est pas un jugement sur la draft : c’est le résultat du match.",
-    ]
-      .filter(Boolean)
-      .join(" ");
-    margin = r ? formatPct(r.agreement) : "—";
-    marginLabel = "FIABILITÉ MESURÉE";
-    bar = side === "blue" ? 70 : 30;
-    note = "D’après le résultat du match · il préfère le plus souvent le vainqueur";
   } else {
     const split = judgement.played?.side === "even" ? judgement.played : null;
     eyebrow = split
@@ -524,28 +490,18 @@ function renderVerdictCard(judgement, names) {
       margin = r ? formatPct(r.agreement) : "—";
       bar = side === "blue" ? 58 : 42;
       note = "Lecture d’après ses fiches · moins sûre que ses arguments";
-    } else if (lean.basis === "principles") {
-      const r = all?.principles;
-      badge = r ? `Fiabilité mesurée : ${formatPct(r.agreement)}` : "D’après ses principes";
+    } else {
+      badge = "Pas d’estimation";
+      title = "Pas d’estimation.";
       description = [
-        "Ni ses arguments ni ses fiches champion ne départagent ces deux compositions (aucun élément, ou autant de chaque côté). Lecture de dernier recours d’après ses principes de composition (frontline, dégâts soutenus, catch, scaling, détaillés plus bas).",
-        r
-          ? `Sur ${r.n} drafts qu’il a jugées et que ce calculateur n’avait jamais vues, il désigne son verdict ${formatPct(r.agreement)} du temps : c’est une pièce lancée.`
-          : "",
+        "Ni ses arguments sur ces champions ni ses fiches champion ne départagent ces deux compositions : le site n’invente pas de côté. La grille de décision de Kazewa, affichée plus bas, est un second avis et n’entre pas dans l’estimation.",
         nearLine,
       ]
         .filter(Boolean)
         .join(" ");
-      margin = r ? formatPct(r.agreement) : "—";
-      bar = side === "blue" ? 54 : 46;
-      note = "Dernier recours · à prendre comme une description";
-    } else {
-      badge = "Équilibre";
-      title = "Deux drafts à l’équilibre.";
-      description = `Ni ses arguments, ni ses fiches champion, ni ses principes de composition ne départagent ces deux drafts. ${nearLine}`.trim();
-      margin = "=";
+      margin = "—";
       marginLabel = "VERDICT ESTIMÉ";
-      note = "Rien ne sépare les deux compositions";
+      note = "Aucune lecture ne tranche";
     }
   }
   $("#verdict-card").dataset.side = side;
@@ -553,7 +509,7 @@ function renderVerdictCard(judgement, names) {
   $("#verdict-eyebrow").textContent = eyebrow;
   $("#confidence-badge").textContent = badge;
   $("#verdict-title").textContent = title;
-  $("#verdict-description").textContent = [splitLine, description].filter(Boolean).join(" ");
+  $("#verdict-description").textContent = [splitLine, playedFact, description].filter(Boolean).join(" ");
   $("#verdict-margin").textContent = margin;
   $("#verdict-margin-label").textContent = marginLabel;
   $("#track-note").textContent = note;
@@ -638,6 +594,39 @@ function renderShaneiPanel(judgement, names) {
     : "La grille décrit comment une composition est construite. Elle ne prédit ni le vainqueur ni l’avis de Kazewa.";
   node.hidden = false;
   node.innerHTML = `<div class="panel-heading"><h3>La lecture de Shanei</h3><span class="mono">${reading.side === "even" ? "ÉQUILIBRE" : `${reading.side === "blue" ? "BLEU" : "ROUGE"} · ÉCART ${esc(String(Math.abs(reading.margin)).replace(".", ","))}`}</span></div><p class="fine-print">La méthode de draft du coach Shanei, appliquée aux deux compositions : la famille du bloc jungle, mid, ADC et support, ce qu’il reprocherait (−), ce qu’il validerait (+) et ses remarques (·), avec la vidéo où il donne la règle ; les duos de la table des combos de son cours n’ont pas de vidéo. Il classe lui-même la plupart des champions dans ses familles ; les autres sont classés d’après ses définitions, et un champion qu’il n’a pas classé lui-même n’entre pas dans la lecture de la famille : il n’est jamais compté hors thème. Ce qui décrit le kit d’un champion (tank, enchanteur, type de dégâts, engage, désengage, poke, ultime global, waveclear, mobilité, assassin) vient d’une grille de kits, pas de ses mots.</p><div class="shanei-grid">${column("blue")}${column("red")}</div><p class="fine-print">${esc(lean)} ${esc(measure)}</p>`;
+}
+// The decision grid of the two coaches: a second opinion, never the estimate.
+const GRID_CONFIDENCE = ["aucun avis", "avis faible", "avis net", "avis tranché"];
+function renderGridPanel(judgement) {
+  const node = $("#grid-panel");
+  if (!node) return;
+  const reading = judgement.theory;
+  if (!reading) {
+    node.hidden = true;
+    node.innerHTML = "";
+    return;
+  }
+  const r = judgement.reliability?.theory;
+  const sideWord = (side) => (side === "blue" ? "côté bleu" : "côté rouge");
+  const lean =
+    reading.side === "even"
+      ? "Sa grille ne départage pas les deux compositions."
+      : reading.confidence === 0
+        ? `Sa grille ne tranche pas : elle penche de peu pour le ${sideWord(reading.side)}.`
+        : `Sa grille penche pour le ${sideWord(reading.side)} (${GRID_CONFIDENCE[reading.confidence]}).`;
+  const measure = r?.n
+    ? `Sur ${r.n} drafts jugées où elle penche, elle désigne son verdict ${formatPct(r.agreement)} du temps (intervalle ${formatPct(r.low)} à ${formatPct(r.high)}) : ${r.low <= 0.5 && r.high >= 0.5 ? "son intervalle contient le hasard, soit une pièce lancée" : r.low > 0.5 ? "un peu mieux qu’une pièce lancée" : "moins bien qu’une pièce lancée"}. Sa confiance ne rehausse pas ce taux.`
+    : "";
+  const top = (side) =>
+    (reading.reasons ?? [])
+      .filter((item) => item.side === side && item.points)
+      .sort((a, b) => Math.abs(b.points) - Math.abs(a.points))
+      .slice(0, 2)
+      .map((item) => `<li><span class="side-tag">${side === "blue" ? "BLEU" : "ROUGE"}</span> ${esc(item.text)}</li>`)
+      .join("");
+  const reasons = top("blue") + top("red");
+  node.hidden = false;
+  node.innerHTML = `<div class="panel-heading"><h3>La grille de décision de Kazewa</h3><span class="mono">SECOND AVIS</span></div><p class="fine-print">${esc(lean)} Elle n’entre pas dans l’estimation. ${esc(measure)} Elle ne lit aucune partie professionnelle.</p>${reasons ? `<ol class="kazewa-reasons">${reasons}</ol>` : ""}`;
 }
 function renderArguments(judgement) {
   const node = $("#arguments-panel");
@@ -772,6 +761,7 @@ function renderResult(
   renderVerdictCard(judgement, names);
   renderKazewaPanel(judgement, names);
   renderShaneiPanel(judgement, names);
+  renderGridPanel(judgement);
   renderArguments(judgement);
   renderCardsPanel(judgement);
   renderPrecedents(judgement);
@@ -876,6 +866,22 @@ function formatSignedScore(score) {
   });
   return rounded > 0 ? `+${text}` : `−${text}`;
 }
+// A professional game already played with these ten champions is a fact: the
+// side that won. It never sets the estimate.
+function playedFactLine(played) {
+  if (!played?.games?.length) return "";
+  if (played.side === "even")
+    return "Partie pro déjà jouée avec ces dix champions : chaque côté a gagné, le résultat ne départage pas.";
+  const last = played.games[played.games.length - 1];
+  const sameTeams = played.games.every(
+    (game) => game.teams?.blue === last.teams?.blue && game.teams?.red === last.teams?.red,
+  );
+  const team = sameTeams && last.teams?.[played.side] ? ` (${last.teams[played.side]})` : "";
+  const sideWord = played.side === "blue" ? "côté bleu" : "côté rouge";
+  return played.games.length === 1
+    ? `Fait : avec ces dix champions, une partie pro déjà jouée, le ${sideWord}${team} a gagné.`
+    : `Fait : avec ces dix champions, ${played.games.length} parties pro déjà jouées ; le ${sideWord}${team} a gagné chaque fois.`;
+}
 function renderQuickVerdict(judgement) {
   const node = $("#quick-verdict");
   if (!node) return;
@@ -886,23 +892,21 @@ function renderQuickVerdict(judgement) {
     return;
   }
   const lean = judgement.lean;
+  const prefix = playedFactLine(judgement.played) || "Draft inédite.";
   let sentence;
   if (lean.basis === "memory")
     sentence = `Kazewa a jugé cette draft : il préfère ${sidePhrase(lean.side, judgement.kazewa)}. Confiance ${judgement.kazewa.verdict.confidence}/3.`;
   else if (lean.basis === "undecided")
     sentence = "Kazewa a commenté cette draft sans trancher.";
   else if (lean.basis === "balance")
-    sentence =
-      "Draft inédite. Verdict estimé : équilibre, rien ne départage les deux compositions.";
+    sentence = `${prefix} Pas d’estimation : ni ses arguments ni ses fiches ne départagent les deux compositions.`;
   else {
     const all = judgement.reliability ?? {};
     const source = {
-      result: ["le résultat du match", all.result],
       arguments: ["ses arguments sur ces champions", all.arguments],
       cards: ["ses fiches champion", all.cards],
-      principles: ["ses principes de composition", all.principles],
     }[lean.basis] ?? ["son corpus", null];
-    sentence = `${lean.basis === "result" ? "Partie pro déjà jouée, sans avis de lui en mémoire." : judgement.played?.side === "even" ? "Draft déjà jouée, chaque côté a gagné." : "Draft inédite."} Verdict estimé d’après ${source[0]} : ${sidePhrase(lean.side, null)}${source[1] ? ` (fiabilité mesurée ${formatPct(source[1].agreement)})` : ""}.`;
+    sentence = `${prefix} Verdict estimé d’après ${source[0]} : ${sidePhrase(lean.side, null)}${source[1] ? ` (fiabilité mesurée ${formatPct(source[1].agreement)})` : ""}.`;
   }
   node.hidden = false;
   node.dataset.side = lean.side;
@@ -989,7 +993,7 @@ function renderValidation() {
   const won = unseen?.matchResult;
   const everyPlayed = unseen?.everyDraft?.played?.heldOut;
   $("#validation-text").textContent = mem
-    ? `${mem.decided} drafts jugées par Kazewa en mémoire : son verdict exact, ses raisons, sa vidéo. Toute autre draft reçoit un verdict estimé : juste ${formatPct(every?.all?.agreement)} du temps sur des vidéos tenues à l’écart d’après ses arguments, ses fiches champion et ses principes${everyPlayed?.all?.n ? `, et ${formatPct(everyPlayed.all.agreement)} sur les mêmes drafts quand le site peut aussi s’appuyer sur le résultat du match` : ""}.`
+    ? `${mem.decided} drafts jugées par Kazewa en mémoire : son verdict exact, ses raisons, sa vidéo. Toute autre draft reçoit une estimation d’après ses arguments, puis ses fiches champion, quand l’un des deux départage les compositions : juste ${formatPct(every?.all?.agreement)} du temps sur des vidéos tenues à l’écart, pour ${formatPct(every?.coverage)} des drafts. Sinon le site ne donne pas d’estimation ; la grille de décision de Kazewa reste un second avis. Le résultat d’une partie déjà jouée est affiché comme un fait, pas comme le verdict.`
     : "Mémoire des verdicts indisponible.";
   const interval = (r) =>
     r?.n ? `${formatPct(r.low)} à ${formatPct(r.high)}` : "—";
@@ -997,7 +1001,7 @@ function renderValidation() {
     `<tr><td>${esc(name)}</td><td>${r?.n ?? "—"}</td><td>${formatPct(r?.agreement)}</td><td>${esc(interval(r))}</td><td>${esc(remark)}</td></tr>`;
   const sideName = order?.sideOnly?.side === "blue" ? "côté bleu" : "côté rouge";
   $("#evaluation-details").innerHTML =
-    `<span class="eyebrow">CE QUI EST MESURÉ</span><h3>Sa mémoire est exacte. Son avis estimé ne l’est pas toujours.</h3><p>Deux questions différentes, jamais mélangées. Une draft que Kazewa a commentée renvoie son verdict : c’est une restitution, juste par construction. Une draft qu’il n’a pas commentée reçoit un verdict estimé : il est mesuré sur des séries et des vidéos tenues à l’écart.</p><div class="eval-stats"><div class="eval-stat"><strong>${mem?.decided ?? "—"}</strong><span>DRAFTS AVEC SON VERDICT</span></div><div class="eval-stat"><strong>${mem?.videos ?? "—"}</strong><span>VIDÉOS SOURCES</span></div><div class="eval-stat"><strong>${formatPct(said?.agreement)}</strong><span>DRAFT INÉDITE, D’APRÈS SES ARGUMENTS</span></div><div class="eval-stat"><strong>${formatPct(every?.all?.agreement)}</strong><span>DRAFT JAMAIS JOUÉE, VIDÉOS TENUES À L’ÉCART</span></div>${won?.n ? `<div class="eval-stat"><strong>${formatPct(won.agreement)}</strong><span>PARTIE DÉJÀ JOUÉE, D’APRÈS LE RÉSULTAT</span></div>` : ""}</div><table><thead><tr><th>Situation</th><th>Drafts</th><th>Accord</th><th>Intervalle de confiance</th><th>Lecture</th></tr></thead><tbody>${row("Draft qu’il a jugée (mémoire)", mem?.selfRecall, "Restitution de son verdict, pas une prédiction")}${row("Draft jamais jouée · verdict estimé", every?.all, "Arguments, fiches et principes enchaînés, sur des vidéos tenues à l’écart")}${everyPlayed?.all?.n ? row("Partie déjà jouée · verdict estimé", everyPlayed.all, `Les mêmes drafts ; le résultat sert pour ${everyPlayed.byReading?.result?.n ?? "—"} d’entre elles`) : ""}${won?.n ? row("Partie déjà jouée · le côté qui a gagné", won, "Aucun réglage : il préfère le plus souvent le vainqueur") : ""}${won?.draftTiming?.n ? row("… dont ses avis donnés pendant la draft", won.draftTiming, "Dits avant le début de la partie, qu’il regarde en principe sans la connaître") : ""}${won?.afterTheGame?.n ? row("… dont ses avis de revue ou tardifs", won.afterTheGame, "Peuvent connaître le résultat") : ""}${row("Draft inédite · ses arguments venus d’autres vidéos", said, "Aucun réglage : on compte ses arguments par côté")}${said?.sideOnly ? row("Règle sans modèle · toujours le même côté, mêmes drafts", said.sideOnly, "La barre à dépasser") : ""}${row("Draft inédite · ses fiches champion", cardFigures?.heldOut, "Vidéos que les fiches n’ont jamais vues")}${row("Ses fiches champion · vidéos dont elles sont tirées", cardFigures?.writtenFrom, "Ne prouve rien : elles résument ces vidéos")}${row("Draft inédite · ses principes (calculateur)", calc?.neverSeen, "Pile ou face : une description, pas un verdict")}${row("Calculateur · drafts qui ont servi à le régler", calc?.tunedOn, "Ne prouve rien : il a été réglé dessus")}${methodIndex && unseen?.shaneiGrid?.n ? row("Second avis · la grille de Shanei, face au verdict de Kazewa", unseen.shaneiGrid, "Drafts où la grille penche d’un côté ; n’entre pas dans le verdict estimé") : ""}${row("Lecture écartée · ordre des picks", order, "Écart non établi avec la règle ci-dessous")}${order?.sideOnly ? row(`Règle sans modèle · répondre toujours « ${sideName} »`, order.sideOnly, "Sur les mêmes drafts") : ""}</tbody></table><p>Ses arguments : pour chaque draft jugée, on ne garde que les matchups, synergies et réponses qu’il a nommés dans d’autres vidéos et qui s’appliquent encore (mêmes champions, même relation, mêmes rôles), et on compte de quel côté ils penchent. Rien n’est réglé sur ses verdicts. Cette lecture répond pour ${formatPct(said?.coverage)} des drafts jugées.${said?.overSideOnly ? ` Face à la règle « toujours le même côté », ses arguments ont raison seuls sur ${said.overSideOnly.argumentsRightRuleWrong} drafts et tort seuls sur ${said.overSideOnly.ruleRightArgumentsWrong} : ${said.overSideOnly.p < 0.05 ? "l’avantage est établi" : "l’avantage n’est pas encore établi statistiquement"} (p = ${said.overSideOnly.p.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}).` : ""}</p>${won?.n ? `<p>Partie déjà jouée : quand les dix champions sont ceux d’une partie pro qui a eu lieu (${formatPct(won.coverage)} des drafts qu’il a jugées sont dans ce cas), le site nomme le côté qui a gagné. Ce n’est pas un jugement sur la draft. Sur ${won.n} parties qu’il a commentées, l’équipe qu’il préférait est celle qui a gagné ${formatPct(won.agreement)} du temps ; quand ses arguments désignent l’autre côté, le résultat a raison ${won.withArguments?.oppositeSides?.resultRight} fois sur ${won.withArguments?.oppositeSides?.n}. Cette lecture n’existe pas pour une draft qui n’a pas été jouée, et elle est mesurée sur les parties qu’il a choisi de commenter.</p>` : ""}<p>Toute draft reçoit un verdict. Quand aucun de ses arguments ne s’applique, ou qu’il y en a autant de chaque côté, le site passe à ses fiches champion (qui va bien avec qui, qui prend le dessus sur qui), puis à ses principes de composition. Ces deux lectures sont moins sûres, et chaque verdict dit laquelle a servi.</p>${cardFigures?.writtenFrom?.n ? `<p>Ce que montre l’écart entre les deux lignes des fiches : sur les vidéos qu’elles résument, les fiches retrouvent son verdict ${formatPct(cardFigures.writtenFrom.agreement)} du temps ; sur les vidéos qu’elles n’ont jamais vues, ${formatPct(cardFigures.heldOut?.agreement)}. Ce qu’il a dit d’une draft permet de retrouver son verdict ; des règles générales sur les champions, beaucoup moins.</p>` : ""}${order?.sideOnly ? `<p>L’ordre des picks a été essayé puis écarté. Sur ${order.n} drafts où il est connu, lire qui répond à qui dans chaque lane désigne son verdict ${formatPct(order.agreement)} du temps, contre ${formatPct(order.sideOnly.agreement)} en répondant toujours « ${sideName} » : ${order.overSideOnly?.p < 0.05 ? "un écart établi" : "l’écart n’est pas établi"}. Quand cette lecture va dans le sens de ses arguments, le résultat est de ${formatPct(said?.withPickOrder?.sameSide?.agreement)}, contre ${formatPct(said?.agreement)} pour ses arguments seuls. Elle avait paru utile sur un échantillon plus petit.</p>` : ""}${methodIndex && unseen?.shaneiGrid?.n ? `<p>La grille de Shanei est un second avis, affiché sous chaque verdict : la famille de chaque composition et ce qu’il reprocherait à sa construction. Elle ne sert pas au verdict estimé. Sur les ${unseen.shaneiGrid.n} drafts jugées par Kazewa où elle penche d’un côté (${formatPct(unseen.shaneiGrid.coverage)} des drafts jugées), la composition qu’elle trouve la plus saine est celle qu’il préférait ${formatPct(unseen.shaneiGrid.agreement)} du temps${unseen.shaneiGrid.proGames?.n ? `, et sur les ${unseen.shaneiGrid.proGames.n.toLocaleString("fr-FR")} parties pro où elle penche (sur ${unseen.shaneiGrid.proGames.games.toLocaleString("fr-FR")}) c’est celle qui a gagné ${formatPct(unseen.shaneiGrid.proGames.agreement)} du temps ; elle ne trouve rien à reprocher à ${formatPct(unseen.shaneiGrid.proGames.faultless)} des compositions pro` : ""}. Une composition bien construite selon lui ne gagne pas plus souvent à ce niveau : la grille dit comment une draft est bâtie, pas qui gagne.</p>` : ""}<p>Ce qui ne marche pas non plus : les profils de champions, leur identité et les statistiques de 44 000 matchs pros ne suivent pas ses avis sur des drafts tenues à l’écart. Ses verdicts s’appuient sur les bans, les joueurs et la méta du moment, que dix champions ne portent pas.</p>${!won?.n && evaluation?.reference?.realWinnerMatchesVerdict?.n ? `<p>Repère : dans ${formatPct(evaluation.reference.realWinnerMatchesVerdict.agreement)} des ${evaluation.reference.realWinnerMatchesVerdict.n} drafts jugées dont le résultat est connu, l’équipe qu’il préférait a gagné. Une partie de ses revues est enregistrée en connaissant le résultat.</p>` : ""}<p>Les résultats et les compositions des parties pro viennent des données de match d’<a href="https://oracleselixir.com/" target="_blank" rel="noopener noreferrer">Oracle’s Elixir ↗</a>.</p><p><a href="./data/evaluation.json" target="_blank" rel="noopener">Rapport de mesure ↗</a> · <a href="./data/memory-site.json" target="_blank" rel="noopener">Mémoire des verdicts ↗</a> · <a href="./data/model.json" target="_blank" rel="noopener">Fiabilité de chaque lecture ↗</a></p>`;
+    `<span class="eyebrow">CE QUI EST MESURÉ</span><h3>Sa mémoire est exacte. Son avis estimé ne l’est pas toujours.</h3><p>Deux questions différentes, jamais mélangées. Une draft que Kazewa a commentée renvoie son verdict : c’est une restitution, juste par construction. Une draft qu’il n’a pas commentée reçoit un verdict estimé : il est mesuré sur des séries et des vidéos tenues à l’écart.</p><div class="eval-stats"><div class="eval-stat"><strong>${mem?.decided ?? "—"}</strong><span>DRAFTS AVEC SON VERDICT</span></div><div class="eval-stat"><strong>${mem?.videos ?? "—"}</strong><span>VIDÉOS SOURCES</span></div><div class="eval-stat"><strong>${formatPct(said?.agreement)}</strong><span>DRAFT INÉDITE, D’APRÈS SES ARGUMENTS</span></div><div class="eval-stat"><strong>${formatPct(every?.all?.agreement)}</strong><span>DRAFT JAMAIS JOUÉE, VIDÉOS TENUES À L’ÉCART</span></div>${won?.n ? `<div class="eval-stat"><strong>${formatPct(won.agreement)}</strong><span>PARTIE DÉJÀ JOUÉE, D’APRÈS LE RÉSULTAT</span></div>` : ""}</div><table><thead><tr><th>Situation</th><th>Drafts</th><th>Accord</th><th>Intervalle de confiance</th><th>Lecture</th></tr></thead><tbody>${row("Draft qu’il a jugée (mémoire)", mem?.selfRecall, "Restitution de son verdict, pas une prédiction")}${row("Draft jamais jouée · verdict estimé", every?.all, "Arguments puis fiches champion, sur des vidéos tenues à l’écart ; sans estimation quand ni l’un ni l’autre ne départage")}${everyPlayed?.all?.n ? row("Partie déjà jouée · si son résultat servait de verdict", everyPlayed.all, `Mesure seule, jamais affichée comme estimation : le résultat tient lieu de réponse pour ${everyPlayed.byReading?.result?.n ?? "—"} drafts`) : ""}${won?.n ? row("Partie déjà jouée · le côté qui a gagné", won, "Aucun réglage : il préfère le plus souvent le vainqueur") : ""}${won?.draftTiming?.n ? row("… dont ses avis donnés pendant la draft", won.draftTiming, "Dits avant le début de la partie, qu’il regarde en principe sans la connaître") : ""}${won?.afterTheGame?.n ? row("… dont ses avis de revue ou tardifs", won.afterTheGame, "Peuvent connaître le résultat") : ""}${row("Draft inédite · ses arguments venus d’autres vidéos", said, "Aucun réglage : on compte ses arguments par côté")}${said?.sideOnly ? row("Règle sans modèle · toujours le même côté, mêmes drafts", said.sideOnly, "La barre à dépasser") : ""}${row("Draft inédite · ses fiches champion", cardFigures?.heldOut, "Vidéos que les fiches n’ont jamais vues")}${row("Ses fiches champion · vidéos dont elles sont tirées", cardFigures?.writtenFrom, "Ne prouve rien : elles résument ces vidéos")}${row("Calculateur structurel, seul · drafts jamais vues", calc?.neverSeen, "Pile ou face : une description, non utilisée par l’estimation")}${row("Calculateur · drafts qui ont servi à le régler", calc?.tunedOn, "Ne prouve rien : il a été réglé dessus")}${methodIndex && unseen?.shaneiGrid?.n ? row("Second avis · la grille de Shanei, face au verdict de Kazewa", unseen.shaneiGrid, "Drafts où la grille penche d’un côté ; n’entre pas dans le verdict estimé") : ""}${row("Lecture écartée · ordre des picks", order, "Écart non établi avec la règle ci-dessous")}${order?.sideOnly ? row(`Règle sans modèle · répondre toujours « ${sideName} »`, order.sideOnly, "Sur les mêmes drafts") : ""}</tbody></table><p>Ses arguments : pour chaque draft jugée, on ne garde que les matchups, synergies et réponses qu’il a nommés dans d’autres vidéos et qui s’appliquent encore (mêmes champions, même relation, mêmes rôles), et on compte de quel côté ils penchent. Rien n’est réglé sur ses verdicts. Cette lecture répond pour ${formatPct(said?.coverage)} des drafts jugées.${said?.overSideOnly ? ` Face à la règle « toujours le même côté », ses arguments ont raison seuls sur ${said.overSideOnly.argumentsRightRuleWrong} drafts et tort seuls sur ${said.overSideOnly.ruleRightArgumentsWrong} : ${said.overSideOnly.p < 0.05 ? "l’avantage est établi" : "l’avantage n’est pas encore établi statistiquement"} (p = ${said.overSideOnly.p.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}).` : ""}</p>${won?.n ? `<p>Partie déjà jouée : quand les dix champions sont ceux d’une partie pro qui a eu lieu (${formatPct(won.coverage)} des drafts qu’il a jugées sont dans ce cas), le site nomme le côté qui a gagné. Ce n’est pas un jugement sur la draft. Sur ${won.n} parties qu’il a commentées, l’équipe qu’il préférait est celle qui a gagné ${formatPct(won.agreement)} du temps ; quand ses arguments désignent l’autre côté, le résultat a raison ${won.withArguments?.oppositeSides?.resultRight} fois sur ${won.withArguments?.oppositeSides?.n}. Cette lecture n’existe pas pour une draft qui n’a pas été jouée, et elle est mesurée sur les parties qu’il a choisi de commenter.</p>` : ""}<p>Une draft reçoit une estimation quand ses arguments la départagent. Sinon, le site passe à ses fiches champion (qui va bien avec qui, qui prend le dessus sur qui). Si les fiches ne départagent pas non plus, il ne donne pas d’estimation. Chaque verdict dit laquelle de ces lectures a servi.</p>${cardFigures?.writtenFrom?.n ? `<p>Ce que montre l’écart entre les deux lignes des fiches : sur les vidéos qu’elles résument, les fiches retrouvent son verdict ${formatPct(cardFigures.writtenFrom.agreement)} du temps ; sur les vidéos qu’elles n’ont jamais vues, ${formatPct(cardFigures.heldOut?.agreement)}. Ce qu’il a dit d’une draft permet de retrouver son verdict ; des règles générales sur les champions, beaucoup moins.</p>` : ""}${order?.sideOnly ? `<p>L’ordre des picks a été essayé puis écarté. Sur ${order.n} drafts où il est connu, lire qui répond à qui dans chaque lane désigne son verdict ${formatPct(order.agreement)} du temps, contre ${formatPct(order.sideOnly.agreement)} en répondant toujours « ${sideName} » : ${order.overSideOnly?.p < 0.05 ? "un écart établi" : "l’écart n’est pas établi"}. Quand cette lecture va dans le sens de ses arguments, le résultat est de ${formatPct(said?.withPickOrder?.sameSide?.agreement)}, contre ${formatPct(said?.agreement)} pour ses arguments seuls. Elle avait paru utile sur un échantillon plus petit.</p>` : ""}${methodIndex && unseen?.shaneiGrid?.n ? `<p>La grille de Shanei est un second avis, affiché sous chaque verdict : la famille de chaque composition et ce qu’il reprocherait à sa construction. Elle ne sert pas au verdict estimé. Sur les ${unseen.shaneiGrid.n} drafts jugées par Kazewa où elle penche d’un côté (${formatPct(unseen.shaneiGrid.coverage)} des drafts jugées), la composition qu’elle trouve la plus saine est celle qu’il préférait ${formatPct(unseen.shaneiGrid.agreement)} du temps${unseen.shaneiGrid.proGames?.n ? `, et sur les ${unseen.shaneiGrid.proGames.n.toLocaleString("fr-FR")} parties pro où elle penche (sur ${unseen.shaneiGrid.proGames.games.toLocaleString("fr-FR")}) c’est celle qui a gagné ${formatPct(unseen.shaneiGrid.proGames.agreement)} du temps ; elle ne trouve rien à reprocher à ${formatPct(unseen.shaneiGrid.proGames.faultless)} des compositions pro` : ""}. Une composition bien construite selon lui ne gagne pas plus souvent à ce niveau : la grille dit comment une draft est bâtie, pas qui gagne.</p>` : ""}<p>Ce qui ne marche pas non plus : les profils de champions, leur identité et les statistiques de 44 000 matchs pros ne suivent pas ses avis sur des drafts tenues à l’écart. Ses verdicts s’appuient sur les bans, les joueurs et la méta du moment, que dix champions ne portent pas.</p>${!won?.n && evaluation?.reference?.realWinnerMatchesVerdict?.n ? `<p>Repère : dans ${formatPct(evaluation.reference.realWinnerMatchesVerdict.agreement)} des ${evaluation.reference.realWinnerMatchesVerdict.n} drafts jugées dont le résultat est connu, l’équipe qu’il préférait a gagné. Une partie de ses revues est enregistrée en connaissant le résultat.</p>` : ""}<p>Les résultats et les compositions des parties pro viennent des données de match d’<a href="https://oracleselixir.com/" target="_blank" rel="noopener noreferrer">Oracle’s Elixir ↗</a>.</p><p><a href="./data/evaluation.json" target="_blank" rel="noopener">Rapport de mesure ↗</a> · <a href="./data/memory-site.json" target="_blank" rel="noopener">Mémoire des verdicts ↗</a> · <a href="./data/model.json" target="_blank" rel="noopener">Fiabilité de chaque lecture ↗</a></p>`;
   $("#rule-catalog").innerHTML = knowledge.rules
     .map(
       (r) =>
@@ -1018,12 +1022,11 @@ function liveVerdictLine(match) {
   if (basis === "memory")
     return `Kazewa a jugé cette draft : ${match[judgement.winner]?.name || SIDE_LABEL[judgement.winner]}.`;
   if (basis === "undecided") return "Kazewa a commenté cette draft sans trancher.";
-  if (judgement.lean.side === "even") return "Draft inédite. Verdict estimé : équilibre.";
+  if (judgement.lean.side === "even") return "Draft inédite. Pas d’estimation : ses arguments et ses fiches ne départagent pas les deux compositions.";
   const r = judgement.reliability?.[basis];
   const from = {
     arguments: "ses arguments",
     cards: "ses fiches champion",
-    principles: "ses principes",
   }[basis];
   return `Draft inédite. Verdict estimé d’après ${from} : ${match[judgement.lean.side]?.name || SIDE_LABEL[judgement.lean.side]}${r ? ` (fiabilité mesurée ${formatPct(r.agreement)})` : ""}.`;
 }
@@ -1057,7 +1060,7 @@ function renderCoachPro() {
           `<button type="button" class="match-card${coachFocus === match.id ? " is-selected" : ""}" data-pro-match="${esc(match.id)}"><span class="match-league">${esc(match.league || "PRO")}${match.gameNumber ? ` · G${esc(match.gameNumber)}` : ""}</span><span class="match-teams">${esc(match.blue.name)} <span>VS</span> ${esc(match.red.name)}</span><span class="match-edge">${esc(liveVerdictLine(match))}</span></button>`,
       )
       .join("");
-  node.innerHTML = `<h3>Games pros en direct</h3>${body}<p class="fine-print">Le flux public donne les champions par rôle quand la partie est lisible. Il ne donne pas les bans ni l’ordre des picks. Le site affiche le verdict de Kazewa s’il a jugé cette draft ; sinon, un verdict estimé d’après ses arguments, ses fiches champion ou ses principes, avec sa fiabilité. Le résultat d’une autre partie jouée avec les mêmes champions n’est pas utilisé pour une partie en cours.</p>`;
+  node.innerHTML = `<h3>Games pros en direct</h3>${body}<p class="fine-print">Le flux public donne les champions par rôle quand la partie est lisible. Il ne donne pas les bans ni l’ordre des picks. Le site affiche le verdict de Kazewa s’il a jugé cette draft ; sinon, un verdict estimé d’après ses arguments puis ses fiches champion, avec sa fiabilité, et sans estimation quand ni l’un ni l’autre ne départage. Le résultat d’une autre partie jouée avec les mêmes champions n’est pas utilisé pour une partie en cours.</p>`;
 }
 function championImage(name, size) {
   return `<img src="https://ddragon.leagueoflegends.com/cdn/${esc(config.assetPatch)}/img/champion/${esc(assetId(name))}.png" alt="" width="${size}" height="${size}" loading="lazy" referrerpolicy="no-referrer">`;
@@ -1132,7 +1135,8 @@ function renderCoachGrid(advice) {
       const hint = byName.get(name);
       const first = hint?.reasons?.[0]?.text;
       const title = first ? ` title="${esc(first)}"` : "";
-      const seen = coachBrain?.meta ? Math.round(presence(coachBrain.meta, name) * 100) : 0;
+      // No professional share on the tile: the coach follows the rules, not what teams pick.
+      const seen = 0;
       const shown = !used && seen >= 1 ? `${seen} %` : "";
       // With a role filter on, a click puts the champion in that role.
       const asked =
@@ -1297,12 +1301,12 @@ function renderCoach() {
   const meta = coachBrain.meta;
   const window = meta?.games
     ? `${meta.games} parties pro du ${frenchDate(meta.from)} au ${frenchDate(meta.to)}, patchs ${meta.patches[0]} à ${meta.patches[meta.patches.length - 1]}, toutes ligues sauf les académies`
-    : "données de méta pro absentes";
+    : "";
   $("#coach-note").textContent = advice.done
     ? "Draft complète : le verdict ci-dessous est celui que le site donne à ces dix champions."
     : step.action === "ban"
-      ? `Un ban vaut d’abord par la méta (${window}) : à quel point le champion est banni et pris. S’y ajoutent ce que Kazewa a dit de lui récemment, et, une fois des picks posés, ce qu’il ferait à ces picks d’après ses arguments et ses fiches.${hasMethod ? " Shanei ajoute sa règle : un ban protège ta compo, selon sa famille (ton plan, ou tes picks), et ne retire jamais une de tes pièces." : ""} Le camp qui prend juste après les bans ne bannit pas son propre meilleur pick. Le pourcentage sur chaque portrait est la présence pro : pris ou banni. Clique un champion pour valider le tour, suggéré ou non.`
-      : `Un pick est classé sur ce que Kazewa a dit de lui avec les champions déjà pris (ses arguments d’abord, ses fiches champion sinon), sur ce qu’il disait de sa force ces derniers mois, sur la méta (${window}), sur le moment où les équipes pro prennent ce rôle et ce champion${hasMethod ? ", et sur la méthode de draft des deux coachs : l’ordre des rôles (ADC tôt, support avant le top, top en dernier), les first picks et les picks à ne pas blind de Shanei, la famille de ta compo et les pièces qui lui manquent, ses combos, ses réponses à ce que montre l’adversaire, les règles de construction de Kazewa. Chaque ligne dit de qui elle vient" : ", et sur sa règle de la frontline quand trois picks sont posés sans en avoir"}. « Peut encore se faire répondre » est un avertissement, il ne change pas le classement. Ce n’est pas une prédiction de victoire. Clique un champion pour valider le tour ; pour le placer dans un autre rôle, choisis d’abord ce rôle dans le filtre.`;
+      ? `Un ban se classe sur ce que Kazewa a dit de lui récemment, sur ce qu’il ferait à ces picks d’après ses arguments et ses fiches, et sur sa grille de décision une fois des picks posés.${hasMethod ? " Shanei ajoute sa règle : un ban protège ta compo, selon sa famille (ton plan, ou tes picks), et ne retire jamais une de tes pièces." : ""} Le camp qui prend juste après les bans ne bannit pas son propre meilleur pick. Ce n’est pas la liste des bans des équipes pro. Clique un champion pour valider le tour, suggéré ou non.`
+      : `Un pick se classe sur ce que Kazewa a dit de lui avec les champions déjà pris (ses arguments d’abord, ses fiches champion sinon), sur ce qu’il disait de sa force ces derniers mois, et sur sa grille de décision : ce que le champion comble ou crée dans son camp, et les axes qu’il fait gagner.${hasMethod ? " La méthode de draft des deux coachs s’y ajoute : l’ordre des rôles, les first picks et les picks à ne pas blind de Shanei, la famille de ta compo et les pièces qui lui manquent, ses combos, ses réponses à ce que montre l’adversaire. Chaque ligne dit de qui elle vient." : ""} « Peut encore se faire répondre » est un avertissement, il ne change pas le classement. Ce n’est pas une prédiction de victoire. Clique un champion pour valider le tour ; pour le placer dans un autre rôle, choisis d’abord ce rôle dans le filtre.`;
   renderCoachBrief(advice);
   renderCoachSuggestions(advice);
   renderCoachGrid(advice);

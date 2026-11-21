@@ -7,8 +7,9 @@
  * it follows his verdict one time in two.
  */
 import { ROLES } from "./engine.mjs";
-import { coachTables, playableRoles, rankBans, rankPicks } from "./coach.mjs";
+import { coachTables, latestNoteDate, playableRoles, rankBans, rankPicks } from "./coach.mjs";
 import { compositionStatus, FAMILY_FR, indexMethod, stepBrief } from "./method.mjs";
+import { theoryContext } from "./theory.mjs";
 
 // Blue opens bans and the first pick. Red opens the second ban phase and the last pick.
 export const DRAFT_STEPS = Object.freeze([
@@ -92,13 +93,18 @@ function taken(session) {
  * Every part but `knowledge` may be missing: the coach then says less.
  */
 export function coachContext({ knowledge, memory = null, relations = null, data = null, method = null }) {
+  const index = indexMethod(method);
   return {
-    method: indexMethod(method),
+    method: index,
+    // The procedure of the two coaches (src/theory.mjs), which decides the reasons.
+    theory: theoryContext({ knowledge, index }),
     knowledge,
     champions: Object.keys(knowledge.champions),
     profiles: knowledge.champions,
     tables: coachTables(memory, relations),
     meta: data?.meta ?? null,
+    // The date of Kazewa's newest remark: the reference of "recent" for his opinions.
+    asOf: latestNoteDate(data?.notes ?? {}),
     notes: data?.notes ?? {},
     cache: new Map(),
   };
@@ -118,7 +124,6 @@ export function ownNextPick(shared, slot, profiles = null) {
   const own = rankPicks({ ...shared, slot, profiles }).find(
     (row) =>
       row.playable &&
-      !row.rare &&
       playableRoles(shared.meta, row.champion).some((role) => foeOpen.includes(role)),
   );
   return own && own.reasons.some((reason) => reason.points > 0) ? new Set([own.champion]) : null;
@@ -145,7 +150,9 @@ function rank(session, context, step, plan = null) {
       meta: context.meta,
       champions: context.champions,
       noteOf: (champion) => context.notes[champion] ?? null,
+      asOf: context.asOf,
       method: context.method,
+      theory: context.theory,
       // The plan is the reader's: it says nothing of the other side's draft.
       plan,
     };
@@ -205,7 +212,6 @@ export function advise(session, context, options = {}) {
   const worth = pool.filter(
     (row) =>
       row.playable &&
-      !row.rare &&
       row.reasons.some((reason) => reason.points > 0) &&
       !row.reasons.some((reason) => reason.kind === "own"),
   );

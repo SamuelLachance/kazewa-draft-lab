@@ -4,9 +4,9 @@ Trois questions différentes. Elles ne sont jamais mélangées dans un même chi
 
 1. **Une draft que Kazewa a jugée.** Le site renvoie son verdict. C’est une recherche dans sa mémoire : l’accord est total par construction, et ce n’est pas la mesure d’un modèle.
 2. **Une draft qu’il n’a pas jugée, mais qui est celle d’une partie pro déjà jouée.** Le site nomme l’équipe qui a gagné. Ce n’est pas un jugement sur la draft : sur les parties qu’il a commentées, l’équipe qu’il préférait est le plus souvent celle qui a gagné, et le rapport mesure à quelle fréquence.
-3. **Une draft qui n’a pas été jouée.** Le site donne un verdict estimé d’après ce qu’il a dit des mêmes champions. Cette estimation est mesurée sur des drafts tenues à l’écart.
+3. **Une draft qui n’a pas été jouée.** Le site donne un verdict estimé d’après ses arguments sur les mêmes champions, puis d’après ses fiches champion, quand l’un des deux départage les compositions. Sinon il ne donne pas d’estimation. Cette estimation est mesurée sur des drafts tenues à l’écart.
 
-Les valeurs courantes sont dans [`data/evaluation.json`](../data/evaluation.json), recalculées par `npm run evaluate`. Le site les lit dans ce fichier. Les nombres cités ici sont ceux du rapport du 14 novembre 2026.
+Les valeurs courantes sont dans [`data/evaluation.json`](../data/evaluation.json), recalculées par `npm run evaluate`. Le site les lit dans ce fichier. Les nombres cités ici sont ceux du rapport du 21 novembre 2026.
 
 ## La mémoire
 
@@ -41,11 +41,11 @@ Les compositions de ces parties viennent des données de match, jamais de l’ex
 
 ## Une partie déjà jouée
 
-Quand les dix champions sont ceux d’une partie de l’index des matchs professionnels (79 864 parties, de 2018 à 2026, sauf 2020), le site le dit, nomme la partie et le vainqueur, et donne ce côté comme verdict estimé.
+Quand les dix champions sont ceux d’une partie de l’index des matchs professionnels (79 864 parties, de 2018 à 2026, sauf 2020), le site le dit, nomme la partie et le vainqueur, et affiche ce côté comme un fait : l’équipe qui a gagné. Ce fait ne compte pas dans le verdict estimé estimé.
 
 | Mesure | Parties | Il préférait le vainqueur | Intervalle |
 | --- | ---: | ---: | --- |
-| Toutes les parties qu’il a jugées | 302 | 79,8 % | 75 à 84 |
+| Parties jugées et appariées à un match | 302 | 79,8 % | 75 à 84 |
 | Avis donnés pendant la draft | 220 | 77,7 % | 72 à 83 |
 | Avis de revue ou tardifs | 82 | 85,4 % | 78 à 92 |
 | Vidéos tenues à l’écart des fiches | 71 | 80,3 % | 71 à 90 |
@@ -69,25 +69,26 @@ Les résultats viennent des données de match d’[Oracle’s Elixir](https://or
 
 Validation « un groupe dehors ». Un groupe réunit toutes les drafts qui partagent une vidéo ou une série professionnelle. Chaque draft jugée est estimée avec ce qui vient des autres groupes uniquement, puis comparée à son verdict. Les intervalles retirent et remettent des groupes entiers, parce que les drafts d’une même vidéo ne sont pas indépendantes.
 
-### Toute draft reçoit un verdict
+### Toute draft reçoit une estimation, sinon aucune
 
-Le site ne s’abstient pas. Il enchaîne trois lectures, de la plus fiable à la plus grossière, et dit laquelle a servi.
+Le site donne une estimation quand ses arguments ou ses fiches départagent les deux compositions, et dit laquelle a servi. Sinon il n’en donne pas : ce cas est compté à part, sans demi-point. Le résultat d’une partie déjà jouée n’en fait pas partie : c’est un fait affiché à côté, mesuré à part.
 
 | Lecture | Drafts | Accord | Intervalle | Ce que c’est |
 | --- | ---: | ---: | --- | --- |
 | Ses arguments venus d’autres vidéos | 233 | 61,8 % | 55 à 68 | Aucun réglage : on compte ses arguments par côté |
 | Répondre toujours le même côté, mêmes drafts | 233 | 54,1 % | 48 à 60 | La barre à dépasser |
 | Ses fiches champion | 57 | 59,6 % | 46 à 73 | Mesuré sur les vidéos que les fiches n’ont jamais vues |
-| Ses principes de composition | 236 | 50,8 % | 44 à 57 | Calculateur, sur les drafts qu’il n’a jamais vues : une pièce lancée |
-| **Les trois enchaînées** | 71 | 58,5 % | 48 à 68 | Drafts de vidéos qu’aucune lecture n’a vues |
+| **Estimation enchaînée : arguments puis fiches** | 70 | 58,6 % | 48 à 68 | Drafts de vidéos qu’aucune lecture n’a vues ; une draft sur 71 n’a aucune estimation |
 
-**Ses arguments.** Pour chaque draft jugée, on ne garde que les matchups, synergies et réponses qu’il a nommés dans d’autres groupes et qui s’appliquent encore : mêmes champions, même relation allié ou adverse, mêmes rôles. On compte de quel côté ils penchent. Rien n’est ajusté sur ses verdicts. Cette lecture répond pour 77 % des drafts jugées ; pour les autres il n’y a pas d’argument applicable, ou autant de chaque côté. Face à la règle « toujours le même côté » sur les mêmes drafts, ses arguments ont raison seuls 58 fois et tort seuls 40 fois : l’avantage va dans le bon sens mais n’est pas établi statistiquement (p ≈ 0,09).
+**Ses arguments.** Pour chaque draft jugée, on ne garde que les matchups, synergies et réponses qu’il a nommés dans d’autres groupes et qui s’appliquent encore : mêmes champions, même relation allié ou adverse, mêmes rôles. On compte de quel côté ils penchent. Rien n’est ajusté sur ses verdicts.
 
-**Ses fiches champion.** Chaque fiche résume ce qu’il dit d’un champion : avec qui il est bon, par qui il est puni. La fiche est lue proposition par proposition : « avec X » désigne un partenaire, « contre X » une victime, « puni par X » un champion qui prend le dessus, « anti-synergie » un mauvais partenaire. Sur une draft, une fiche parle quand le champion cité est là dans la relation dite. Les fiches ont été écrites à partir de la plupart de ses vidéos ; 28 vidéos avaient été tenues à l’écart (`data/card-holdout.json`). Sur les drafts de ces vidéos, les fiches désignent son verdict 34 fois sur 57 ; l’intervalle contient 50 %. Sur les drafts des vidéos dont elles sont tirées : 165 fois sur 210 (78,6 %). Seul le premier chiffre est affiché.
+**Ses fiches champion.** Chaque fiche résume ce qu’il dit d’un champion : avec qui il est bon, par qui il est puni. La fiche est lue proposition par proposition. Sur une draft, une fiche parle quand le champion cité est là dans la relation décrite.
 
-**Ses principes.** Les règles de composition du calculateur (frontline, dégâts soutenus, catch, scaling…) décrivent les deux compositions. Sur les 236 drafts jugées que le calculateur n’a jamais vues, son côté est celui de Kazewa une fois sur deux. C’est le dernier recours, et le site le présente comme tel.
+**La grille de décision (second avis).** `src/theory.mjs` applique sa grille (identité, trous structurels, axes, bonus, timing, verdict) et les vérifications de construction de Shanei. Elle ne lit aucune partie professionnelle et n’entre pas dans l’estimation. Sur les 292 drafts où elle penche d’un côté, son côté est celui de Kazewa 147 fois, soit 50,3 % (intervalle 45 à 57 %) : une pièce lancée. Selon le niveau de confiance, l’accord va de 46 % à 59 % sans suivre la confiance (`node research/theory-eval.mjs` donne le détail par niveau) : la confiance ne sert pas à trier. La structure des drafts, telle qu’elle est mesurée ici, ne porte pas le verdict de Kazewa.
 
-**Le total.** Sur les 71 drafts des vidéos tenues à l’écart des fiches, avec ses arguments venus d’autres groupes et sans le calculateur sur les drafts qui ont servi à le régler, le verdict estimé coïncide avec le sien 41 fois, une draft restant à l’équilibre. Sur les mêmes drafts, quand on sait qui a gagné la partie, le total est de 80,3 % (57 sur 71). Sur l’ensemble des 304 drafts jugées le total sans résultat monte à 64,0 %, mais ce chiffre est gonflé par les fiches et n’est pas affiché.
+**Le total.** Sur les 71 drafts des vidéos tenues à l’écart des fiches, l’estimation coïncide avec son avis 41 fois sur les 70 qui en ont une (58,6 %) ; une draft n’en a aucune. Le résultat d’une partie déjà jouée (80,3 %, 57 sur 71) n’est pas dans ce total : c’est une mesure à part, affichée comme un fait.
+
+**Drafts tirées au hasard.** Sur 500 drafts tirées de tout le catalogue avec un générateur fixe, le site n’a aucune estimation pour 123 (24,6 %) : ses arguments en donnent une pour 14, ses fiches pour 363 (`data/evaluation.json`, `unseen.randomDrafts`).
 
 ### Ce que l’écart des fiches veut dire
 
@@ -120,18 +121,20 @@ Le site lit aussi chaque draft avec la méthode de Shanei (`src/method.mjs`, `sh
 
 | Mesure | Accord |
 | --- | --- |
-| Même côté que le verdict de Kazewa, 278 drafts où la grille penche | 49,3 % (intervalle 42,7 à 56,0) |
-| … dont ses avis donnés pendant la draft, 204 drafts | 45,6 % |
-| Même côté que le vainqueur de ces parties, 278 drafts | 50,0 % |
-| Même côté que le vainqueur, 52 124 parties pro depuis 2021 | 49,8 % |
+| Même côté que le verdict de Kazewa, 283 drafts où la grille penche | 49,5 % (intervalle 43,1 à 56,0) |
+| … dont ses avis donnés pendant la draft, 208 drafts | 45,7 % |
+| Même côté que le vainqueur de ces parties, 283 drafts | 51,6 % |
+| Même côté que le vainqueur, 52 089 parties pro où sa grille départage les deux compositions (sur 60 365 depuis 2021) | 49,7 % |
 
-Les quatre mesures sont une pièce lancée. La grille n’est donc **pas une lecture du verdict estimé** : elle est affichée à part, comme second avis, et `unseen.shaneiGrid.usedForTheVerdict` vaut `false`. Ce résultat rejoint ce qui est constaté plus bas pour le calculateur et les profils de champions : au niveau professionnel les deux équipes draftent des compositions cohérentes, et la qualité de construction ne départage ni le vainqueur ni l’avis de Kazewa. La grille ne trouve rien à reprocher à 24,6 % des compositions professionnelles ; ses reproches les plus fréquents sont l’absence de vrai tank dans le bloc de quatre, un pick de poke dans un bloc d’engage (ou l’inverse) et un hypercarry sans enchanteur.
+Les quatre mesures sont une pièce lancée. La grille n’est donc **pas une lecture du verdict estimé** : elle est affichée à part, comme second avis, et `unseen.shaneiGrid.usedForTheVerdict` vaut `false`. Ce résultat rejoint ce qui est constaté plus bas pour le calculateur et les profils de champions : au niveau professionnel les deux équipes draftent des compositions cohérentes, et la qualité de construction ne départage ni le vainqueur ni l’avis de Kazewa. La grille ne trouve rien à reprocher à 24,4 % des compositions professionnelles ; ses reproches les plus fréquents sont l’absence de vrai tank dans le bloc de quatre, un pick de poke dans un bloc d’engage (ou l’inverse) et un hypercarry sans enchanteur.
 
 Le chiffre sur les parties professionnelles demande l’index des matchs (`.cache/oe-games.json`), qui n’est pas dans le dépôt. Il est recalculé quand l’index est là. Sinon le dernier chiffre est gardé, à condition qu’il ait été mesuré avec la grille livrée : le rapport garde l’empreinte de la grille (`proGames.grid`), et un test échoue si elle ne correspond plus.
 
 ### Le coach et la méthode
 
-La méthode des deux coachs entre aussi dans le classement du coach de draft. Sa mesure rejoue de vraies drafts professionnelles et demande où se trouve le champion réellement pris dans la liste du coach. Sur 612 drafts de 2026 : dans les dix premières suggestions 47,4 % du temps avec la méthode, 52,6 % sans elle ; pour les bans, 49,9 % et 45,4 % avec, 49,0 % et 46,8 % sans. Sur les drafts de 2025, qui ont servi à choisir les poids, chaque partie de la méthode retirée faisait remonter l’accord, et diviser tous ses poids par deux aussi : aucune règle n’est fautive à elle seule, c’est l’ensemble qui s’écarte de ce que font les équipes professionnelles. Les poids n’ont donc pas été choisis pour suivre les pros : une règle pèse à peu près autant qu’un argument de Kazewa sur deux champions, et une famille lue sur les picks ne compte qu’à partir de trois picks.
+Le coach ne lit plus les parties professionnelles pour choisir : ses classements viennent des remarques de Kazewa, de la grille de décision et des règles de Shanei. Les statistiques de présence et de moment des équipes pro ne comptent plus dans le classement.
+
+La mesure sur 612 drafts professionnelles de 2026 (`research/coach-eval.mjs`) est restée dans le dépôt, mais elle ne sert plus de cible : elle ne mesure pas une règle des deux coachs, elle mesure l’écart avec ce que font les équipes. Elle a été lancée une dernière fois avec la grille et la méthode : le champion réellement pris figure dans les dix premières suggestions 47,4 % du temps, contre 52,6 % sans la méthode. Cet écart n’a pas été réglé pour le réduire ; il est dit tel quel.
 
 ## Limites
 
