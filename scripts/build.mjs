@@ -24,6 +24,7 @@ for (const name of [
   "champion-assets.json",
   "coach.json",
   "method.json",
+  "draft-values.json",
 ]) {
   const content = await readFile(path.join(root, "data", name), "utf8");
   JSON.parse(content);
