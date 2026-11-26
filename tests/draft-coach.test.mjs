@@ -499,6 +499,27 @@ test("a whole draft played on the first suggestion gives two playable teams, wit
   assert.ok(brain.cache.size <= 24);
 });
 
+test("a pick made without a role stays flexible: a later pick for its role moves it to another free role", () => {
+  const ctx = context();
+  let session = createSession("first");
+  for (const ban of ["Ahri", "Lux", "Zed", "Yone", "Pantheon", "Jinx"]) session = applyAction(session, ban, null, ctx);
+  session = applyAction(session, "Maokai", null, ctx);
+  const maokai = session.log.find((e) => e.champion === "Maokai");
+  assert.equal(maokai.explicit, false, "no role was asked for");
+  assert.ok(maokai.flex.length >= 2, "Maokai keeps its roles");
+  const first = maokai.role;
+  const other = maokai.flex.find((r) => r !== first);
+  session = applyAction(session, "Ornn", "top", ctx);
+  session = applyAction(session, "Galio", "mid", ctx);
+  session = applyAction(session, "Ashe", "bot", ctx);
+  assert.equal(currentStep(session).side, "blue");
+  session = applyAction(session, "Xin Zhao", first, ctx);
+  assert.equal(session.picks.blue[first], "Xin Zhao", "the role asked for is taken");
+  assert.equal(session.picks.blue[other], "Maokai", "Maokai moved to its other role");
+  const replay = undo(session);
+  assert.equal(replay.picks.blue[other], "Maokai", "undo replays the move");
+});
+
 test("a click without a role puts the champion in its usual role, an explicit role wins, an undo replays the log", () => {
   const brain = context();
   let session = createSession("first");
@@ -597,7 +618,7 @@ const boardAfterMaokai = () => {
 };
 const descending = (scores) => scores.every((score, index) => index === 0 || scores[index - 1] >= score);
 
-test("the board is every champion still free, best first, each with the draft system's score and role only", () => {
+test("the board is every champion still free, best first, each with the draft system's score, role and documented duos only", () => {
   const { ctx, session } = boardAfterMaokai();
   const board = scoreboard(session, ctx);
   const gone = new Set([...BOARD_BANS, "Maokai"]);
@@ -606,7 +627,7 @@ test("the board is every champion still free, best first, each with the draft sy
   const scored = board.filter((row) => row.score !== null).map((row) => row.score);
   assert.ok(descending(scored), "the scores are in descending order");
   assert.ok(board.every((row) => board.indexOf(row) >= 0 && (row.score !== null || board.indexOf(row) >= scored.length)), "unscored champions come last");
-  assert.ok(board.every((row) => Object.keys(row).sort().join(",") === "champion,role,roles,score"), "no reason in the board");
+  assert.ok(board.every((row) => Object.keys(row).sort().join(",") === "champion,duo,opens,role,roles,score"), "no reason in the board");
 });
 
 test("a role filter keeps the champions that can take that role, scored in it", () => {

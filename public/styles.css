@@ -2541,3 +2541,14 @@ body[data-view="coach"] .principles-strip {
     grid-template-columns: 1fr;
   }
 }
+
+.champ-combo {
+  display: block;
+  font-size: 0.68em;
+  opacity: 0.85;
+}
+.pick-flex {
+  font-size: 0.7em;
+  opacity: 0.8;
+  margin-left: 0.3em;
+}

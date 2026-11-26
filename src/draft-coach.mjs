@@ -299,15 +299,20 @@ export function scoreboard(session, context, { role = null } = {}) {
     });
     const scored = new Map(rows.map((row) => [row.champion, row]));
     const gone = new Set([...bans, ...ROLES.flatMap((r) => [session.picks.blue[r], session.picks.red[r]])].filter(Boolean));
+  const ownNames = Object.values(session.picks[side]).filter(Boolean);
     // A role filter shows what the system scores in that role, and the champions of that lane that it
     // cannot score (the role is already taken): they are listed last, without a score or a role.
     const board = Object.keys(context.knowledge.champions)
       .filter((name) => !gone.has(name) && (!role || scored.has(name) || (LANES[name] ?? []).includes(role)))
       .map((name) => {
         const row = scored.get(name);
+        // The documented duos of the champion: one already in the team, one still open to it.
+        const partners = context.links.partners(name);
+        const duo = partners.find((p) => ownNames.includes(p)) ?? null;
+        const opens = partners.find((p) => !gone.has(p) && !ownNames.includes(p)) ?? null;
         return row
-          ? { champion: name, role: row.role, roles: row.roles, score: row.score }
-          : { champion: name, role: null, roles: [], score: null };
+          ? { champion: name, role: row.role, roles: row.roles, score: row.score, duo, opens }
+          : { champion: name, role: null, roles: [], score: null, duo, opens };
       })
       .sort((a, b) => {
         if (a.score === null || b.score === null)
@@ -351,10 +356,23 @@ export function applyAction(session, champion, role = null, context = null, plan
     next.log.push({ action: "ban", side: step.side, champion: name, role: null });
     return next;
   }
-  const assigned =
-    ROLES.includes(role) && !next.picks[step.side][role]
-      ? role
-      : inferPickRole(session, name, context, plan);
+  let assigned = ROLES.includes(role) ? role : inferPickRole(session, name, context, plan);
+  if (!assigned) throw new Error("Aucun rôle habituel n’est libre pour ce champion.");
+  // The role is held by a champion picked without one: that champion moves to another of its roles that
+  // is still free, so a pick never waits for a role a flexible champion can give up.
+  if (next.picks[step.side][assigned]) {
+    const holder = next.picks[step.side][assigned];
+    const entry = next.log.find((e) => e.action === "pick" && e.side === step.side && e.champion === holder);
+    const free = entry && !entry.explicit ? (entry.flex ?? []).find((r) => r !== assigned && !next.picks[step.side][r]) : undefined;
+    if (free) {
+      next.picks[step.side][free] = holder;
+      entry.role = free;
+      next.picks[step.side][assigned] = null;
+    } else if (ROLES.includes(role)) {
+      // The role asked for is held for good: the pick takes the role the system infers, if it is free.
+      assigned = inferPickRole(session, name, context, plan);
+    }
+  }
   if (!assigned || next.picks[step.side][assigned])
     throw new Error("Aucun rôle habituel n’est libre pour ce champion.");
   next.picks[step.side][assigned] = name;

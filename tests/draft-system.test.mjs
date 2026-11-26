@@ -217,3 +217,15 @@ test("two immobile champions are not offered together while another pick is lega
   assert.ok(options.length > 0 && withAshe.length > 0);
   assert.equal(offered.length, 0, `offered beside Ashe: ${offered.map((o) => o.champion).join(", ")}`);
 });
+
+test("a champion picked without a role gives its role to a pick that needs it, when it can take another free role", () => {
+  for (const held of ["jng", "sup"]) {
+    const only = Object.keys(LANES).find((n) => n !== "Maokai" && (LANES[n] ?? []).length === 1 && LANES[n][0] === held);
+    assert.ok(only, `a champion played only in ${held}`);
+    const picks = { blue: { [held]: "Maokai" }, red: {} };
+    const options = bestPick(picks, "blue", { champions, links, flexRoles: { Maokai: ["jng", "sup"] }, limit: 1000 });
+    const pick = options.find((o) => o.champion === only);
+    assert.ok(pick, `${only} is offered`);
+    assert.equal(pick.role, held, `${only} takes ${held}, Maokai moves to the other role`);
+  }
+});

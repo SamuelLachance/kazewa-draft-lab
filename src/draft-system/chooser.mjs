@@ -32,8 +32,8 @@ export const WEIGHTS = Object.freeze({
   counterGood: 6, // one of ours is good against one of theirs, whatever the role (as much as a counter received)
   combo: 1, // a bad duo in the team
   comboGood: 1, // a good duo in the team, from his champion cards
-  comboDocumented: 12, // a duo documented as a combo (his rule of topic combo): as much as a counter exchanged (a counter is counted on both sides)
-  comboPull: 6, // a pick that leaves a documented duo of its champion open to the team
+  comboDocumented: 20, // a duo documented as a combo (his rule of topic combo): as much as a counter exchanged (a counter is counted on both sides)
+  comboPull: 12, // a pick that leaves a documented duo of its champion open to the team
   comboMissing: 6, // a team of three or more with no documented duo: Shanei wants one in every draft
   immobileStack: 8, // each immobile champion beyond the first: two stack without counterplay (kp-67)
   blockTank: 8, // a team of three with no real tank in the block of four (sp-74, sr-0)
@@ -314,13 +314,21 @@ export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, 
   const lockFamily = lockFamilyOf(mine, theirs, state.taken, links);
   // The blind pick is chosen on its flexibility alone: the needs of an empty draft weigh nothing.
   const blindPhase = !mine.members.length && !theirs.members.length;
-  const legal = candidates(mine.open, state.taken).filter((c) => !role || c.role === role);
+  // A flexible member (picked without a role) can give its role to a free one of its own: the role it holds
+  // counts as open for a pick, and the pick moves the member to the free role.
+  const movable = new Map();
+  for (const m of mine.members)
+    for (const r of m.flex ?? []) if (r !== m.role && mine.open.includes(r) && !movable.has(m.role)) movable.set(m.role, { member: m, to: r });
+  const legal = candidates([...mine.open, ...movable.keys()], state.taken).filter((c) => !role || c.role === role);
   // Offered only the picks that keep Shanei's structural rules satisfiable, unless no pick does.
   const structural = legal.filter((c) => structuralOk(c, mine, state.taken, links, champions));
   const options = (structural.length ? structural : legal)
     .map((c) => {
-    const ownAfter = [...mine.members, { name: c.name, role: c.role }];
-    const openAfter = mine.open.filter((role) => role !== c.role);
+    const move = mine.open.includes(c.role) ? null : movable.get(c.role);
+    const ownAfter = move
+      ? [...mine.members.map((m) => (m === move.member ? { ...m, role: move.to } : m)), { name: c.name, role: c.role }]
+      : [...mine.members, { name: c.name, role: c.role }];
+    const openAfter = move ? mine.open.filter((r) => r !== move.to) : mine.open.filter((role) => role !== c.role);
     const playable = (LANES[c.name] ?? []).filter((role) => openAfter.includes(role)).length;
     const flex = openAfter.length >= 2 ? WEIGHTS.flex * Math.max(0, playable - 1) : 0;
     let worst = Infinity;

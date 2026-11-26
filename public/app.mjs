@@ -1051,6 +1051,8 @@ function championImage(name, size) {
 }
 function renderDraftSide(side, step) {
   const active = Boolean(step && step.side === side);
+  // A champion picked without a role keeps its roles: it is marked flexible while it has two or more.
+  const flexible = new Set(coach.log.filter((e) => e.action === "pick" && e.side === side && !e.explicit && (e.flex?.length ?? 0) >= 2).map((e) => e.champion));
   const bans = Array.from({ length: 5 }, (_, index) => {
     const name = coach.bans[side][index];
     const now = active && step.action === "ban" && coach.bans[side].length === index;
@@ -1059,7 +1061,7 @@ function renderDraftSide(side, step) {
   const picks = ["bot", "jng", "mid", "sup", "top"]
     .map((role) => {
       const name = coach.picks[side][role];
-      return `<div class="pick-slot"><div class="pick-face">${name ? championImage(name, 46) : ""}</div><div><span>${ROLE_LABEL[role]}</span><strong>${name ? esc(name) : "—"}</strong></div></div>`;
+      return `<div class="pick-slot"><div class="pick-face">${name ? championImage(name, 46) : ""}</div><div><span>${ROLE_LABEL[role]}</span><strong>${name ? esc(name) : "—"}</strong>${name && flexible.has(name) ? ' <span class="pick-flex">flex</span>' : ""}</div></div>`;
     })
     .join("");
   return `<div class="team-heading"><span class="team-side">${side === "blue" ? "BLUE SIDE" : "RED SIDE"}</span><h3>${side === coach.userSide ? "Ton côté" : "Adverse"}</h3></div><div class="ban-row">${bans}</div>${picks}`;
@@ -1103,7 +1105,7 @@ function renderCoachGrid() {
       const label = [name, rank ? `rang ${rank}` : "", score ? `score ${score}` : "", row.role ? ROLE_LABEL[row.role] : ""]
         .filter(Boolean)
         .join(", ");
-      return `<button type="button" class="champ-tile${blocked ? " is-unavailable" : ""}" data-champion="${esc(name)}"${row.role ? ` data-role="${esc(row.role)}"` : ""} aria-label="${esc(label)}"${blocked ? " disabled" : ""}><span class="champ-face">${championImage(name, 74)}${rank ? `<span class="champ-rank">${rank}</span>` : ""}${score ? `<span class="champ-score">${esc(score)}</span>` : ""}</span>${row.role ? `<span class="champ-role">${esc(ROLE_LABEL[row.role])}</span>` : ""}<span class="champ-name">${esc(name)}</span></button>`;
+      return `<button type="button" class="champ-tile${blocked ? " is-unavailable" : ""}" data-champion="${esc(name)}"${lane && row.role === lane ? ` data-role="${esc(row.role)}"` : ""} aria-label="${esc(label)}"${blocked ? " disabled" : ""}><span class="champ-face">${championImage(name, 74)}${rank ? `<span class="champ-rank">${rank}</span>` : ""}${score ? `<span class="champ-score">${esc(score)}</span>` : ""}</span>${row.role ? `<span class="champ-role">${esc(ROLE_LABEL[row.role])}</span>` : ""}${row.duo ? `<span class="champ-combo">combo ${esc(row.duo)}</span>` : row.opens ? `<span class="champ-combo">ouvre ${esc(row.opens)}</span>` : ""}<span class="champ-name">${esc(name)}</span></button>`;
     })
     .join("");
 }
