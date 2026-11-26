@@ -103,7 +103,7 @@ test("the published professional results carry no team name, and the script that
 test("the published texts carry no team or player name of the professional data", async (t) => {
   const { loadNames, buildPattern, KEEP_KEYS } = await import("../scripts/redact-names.mjs");
   const { teams, players } = loadNames();
-  if (!teams.length) return t.skip("the professional match data is not in .cache: nothing to scan against");
+  if (!teams.length || !players.length) return t.skip("the professional match data is not in .cache: nothing to scan against");
   const teamRe = buildPattern(teams);
   const playerRe = buildPattern(players);
   const files = ["memory-site.json", "coach.json", "champion-cards.json"];

@@ -119,6 +119,10 @@ export function loadNames() {
     !championParts.has(name) &&
     /^\p{Lu}/u.test(name) &&
     /^[\p{L}\p{N}][\p{L}\p{N} .'&-]*$/u.test(name);
+  // Without the professional match data (the CI checkout has none) there is no list: nothing is
+  // removed, and nothing is claimed to be removed.
+  const cached = csvs.length > 0 || fs.existsSync(indexPath);
+  if (!cached) return { teams: [], players: [] };
   return {
     teams: [...teams].filter(usable).sort((a, b) => b.length - a.length),
     players: [...players]
@@ -137,6 +141,8 @@ function escapeRe(text) {
 }
 
 export function buildPattern(names) {
+  // An empty alternation matches the empty string everywhere: no list, no pattern.
+  if (!names.length) return null;
   const body = names.map(escapeRe).join("|");
   return new RegExp(`(?<![\\p{L}\\p{N}])(?:${body})(?![\\p{L}\\p{N}])`, "gu");
 }
@@ -155,8 +161,9 @@ function main() {
     console.log("Aucune liste de noms : .cache/oe-new et .cache/oe-games.json sont absents, rien à retirer.");
     return;
   }
-  const teamRe = buildPattern(teams);
-  const playerRe = buildPattern(players);
+  // A missing list matches nothing (the pattern that never matches).
+  const teamRe = buildPattern(teams) ?? new RegExp("(?!)", "gu");
+  const playerRe = buildPattern(players) ?? new RegExp("(?!)", "gu");
   const counts = new Map();
   let changedFiles = 0;
   let removedTeamFields = 0;
