@@ -27,7 +27,10 @@ test("a pick is always a free champion, in one of its own lanes, for an open rol
   const taken = new Set([...names(picks), "Ahri"]);
   for (const option of options) {
     assert.ok(!taken.has(option.champion), option.champion);
-    assert.ok(LANES[option.champion].includes(option.role), `${option.champion} is not played in ${option.role}`);
+    const open = ["jng", "mid", "bot", "sup"];
+    const lanes = LANES[option.champion].filter((role) => open.includes(role));
+    assert.ok(lanes.length === 0 || lanes.includes(option.role), `${option.champion} is not played in ${option.role}`);
+    assert.ok(open.includes(option.role), `${option.role} is an open role`);
     assert.notEqual(option.role, "top", "the open roles of blue exclude top");
   }
   assert.equal(new Set(options.map((o) => o.champion)).size, options.length, "one entry per champion");
@@ -176,4 +179,12 @@ test("the needs of the rules weigh less early in the draft, and all of them at t
 test("the blind pick is chosen on its families and roles, not on the needs of an empty draft", () => {
   const options = bestPick({ blue: {}, red: {} }, "blue", { champions, links, limit: 1000 });
   for (const option of options.slice(0, 5)) assert.ok(links.families(option.champion).size >= 2, `${option.champion} opens several families`);
+});
+
+test("a champion whose usual roles are all taken is still offered: the system guesses an open role for it", () => {
+  // Xin Zhao takes the jungle and Morgana the support: Maokai plays neither, so it is guessed in an open role.
+  const picks = { blue: team(null, "Xin Zhao", null, null, "Morgana"), red: {} };
+  const maokai = bestPick(picks, "blue", { champions, links, limit: 1000 }).filter((o) => o.champion === "Maokai");
+  assert.equal(maokai.length, 1, "one entry for Maokai");
+  assert.ok(["top", "mid", "bot"].includes(maokai[0].role), `Maokai is guessed in an open role, not ${maokai[0].role}`);
 });

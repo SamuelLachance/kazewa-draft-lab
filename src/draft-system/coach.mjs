@@ -36,11 +36,11 @@ function sentence(reason, titles) {
  * champion, role, roles, flex, playable, score, reasons.
  * `rules` is the rule list of the knowledge base (for the titles); `links` the index of links.
  */
-export function systemPickRows(picks, side, { champions, bans = [], rules = [], links, flexRoles = {} }) {
+export function systemPickRows(picks, side, { champions, bans = [], rules = [], links, flexRoles = {}, role = null }) {
   const titles = new Map(rules.map((rule) => [rule.id, rule.title]));
   const mine = picks?.[side] ?? {};
   const openRoles = ["top", "jng", "mid", "bot", "sup"].filter((role) => !mine[role]);
-  return bestPick(picks, side, { champions, bans, links, flexRoles, limit: 1000 }).map((option) => {
+  return bestPick(picks, side, { champions, bans, links, flexRoles, limit: 1000, role }).map((option) => {
     const roles = (LANES[option.champion] ?? []).filter((role) => openRoles.includes(role));
     const reasons = option.reasons
       .filter((reason) => reason.saved !== 0)

@@ -1,10 +1,11 @@
 import { normalizeChampion, ROLES } from "./src/engine.mjs";
 import { compositionFromText, foldChampion, swapRoles } from "./src/quick-draft.mjs";
 import {
-  advise,
   applyAction,
   coachContext,
   createSession,
+  currentStep,
+  scoreboard,
   undo,
 } from "./src/draft-coach.mjs";
 import { playableRoles } from "./src/coach.mjs";
@@ -71,7 +72,6 @@ let view = "lab",
   labMode = "roles",
   coach = createSession("first"),
   coachFocus = "self",
-  coachPlan = null,
   coachQuery = "",
   coachLane = "all",
   draft = emptyDraft(),
@@ -236,8 +236,6 @@ function ruleLink(id) {
 }
 // Said in a passage the notes of the video mark as badly transcribed or unsettled.
 const UNSURE = ' <span class="coach-unsure">(avis moins net dans ses vidéos)</span>';
-const coachTag = (coach) =>
-  coach ? `<span class="coach-tag" data-coach="${esc(coach)}">${esc(COACH_NAME[coach] ?? coach)}</span> ` : "";
 const frenchDate = (text) => {
   const date = new Date(text + "T12:00:00Z");
   return Number.isNaN(date.getTime())
@@ -1051,13 +1049,8 @@ function renderCoachPro() {
 function championImage(name, size) {
   return `<img src="https://ddragon.leagueoflegends.com/cdn/${esc(config.assetPatch)}/img/champion/${esc(assetId(name))}.png" alt="" width="${size}" height="${size}" loading="lazy" referrerpolicy="no-referrer">`;
 }
-function renderDraftSide(side, advice) {
-  const step = advice.step;
+function renderDraftSide(side, step) {
   const active = Boolean(step && step.side === side);
-  const highlight =
-    active && step.action === "pick" && !advice.options[0]?.flex
-      ? advice.options[0]?.role
-      : null;
   const bans = Array.from({ length: 5 }, (_, index) => {
     const name = coach.bans[side][index];
     const now = active && step.action === "ban" && coach.bans[side].length === index;
@@ -1066,188 +1059,57 @@ function renderDraftSide(side, advice) {
   const picks = ["bot", "jng", "mid", "sup", "top"]
     .map((role) => {
       const name = coach.picks[side][role];
-      const now = highlight === role && !name;
-      return `<div class="pick-slot${now ? " is-now" : ""}"><div class="pick-face">${name ? championImage(name, 46) : ""}</div><div><span>${ROLE_LABEL[role]}</span><strong>${name ? esc(name) : "—"}</strong></div></div>`;
+      return `<div class="pick-slot"><div class="pick-face">${name ? championImage(name, 46) : ""}</div><div><span>${ROLE_LABEL[role]}</span><strong>${name ? esc(name) : "—"}</strong></div></div>`;
     })
     .join("");
-  const status = advice.status?.[side];
-  const STATE = { ok: "✓", todo: "…", bad: "!", note: "·" };
-  const STATE_LABEL = { ok: "En place : ", todo: "À surveiller : ", bad: "Défaut : ", note: "Remarque : " };
-  const state = status
-    ? `<div class="coach-status"><p class="coach-family">${status.label ? `Famille : <strong>${esc(status.label)}</strong>${status.basis === "plan" ? " (ton plan)" : ""}` : "Famille : pas encore lisible"}</p>${status.items.length ? `<ul>${status.items.map((item) => `<li class="is-${esc(item.state)}" title="${esc(methodIndex?.rules?.[item.rule]?.text ?? "")}"><span aria-hidden="true">${STATE[item.state]}</span><span class="visually-hidden">${STATE_LABEL[item.state]}</span> ${esc(item.text)}</li>`).join("")}</ul>` : ""}</div>`
-    : "";
-  return `<div class="team-heading"><span class="team-side">${side === "blue" ? "BLUE SIDE" : "RED SIDE"}</span><h3>${side === coach.userSide ? "Ton côté" : "Adverse"}</h3></div><div class="ban-row">${bans}</div>${picks}${state}`;
+  return `<div class="team-heading"><span class="team-side">${side === "blue" ? "BLUE SIDE" : "RED SIDE"}</span><h3>${side === coach.userSide ? "Ton côté" : "Adverse"}</h3></div><div class="ban-row">${bans}</div>${picks}`;
 }
-function renderCoachGrid(advice) {
-  const taken = coachTaken();
-  const ranked = advice.pool || advice.options;
-  const byName = new Map(ranked.map((option) => [option.champion, option]));
-  const position = new Map(ranked.map((option, index) => [option.champion, index]));
+function formatScore(value) {
+  return Number(value).toLocaleString("fr-FR", { maximumFractionDigits: 1 });
+}
+// Every champion, best first, by the draft system's score in the state of the draft. The role
+// filter gives the score in that role; a typed name is looked for among every champion.
+function renderCoachGrid() {
   const query = foldChampion(coachQuery);
-  const meta = coachBrain?.meta ?? null;
-  const side = advice.step?.side;
-  const freeRoles = side ? ROLES.filter((role) => !coach.picks[side][role]) : [];
-  const names = Object.keys(knowledge.champions)
-    .filter((name) => {
-      // A typed name is found under any role filter: a pick can be unusual.
-      if (query) return foldChampion(name).includes(query);
-      return coachLane === "all" || playableRoles(meta, name).includes(coachLane);
-    })
-    .sort((a, b) => {
-      const used = Number(taken.has(a)) - Number(taken.has(b));
-      if (used) return used;
-      // What was typed comes first: the exact name, then names starting with it.
-      if (query) {
-        const closeness = (name) => {
-          const folded = foldChampion(name);
-          return folded === query ? 0 : folded.startsWith(query) ? 1 : 2;
-        };
-        const typed = closeness(a) - closeness(b);
-        if (typed) return typed;
-      }
-      const left = byName.get(a);
-      const right = byName.get(b);
-      const playable = Number(right?.playable !== false) - Number(left?.playable !== false);
-      if (playable) return playable;
-      const order = (position.get(a) ?? Infinity) - (position.get(b) ?? Infinity);
-      if (order) return order;
-      return a.localeCompare(b, "fr");
-    });
-  const picking = advice.step?.action === "pick";
-  const order = new Map(advice.options.map((option, index) => [option.champion, index + 1]));
+  const lane = coachLane === "all" ? null : coachLane;
+  const done = !currentStep(coach);
+  const taken = coachTaken();
+  const board = scoreboard(coach, coachBrain, { role: query ? null : lane });
+  // A typed name is looked for among every champion. Under a lane filter it takes that lane's
+  // row when the champion plays there, so that a click puts it in the lane that is filtered.
+  const inLane = query && lane ? new Map(scoreboard(coach, coachBrain, { role: lane }).map((row) => [row.champion, row])) : new Map();
+  // The exact name first, then the names that start with it, then the others; each group by score.
+  // Enter takes the first tile, so the first tile is the best of the closest names.
+  const closeness = (name) => {
+    const folded = foldChampion(name);
+    return folded === query ? 0 : folded.startsWith(query) ? 1 : 2;
+  };
+  const scoreOf = (row) => (row.score === null ? -Infinity : row.score);
+  const names = query
+    ? board
+        .filter((row) => foldChampion(row.champion).includes(query))
+        .map((row) => inLane.get(row.champion) ?? row)
+        .sort((a, b) => closeness(a.champion) - closeness(b.champion) || scoreOf(b) - scoreOf(a) || a.champion.localeCompare(b.champion, "fr"))
+    : board;
+  // The rank is the place in the list shown, among the champions that have a score.
+  let scored = 0;
+  const place = new Map(names.filter((row) => row.score !== null).map((row) => [row.champion, ++scored]));
   $("#coach-grid").innerHTML = names
-    .map((name) => {
-      const used = taken.has(name) || advice.done;
-      const hint = byName.get(name);
-      const first = hint?.reasons?.[0]?.text;
-      const title = first ? ` title="${esc(first)}"` : "";
-      // No professional share on the tile: the coach follows the rules, not what teams pick.
-      const seen = 0;
-      const shown = !used && seen >= 1 ? `${seen} %` : "";
-      // With a role filter on, a click puts the champion in that role.
-      const asked =
-        picking && coachLane !== "all" && freeRoles.includes(coachLane) ? coachLane : null;
-      const given = asked ?? hint?.role ?? null;
-      // No usual role is free, and no role is asked for.
-      const unavailable = Boolean(hint && hint.playable === false && !asked);
-      const role = hint && picking && !unavailable && given ? ROLE_LABEL[given] : "";
-      const status = unavailable && picking ? "rôle pris" : "";
-      const place = order.get(name);
-      const label = [
-        name,
-        place ? `suggestion ${place}` : "",
-        shown ? `présence pro ${shown}` : "",
-        role || status,
-      ]
+    .map((row) => {
+      const name = row.champion;
+      const rank = place.get(name) ?? null;
+      const blocked = done || taken.has(name);
+      const score = row.score === null ? "" : formatScore(row.score);
+      const label = [name, rank ? `rang ${rank}` : "", score ? `score ${score}` : "", row.role ? ROLE_LABEL[row.role] : ""]
         .filter(Boolean)
         .join(", ");
-      const blocked = used || (picking && unavailable);
-      return `<button type="button" class="champ-tile${place ? " is-suggested" : ""}${taken.has(name) ? " is-taken" : ""}${unavailable ? " is-unavailable" : ""}" data-champion="${esc(name)}"${asked ? ` data-role="${esc(asked)}"` : ""} aria-label="${esc(label)}"${title}${blocked ? " disabled" : ""}><span class="champ-face">${championImage(name, 74)}${place ? `<span class="champ-rank">${place}</span>` : ""}${shown ? `<span class="champ-score">${esc(shown)}</span>` : ""}</span>${role || status ? `<span class="champ-role">${esc(role || status)}</span>` : ""}<span class="champ-name">${esc(name)}</span></button>`;
+      return `<button type="button" class="champ-tile${blocked ? " is-unavailable" : ""}" data-champion="${esc(name)}"${row.role ? ` data-role="${esc(row.role)}"` : ""} aria-label="${esc(label)}"${blocked ? " disabled" : ""}><span class="champ-face">${championImage(name, 74)}${rank ? `<span class="champ-rank">${rank}</span>` : ""}${score ? `<span class="champ-score">${esc(score)}</span>` : ""}</span>${row.role ? `<span class="champ-role">${esc(ROLE_LABEL[row.role])}</span>` : ""}<span class="champ-name">${esc(name)}</span></button>`;
     })
     .join("");
-}
-const NOTE_LABEL = {
-  pick_order: "Ce qu’il disait de ce pick",
-  meta_strong: "Il le jugeait fort",
-  meta_weak: "Il le jugeait faible",
-};
-const monthYear = (text) => {
-  const date = new Date(String(text) + "T12:00:00Z");
-  return Number.isNaN(date.getTime())
-    ? ""
-    : date.toLocaleDateString("fr-FR", { month: "long", year: "numeric", timeZone: "UTC" });
-};
-// The first suggestions, each with the sentence behind every point it scores.
-function renderCoachSuggestions(advice) {
-  const node = $("#coach-suggestions");
-  if (!node) return;
-  if (advice.done) {
-    node.innerHTML = "";
-    return;
-  }
-  if (!advice.options.length) {
-    node.innerHTML = `<h3>Pas de suggestion pour ce tour</h3><p class="fine-print">${coachBrain?.meta?.games ? "Rien ne départage les champions restants." : "Les données de méta pro n’ont pas pu être chargées, et Kazewa n’a rien dit des champions déjà pris. Recharge la page, ou choisis dans la grille."}</p>`;
-    return;
-  }
-  const step = advice.step;
-  const ban = step.action === "ban";
-  const heading = step.ours
-    ? ban
-      ? "À bannir en priorité"
-      : "À prendre en priorité"
-    : ban
-      ? "Ce qu’ils ont intérêt à bannir"
-      : "Ce qu’ils ont intérêt à prendre";
-  const card = (option, mark) => {
-      const reasons = option.reasons
-        .filter((reason) => reason.points || reason.kind === "answer" || reason.kind === "note")
-        .map((reason) => {
-          const tone =
-            reason.kind === "answer" ? "is-warning" : reason.points < 0 ? "is-minus" : reason.points > 0 ? "is-plus" : "";
-          const quote = reason.detail ? ` <span class="coach-quote">« ${esc(reason.detail)} »</span>` : "";
-          const links = reason.sources?.length
-            ? ` ${sourceLinks(reason.sources, 1)}`
-            : reason.rule
-              ? ` ${[reason.rule, ...(reason.also ?? [])].map(ruleLink).filter(Boolean).join(" ")}`
-              : "";
-          const from =
-            reason.coach ??
-            (["said", "card", "opinion", "need", "answer"].includes(reason.kind) ? "kazewa" : ["meta", "timing", "stage"].includes(reason.kind) ? "pro" : null);
-          return `<li class="${tone}">${from === "pro" ? '<span class="coach-tag" data-coach="pro">Pro</span> ' : coachTag(from)}${esc(reason.text)}${reason.unsure ? UNSURE : ""}${quote}${links}</li>`;
-        })
-        .join("");
-      const used = new Set(option.reasons.map((reason) => reason.detail).filter(Boolean));
-      // His word on a champion's strength is a reason line when it is recent,
-      // and stale otherwise. What is quoted here is how he spoke of picking it.
-      const end = Date.parse(coachBrain?.meta?.to ?? "");
-      const fresh = (entry) =>
-        entry.tag === "pick_order" &&
-        Number.isFinite(end) &&
-        entry.date &&
-        end - Date.parse(entry.date) <= 730 * 86400000;
-      const note = ban ? null : (option.notes ?? []).find((entry) => !used.has(entry.text) && fresh(entry));
-      const said = note
-        ? `<p class="coach-said">${esc(NOTE_LABEL[note.tag] || "Ce qu’il en disait")}${note.date ? ` en ${esc(monthYear(note.date))}${note.patch ? ` (patch ${esc(note.patch)})` : ""}` : ""} : « ${esc(note.text)} » ${sourceLinks([{ video: note.video, ts: note.ts, title: "Vidéo" }], 1)}</p>`
-        : "";
-      const role = !ban && option.role ? `<span class="coach-card-role">${ROLE_LABEL[option.role]}${option.flex ? " · flex" : ""}</span>` : "";
-      return `<article class="coach-card"><button type="button" class="coach-card-pick" data-champion="${esc(option.champion)}"${!ban && option.role ? ` data-role="${esc(option.role)}"` : ""}><span class="coach-card-face">${championImage(option.champion, 46)}</span><span class="coach-card-name"><em>${mark}</em> ${esc(option.champion)}</span>${role}<span class="coach-card-go">${step.ours ? (ban ? "Bannir" : "Prendre") : "Valider"}</span></button><ul class="coach-reasons">${reasons}</ul>${said}</article>`;
-  };
-  const extra = advice.answers?.length
-    ? `<h3 class="coach-also">${step.ours ? "Moins joués en ce moment, mais il en a parlé" : "Moins joués, mais il en a parlé"}</h3><p class="fine-print">Des champions que Kazewa a nommés contre ou avec ceux déjà pris, et que la méta pro place plus bas.</p>${advice.answers.map((option) => card(option, "·")).join("")}`
-    : "";
-  node.innerHTML = `<h3>${heading}</h3>${advice.options.map((option, index) => card(option, index + 1)).join("")}${extra}`;
-}
-// The rules of the two coaches for the step being played.
-function renderCoachBrief(advice) {
-  const node = $("#coach-brief");
-  if (!node) return;
-  const lines = advice.brief ?? [];
-  if (!lines.length) {
-    node.innerHTML = "";
-    node.hidden = true;
-    return;
-  }
-  node.hidden = false;
-  node.innerHTML = `<h3>${advice.done ? "La vérification finale des deux coachs" : "Ce que disent les deux coachs pour ce tour"}</h3><ul>${lines
-    .map(
-      (line) =>
-        `<li>${coachTag(line.coach)}${esc(line.text)}${line.uncertain ? UNSURE : ""} <span class="source-links">${ruleLink(line.id)}</span></li>`,
-    )
-    .join("")}</ul>`;
 }
 function renderCoach() {
   if (view !== "coach" || !knowledge || !coachBrain) return;
-  // Without the method file there is no family to plan for.
-  const hasMethod = Boolean(coachBrain.method);
-  if (!hasMethod) coachPlan = null;
-  const planSwitch = document.querySelector(".plan-switch");
-  if (planSwitch) planSwitch.hidden = !hasMethod;
-  const advice = advise(coach, coachBrain, { limit: 5, plan: coachPlan });
-  for (const button of document.querySelectorAll("[data-plan]")) {
-    const active = (button.dataset.plan || null) === coachPlan;
-    button.classList.toggle("is-active", active);
-    button.setAttribute("aria-pressed", String(active));
-  }
+  const step = currentStep(coach);
   for (const button of document.querySelectorAll("[data-seat]")) {
     const active = button.dataset.seat === coach.seat;
     button.classList.toggle("is-active", active);
@@ -1259,54 +1121,19 @@ function renderCoach() {
     button.setAttribute("aria-pressed", String(active));
   }
   $("#coach-undo").disabled = coach.log.length === 0;
-  $("#coach-side-note").textContent =
-    coach.seat === "first"
-      ? `Tu es first pick, côté bleu. Tu bannis en premier, puis tu prends le premier pick.${hasMethod ? " Si tu sais quelle famille de compo tu vises, dis-le : le coach protège ce plan dès les bans." : ""}`
-      : `Tu es second pick, côté rouge. Le bleu ouvre. Tu réponds ensuite avec deux picks d’affilée.${hasMethod ? " Si tu sais quelle famille de compo tu vises, dis-le : le coach protège ce plan dès les bans." : ""}`;
-  const step = advice.step;
-  const best = advice.options[0];
-  $("#coach-turn").textContent = advice.done
-    ? "Draft complète"
-    : `${step.phase} · ${step.index + 1}/20 · ${step.ours ? "à toi" : "à eux"} de ${step.action === "ban" ? "bannir" : "pick"}`;
-  const bestLine = $("#coach-best");
-  if (bestLine) {
-    bestLine.textContent = advice.done
-      ? ""
-      : best
-        ? step.ours
-          ? step.action === "ban"
-            ? `À bannir : ${best.champion}`
-            : `À prendre : ${best.champion} ${ROLE_LABEL[best.role]}`
-          : step.action === "ban"
-            ? `Ban probable en face : ${best.champion}`
-            : `Pick probable en face : ${best.champion} ${ROLE_LABEL[best.role]}`
-        : "Pas de suggestion pour ce tour.";
-  }
-  $("#coach-blue").innerHTML = renderDraftSide("blue", advice);
-  $("#coach-red").innerHTML = renderDraftSide("red", advice);
-  const meta = coachBrain.meta;
-  const window = meta?.games
-    ? `${meta.games} parties pro du ${frenchDate(meta.from)} au ${frenchDate(meta.to)}, patchs ${meta.patches[0]} à ${meta.patches[meta.patches.length - 1]}, toutes ligues sauf les académies`
-    : "";
-  $("#coach-note").textContent = advice.done
-    ? "Draft complète : le verdict ci-dessous est celui que le site donne à ces dix champions."
-    : step.action === "ban"
-      ? `Un ban se classe sur ce que Kazewa a dit de lui récemment, sur ce qu’il ferait à ces picks d’après ses arguments et ses fiches, et sur sa grille de décision une fois des picks posés.${hasMethod ? " Shanei ajoute sa règle : un ban protège ta compo, selon sa famille (ton plan, ou tes picks), et ne retire jamais une de tes pièces." : ""} Le camp qui prend juste après les bans ne bannit pas son propre meilleur pick. Ce n’est pas la liste des bans des équipes pro. Clique un champion pour valider le tour, suggéré ou non.`
-      : `Un pick se classe sur ce que Kazewa a dit de lui avec les champions déjà pris (ses arguments d’abord, ses fiches champion sinon), sur ce qu’il disait de sa force ces derniers mois, et sur sa grille de décision : ce que le champion comble ou crée dans son camp, et les axes qu’il fait gagner.${hasMethod ? " La méthode de draft des deux coachs s’y ajoute : l’ordre des rôles, les first picks et les picks à ne pas blind de Shanei, la famille de ta compo et les pièces qui lui manquent, ses combos, ses réponses à ce que montre l’adversaire. Chaque ligne dit de qui elle vient." : ""} « Peut encore se faire répondre » est un avertissement, il ne change pas le classement. Ce n’est pas une prédiction de victoire. Clique un champion pour valider le tour ; pour le placer dans un autre rôle, choisis d’abord ce rôle dans le filtre.`;
-  renderCoachBrief(advice);
-  renderCoachSuggestions(advice);
-  renderCoachGrid(advice);
+  $("#coach-turn").textContent = step
+    ? `${step.phase} · ${step.index + 1}/20 · ${step.ours ? "à toi" : "à eux"} de ${step.action === "ban" ? "bannir" : "pick"}`
+    : "Draft complète";
+  $("#coach-blue").innerHTML = renderDraftSide("blue", step);
+  $("#coach-red").innerHTML = renderDraftSide("red", step);
+  renderCoachGrid();
   renderCoachPro();
   if (coachFocus !== "self") {
     const match = snapshot?.matches?.find((item) => item.id === coachFocus);
     if (!match) {
       coachFocus = "self";
-      renderResult(
-        advice.done
-          ? judge(coach.picks)
-          : { status: "incomplete", warnings: [] },
-      );
-      if (!advice.done) {
+      renderResult(step ? { status: "incomplete", warnings: [] } : judge(coach.picks));
+      if (step) {
         $("#result-section").hidden = true;
         $("#empty-result").hidden = true;
       }
@@ -1321,7 +1148,7 @@ function renderCoach() {
     });
     return;
   }
-  if (advice.done) renderResult(judge(coach.picks));
+  if (!step) renderResult(judge(coach.picks));
   else {
     $("#result-section").hidden = true;
     $("#empty-result").hidden = true;
@@ -1334,7 +1161,7 @@ function acceptCoachAction(champion, role) {
     return;
   }
   try {
-    coach = applyAction(coach, name, role || null, coachBrain, coachPlan);
+    coach = applyAction(coach, name, role || null, coachBrain);
     coachFocus = "self";
     coachQuery = "";
     const search = $("#coach-search");
@@ -1594,11 +1421,6 @@ function bindEvents() {
       coachLane = lane.dataset.lane;
       renderCoach();
     }
-    const plan = event.target.closest("[data-plan]");
-    if (plan) {
-      coachPlan = plan.dataset.plan || null;
-      renderCoach();
-    }
     const tile = event.target.closest("[data-champion]");
     if (tile && !tile.disabled)
       acceptCoachAction(tile.dataset.champion, tile.dataset.role || null);
@@ -1612,7 +1434,7 @@ function bindEvents() {
   $("#coach-search").addEventListener("input", (event) => {
     coachQuery = event.target.value;
     if (view !== "coach" || !knowledge) return;
-    renderCoachGrid(advise(coach, coachBrain, { limit: 5, plan: coachPlan }));
+    renderCoachGrid();
   });
   $("#coach-search").addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;

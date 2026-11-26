@@ -179,12 +179,17 @@ export function standing(me, them, ctx) {
   return costOf(them, me, ctx).total - costOf(me, them, ctx).total;
 }
 
-/** The legal candidates for a side: free champions, of an open role of their lane table. */
+/**
+ * The legal candidates for a side: free champions, in an open role of their lane table.
+ * A champion whose lane roles are all taken is not refused: the system guesses where it
+ * plays, and offers it in each open role; its best role is the guess.
+ */
 function candidates(open, taken) {
   const out = [];
   for (const [name, roles] of Object.entries(LANES)) {
     if (taken.has(name)) continue;
-    for (const role of roles) if (open.includes(role)) out.push({ name, role });
+    const lanes = roles.filter((role) => open.includes(role));
+    for (const role of lanes.length ? lanes : open) out.push({ name, role });
   }
   return out;
 }
@@ -233,7 +238,7 @@ function round(value) {
  * `picks` is { blue: {top, jng, mid, bot, sup}, red: {...} }; `bans` a list of
  * names; `flexRoles` the roles a champion could still take, for the uncertain picks.
  */
-export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, flexRoles = {}, limit = 5 } = {}) {
+export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, flexRoles = {}, limit = 5, role = null } = {}) {
   const ctx = { champions, links, needsScale: needsScaleOf(picks) };
   const state = stateOf(picks, bans, flexRoles);
   const mine = state[side];
@@ -241,14 +246,17 @@ export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, 
   const lockFamily = lockFamilyOf(mine, theirs, state.taken, links);
   // The blind pick is chosen on its flexibility alone: the needs of an empty draft weigh nothing.
   const blindPhase = !mine.members.length && !theirs.members.length;
-  const options = candidates(mine.open, state.taken).map((c) => {
+  const options = candidates(mine.open, state.taken)
+    .filter((c) => !role || c.role === role)
+    .map((c) => {
     const ownAfter = [...mine.members, { name: c.name, role: c.role }];
     const openAfter = mine.open.filter((role) => role !== c.role);
     const playable = (LANES[c.name] ?? []).filter((role) => openAfter.includes(role)).length;
     const flex = openAfter.length >= 2 ? WEIGHTS.flex * Math.max(0, playable - 1) : 0;
     let worst = Infinity;
     const taken = new Set([...state.taken, c.name]);
-    const replies = candidates(theirs.open, taken);
+    // A reply's role does not change its standing: each champion replies once.
+    const replies = [...new Map(candidates(theirs.open, taken).map((reply) => [reply.name, reply])).values()];
     if (!replies.length) worst = standing(ownAfter, theirs.members, ctx);
     for (const reply of replies) {
       // Their reply is uncertain when it can still take several of their open roles.

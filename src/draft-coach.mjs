@@ -269,6 +269,58 @@ export function advise(session, context, options = {}) {
   return { done: false, step, pool, options: shown, answers, brief, status };
 }
 
+/**
+ * Every champion of the knowledge base in the state of the draft, best first, by the
+ * draft system's score. For a pick, the side that picks now; for a ban, the other side,
+ * which would take the champion if it were left. `role` keeps the champions that can
+ * take that role, scored in it. A champion whose usual roles are all taken is guessed into
+ * an open role, so it keeps a score. Nothing here is a reason: only the score and the role.
+ */
+export function scoreboard(session, context, { role = null } = {}) {
+  const step = currentStep(session);
+  // The draft is complete: every champion is listed, and none has a score any more.
+  if (!step)
+    return Object.keys(context.knowledge.champions)
+      .sort((x, y) => x.localeCompare(y, "fr"))
+      .map((name) => ({ champion: name, role: null, roles: [], score: null }));
+  const side = step.action === "pick" ? step.side : step.side === "blue" ? "red" : "blue";
+  const flexRoles = flexRolesOf(session);
+  const key = JSON.stringify({ side, role, picks: session.picks, bans: session.bans, flexRoles });
+  if (!context.boards) context.boards = new Map();
+  if (!context.boards.has(key)) {
+    const bans = [...session.bans.blue, ...session.bans.red];
+    const rows = systemPickRows(session.picks, side, {
+      flexRoles,
+      champions: context.knowledge.champions,
+      bans,
+      rules: context.knowledge.rules,
+      links: context.links,
+      role,
+    });
+    const scored = new Map(rows.map((row) => [row.champion, row]));
+    const gone = new Set([...bans, ...ROLES.flatMap((r) => [session.picks.blue[r], session.picks.red[r]])].filter(Boolean));
+    // A role filter shows what the system scores in that role, and the champions of that lane that it
+    // cannot score (the role is already taken): they are listed last, without a score or a role.
+    const board = Object.keys(context.knowledge.champions)
+      .filter((name) => !gone.has(name) && (!role || scored.has(name) || (LANES[name] ?? []).includes(role)))
+      .map((name) => {
+        const row = scored.get(name);
+        return row
+          ? { champion: name, role: row.role, roles: row.roles, score: row.score }
+          : { champion: name, role: null, roles: [], score: null };
+      })
+      .sort((a, b) => {
+        if (a.score === null || b.score === null)
+          return Number(a.score === null) - Number(b.score === null) || a.champion.localeCompare(b.champion, "fr");
+        return b.score - a.score || a.champion.localeCompare(b.champion, "fr");
+      });
+    // One draft is twenty boards: older ones are let go.
+    if (context.boards.size >= 24) context.boards.delete(context.boards.keys().next().value);
+    context.boards.set(key, board);
+  }
+  return context.boards.get(key);
+}
+
 // A click that names no role: the champion goes to the open role it is most
 // played in. A role given by the caller wins when it is free.
 export function inferPickRole(session, champion, context = null, plan = null) {

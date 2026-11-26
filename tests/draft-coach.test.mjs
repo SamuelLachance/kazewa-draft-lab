@@ -10,6 +10,7 @@ import {
   createSession,
   currentStep,
   inferPickRole,
+  scoreboard,
   undo,
 } from "../src/draft-coach.mjs";
 import {
@@ -24,6 +25,7 @@ import {
 import { ROLES } from "../src/engine.mjs";
 import { LANES } from "../src/lanes.mjs";
 import { cardRelations } from "../src/relations.mjs";
+import { systemPickRows } from "../src/draft-system/coach.mjs";
 
 const load = async (name) =>
   JSON.parse(await readFile(new URL(`../data/${name}`, import.meta.url), "utf8"));
@@ -468,7 +470,9 @@ test("a whole draft played on the first suggestion gives two playable teams, wit
     }
     assert.ok(Number.isFinite(best.score));
     if (advice.step.action === "pick") {
-      assert.ok(playableRoles(data.meta, best.champion).includes(best.role));
+      // A champion goes to a role it is played in while one is open; otherwise the system guesses an open role.
+      const usualOpen = playableRoles(data.meta, best.champion).filter((role) => !session.picks[advice.step.side][role]);
+      assert.ok(!usualOpen.length || usualOpen.includes(best.role), `${best.champion} in ${best.role}`);
       assert.notEqual(best.rare, true);
       // What he named against or with the picks locked, outside the first five.
       assert.ok(advice.answers.length <= 3);
@@ -485,7 +489,7 @@ test("a whole draft played on the first suggestion gives two playable teams, wit
     assert.equal(session.bans[side].length, 5);
     for (const role of ROLES) {
       const name = session.picks[side][role];
-      assert.ok(name && playableRoles(data.meta, name).includes(role), `${side} ${role}`);
+      assert.ok(name, `${side} ${role}`);
       all.push(name);
     }
     all.push(...session.bans[side]);
@@ -580,4 +584,76 @@ test("the shipped coach data is recent professional play and notes about the cha
   assert.ok(dated > 300);
   // The window holds no academy series.
   assert.match(data.source, /but the academy series/);
+});
+
+// The board: the draft system's score for every champion still free, with no reason in it.
+const BOARD_BANS = ["Ahri", "Lux", "Zed", "Yone", "Pantheon", "Jinx"];
+const boardAfterMaokai = () => {
+  const ctx = context();
+  let session = createSession("first");
+  for (const ban of BOARD_BANS) session = applyAction(session, ban, null, ctx);
+  session = applyAction(session, "Maokai", "jng", ctx);
+  return { ctx, session };
+};
+const descending = (scores) => scores.every((score, index) => index === 0 || scores[index - 1] >= score);
+
+test("the board is every champion still free, best first, each with the draft system's score and role only", () => {
+  const { ctx, session } = boardAfterMaokai();
+  const board = scoreboard(session, ctx);
+  const gone = new Set([...BOARD_BANS, "Maokai"]);
+  const free = Object.keys(knowledge.champions).filter((name) => !gone.has(name)).sort();
+  assert.deepEqual(board.map((row) => row.champion).sort(), free);
+  const scored = board.filter((row) => row.score !== null).map((row) => row.score);
+  assert.ok(descending(scored), "the scores are in descending order");
+  assert.ok(board.every((row) => board.indexOf(row) >= 0 && (row.score !== null || board.indexOf(row) >= scored.length)), "unscored champions come last");
+  assert.ok(board.every((row) => Object.keys(row).sort().join(",") === "champion,role,roles,score"), "no reason in the board");
+});
+
+test("a role filter keeps the champions that can take that role, scored in it", () => {
+  const { ctx, session } = boardAfterMaokai();
+  const top = scoreboard(session, ctx, { role: "top" });
+  const gone = new Set([...BOARD_BANS, "Maokai"]);
+  const expected = Object.keys(knowledge.champions).filter((name) => !gone.has(name) && (LANES[name] ?? []).includes("top"));
+  assert.equal(top.length, expected.length, "every free champion of the top lane is on the board");
+  assert.ok(top.every((row) => row.role === "top"), "the role is the filtered one");
+  assert.ok(descending(top.filter((row) => row.score !== null).map((row) => row.score)), "the filtered board is ordered too");
+});
+
+test("on a ban, the board scores the champions for the side that would take them next", () => {
+  const ctx = context();
+  const session = createSession("first");
+  assert.equal(currentStep(session).action, "ban");
+  const board = scoreboard(session, ctx);
+  const red = systemPickRows(session.picks, "red", {
+    champions: knowledge.champions,
+    bans: [],
+    rules: knowledge.rules,
+    links: ctx.links,
+  });
+  assert.equal(board[0].champion, red[0].champion, "the best ban is the champion red would pick best");
+  assert.equal(board[0].score, red[0].score);
+});
+
+test("after the last pick the board still lists every champion, and none has a score", () => {
+  const brain = context();
+  const done = { ...createSession("first"), log: Array.from({ length: 20 }, () => ({ action: "ban" })) };
+  assert.equal(currentStep(done), null);
+  const board = scoreboard(done, brain);
+  assert.equal(board.length, Object.keys(knowledge.champions).length);
+  assert.ok(board.every((row) => row.score === null));
+});
+
+test("under a lane the side has taken, the filter still lists that lane's champions, without a score", () => {
+  const ctx = context();
+  let session = createSession("first");
+  for (const ban of BOARD_BANS) session = applyAction(session, ban, null, ctx);
+  session = applyAction(session, "Aatrox", "top", ctx);
+  session = applyAction(session, "Gnar", "top", ctx);
+  session = applyAction(session, "Maokai", "jng", ctx);
+  assert.equal(currentStep(session).side, "blue");
+  const gone = new Set([...BOARD_BANS, "Aatrox", "Gnar", "Maokai"]);
+  const lane = Object.keys(knowledge.champions).filter((name) => !gone.has(name) && (LANES[name] ?? []).includes("top"));
+  const top = scoreboard(session, ctx, { role: "top" });
+  assert.equal(top.length, lane.length, "every free champion of the top lane is still listed");
+  assert.ok(top.every((row) => row.score === null && row.role === null), "none is scored in the taken lane");
 });
