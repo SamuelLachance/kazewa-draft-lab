@@ -84,7 +84,9 @@ test("the links come from the knowledge: families, duos, counters", () => {
 test("a bad duo with a locked partner makes the pick worse, and only with that partner", () => {
   const withPartner = { blue: team(null, null, null, null, null), red: {} };
   withPartner.blue.mid = "Viktor";
-  const plain = bestPick(withPartner, "blue", { champions, links: buildLinks({}), limit: 1000 });
+  // The same links, where the duo of Viktor and Zac is not named: the only difference is that duo.
+  const unnamed = { ...links, combo: (a, b) => ([a, b].sort().join("|") === "Viktor|Zac" ? 0 : links.combo(a, b)) };
+  const plain = bestPick(withPartner, "blue", { champions, links: unnamed, limit: 1000 });
   const linked = bestPick(withPartner, "blue", { champions, links, limit: 1000 });
   const score = (list, name) => list.find((o) => o.champion === name).score;
   assert.ok(score(linked, "Zac") < score(plain, "Zac"), "Zac is a bad duo of Viktor");
@@ -210,12 +212,14 @@ test("a team of three with no documented duo pays for it, and a pick that makes 
 
 test("two immobile champions are not offered together while another pick is legal (kp-67)", () => {
   const options = bestPick({ blue: team(null, null, null, null, null), red: {} }, "blue", { champions, links, limit: 1000 });
-  // Ashe is immobile: a second immobile champion is not offered beside it, while the team has other picks.
+  // Ashe is immobile: a second immobile champion beside it breaks the rule, so it is ranked after every pick that keeps it.
   const withAshe = bestPick({ blue: team(null, null, null, "Ashe", null), red: {} }, "blue", { champions, links, limit: 1000 });
   const immobile = (name) => (champions[name]?.immobile ?? 0) >= 2;
-  const offered = withAshe.filter((o) => immobile(o.champion));
   assert.ok(options.length > 0 && withAshe.length > 0);
-  assert.equal(offered.length, 0, `offered beside Ashe: ${offered.map((o) => o.champion).join(", ")}`);
+  assert.ok(!immobile(withAshe[0].champion), `the best pick beside Ashe is not immobile: ${withAshe[0].champion}`);
+  const sound = withAshe.filter((o) => !immobile(o.champion));
+  const broken = withAshe.filter((o) => immobile(o.champion));
+  assert.ok(broken.every((o) => o.score < Math.min(...sound.map((s) => s.score))), "every immobile pick ranks below the sound ones");
 });
 
 test("a champion picked without a role gives its role to a pick that needs it, when it can take another free role", () => {

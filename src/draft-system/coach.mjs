@@ -27,6 +27,12 @@ function sentence(reason, titles) {
     return good ? `Reste dans la famille ${reason.with}.` : `Sort de la famille ${reason.with} : à ne prendre que pour répondre.`;
   if (reason.rule === "flex")
     return "Garde de la flexibilité : il peut encore jouer plusieurs rôles ouverts.";
+  if (reason.rule === "check")
+    return good
+      ? "Compo : ce pick règle une part des règles de Shanei ou ouvre un duo documenté."
+      : reason.with.length
+        ? `Compo : ce pick laisse des règles de Shanei non tenues (${reason.with.join(", ")}).`
+        : "Compo : il reste des pièces à trouver pour tenir la compo.";
   const title = titles.get(reason.rule) ?? RULES[reason.rule]?.title ?? reason.rule;
   return good ? `${title} : ce pick en comble une part.` : `${title} : ce pick l'aggrave.`;
 }

@@ -10,6 +10,7 @@
  *   families(a)    the families of a champion, as the method names them
  */
 import { cardRelations } from "../relations.mjs";
+import { indexMethod } from "../method.mjs";
 
 const key = (a, b) => (a < b ? `${a}|${b}` : `${b}|${a}`);
 
@@ -56,6 +57,8 @@ export function buildLinks({ method = null, cards = null, relations = null }) {
     strong: (a, b) => documented.has(key(a, b)) && combos.get(key(a, b)) > 0,
     partners: (name) => partnersOf.get(name) ?? [],
     counter: (a, b) => counters.get(`${a}>${b}`) ?? 0,
+    // Shanei's composition checker (src/method.mjs compositionStatus), read on the same method; null without it.
+    index: method ? indexMethod(method) : null,
     size: { families: families.size, combos: combos.size, counters: counters.size },
   };
 }

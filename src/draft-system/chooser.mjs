@@ -15,6 +15,11 @@
  * so that the pick is never worse than the reply the other side can make to it.
  * Our own flexible picks keep value while they can still fill open roles.
  *
+ * The pick is then judged on the team it can still become: the team is completed role by role
+ * from the best options of each role, and the completed team is scored by the same costs and by Shanei's
+ * composition checker (src/method.mjs compositionStatus). A pick that breaks a rule of the checker, or leaves one
+ * no free champion can mend, is ranked after every other pick.
+ *
  * Every state-dependent term is zero when the state does not trigger it. The
  * weights below are the only numbers that are not in the knowledge base.
  */
@@ -22,6 +27,7 @@ import { LANES } from "../lanes.mjs";
 import { teamVector } from "./profile.mjs";
 import { RULES, violations } from "./rules.mjs";
 import { buildLinks } from "./links.mjs";
+import { compositionStatus } from "../method.mjs";
 
 const ROLES = ["top", "jng", "mid", "bot", "sup"];
 const BLOCK = ["jng", "mid", "bot", "sup"];
@@ -53,7 +59,22 @@ export const WEIGHTS = Object.freeze({
   needsEarly: 0.2,
   lock: 1, // after the blind pick: a champion of the locked family
   leave: 1, // after the blind pick: a champion outside the locked family (an answer can still win)
+  // Shanei's composition checker, read on the team a pick leaves: a rule it breaks, a piece it still lacks,
+  // and a documented duo in the team (the draft is built on one). Each is a cost or a gain of the pick.
+  shaneiBad: 10,
+  breach: 100, // a pick that leaves a rule of Shanei broken, or that no free champion can mend: ranked after every other pick
+  shaneiTodo: 1,
+  shaneiDuo: 16,
+  // The completion: the team a pick can still lead to, judged on the whole team (see completionValue).
+  plan: 1,
+  missingRole: 15, // a role the completion cannot fill with a champion of the pool
 });
+
+// The shortlist the completion is run for, and how many champions per role it draws its picks from.
+const SHORTLIST = 30;
+const POOL_PER_ROLE = 3;
+// The replies the worst case of a pick runs: the strongest of them, besides those that punish the pick.
+const REPLIES = 20;
 
 const LANE_CHAMPIONS = Object.keys(LANES);
 
@@ -213,9 +234,63 @@ export function costOf(own, enemy, { champions, links = NO_LINKS, needsScale = 1
   return { total, parts };
 }
 
+/** A team as the checker reads it: role to name. */
+const asTeam = (members) => Object.fromEntries(members.map((m) => [m.role, m.name]));
+
+/**
+ * Shanei's checker on a team: the rules it breaks (bad), the pieces it still lacks (todo), and whether it holds
+ * a documented duo. A team of one has nothing to check yet.
+ */
+function checkTerm(own, enemy, { champions, links = NO_LINKS }) {
+  if (!links.index || own.length < 2) return { total: 0, bad: [] };
+  const status = compositionStatus(asTeam(own), asTeam(enemy), links.index, { profiles: champions });
+  const items = status?.items ?? [];
+  const bad = items.filter((item) => item.state === "bad").map((item) => item.rule);
+  const todo = items.filter((item) => item.state === "todo").length;
+  let duo = false;
+  for (let i = 0; i < own.length && !duo; i += 1)
+    for (let j = i + 1; j < own.length && !duo; j += 1) duo = links.strong(own[i].name, own[j].name);
+  const total = -(WEIGHTS.shaneiBad * bad.length + WEIGHTS.shaneiTodo * todo) + (duo ? WEIGHTS.shaneiDuo : 0);
+  return { total: round(total), bad };
+}
+
+/** The value of a whole team against the other: costs and Shanei's checker, the higher the better. */
+function valueOf(team, enemy, ctx) {
+  return -costOf(team, enemy, ctx).total + checkTerm(team, enemy, ctx).total;
+}
+
+/**
+ * The value of the team a pick leads to: the team is completed role by role, each time with the best of a
+ * small pool (the best options of each role, and the documented duos of the team's members). A pick is
+ * judged on what its team can become, not on the reply of the moment: this is what makes a duo be built.
+ */
+function completionValue({ team, open, used, enemy, pool, links, ctx }) {
+  let current = team;
+  let roles = open;
+  while (roles.length) {
+    const extra = [];
+    for (const m of current)
+      for (const p of links.partners(m.name))
+        if (!used.has(p)) for (const role of LANES[p] ?? []) if (roles.includes(role)) extra.push({ name: p, role });
+    let best = null;
+    for (const entry of [...pool, ...extra]) {
+      if (used.has(entry.name) || !roles.includes(entry.role)) continue;
+      const value = valueOf([...current, entry], enemy, ctx);
+      if (!best || value > best.value) best = { entry, value };
+    }
+    if (!best) return valueOf(current, enemy, ctx) - WEIGHTS.missingRole * roles.length;
+    current = [...current, best.entry];
+    used.add(best.entry.name);
+    roles = roles.filter((role) => role !== best.entry.role);
+  }
+  return valueOf(current, enemy, ctx);
+}
+
 /** How much `me` is worse off than `them`: the cost of them minus the cost of me. */
 export function standing(me, them, ctx) {
-  return costOf(them, me, ctx).total - costOf(me, them, ctx).total;
+  // Shanei's checker counts both ways: a reply that leaves our team a broken rule (sp-48: a stealable ultimate
+  // beside their Sylas) weighs as a cost, and so does a broken rule of theirs.
+  return costOf(them, me, ctx).total - costOf(me, them, ctx).total + checkTerm(me, them, ctx).total - checkTerm(them, me, ctx).total;
 }
 
 /**
@@ -235,13 +310,24 @@ function candidates(open, taken) {
 
 /**
  * The structural rules of Shanei that a pick must leave satisfiable: a pick that makes one of them
- * impossible to meet, with the champions still free, is not offered (unless every pick does).
+ * impossible to meet, with the champions still free, is ranked after the others (see WEIGHTS.breach).
  */
-function structuralOk(c, mine, taken, links, champions) {
+function structuralOk(c, mine, taken, links, champions, enemy = []) {
   const team = [...mine.members, { name: c.name, role: c.role }];
   const openAfter = mine.open.filter((r) => r !== c.role);
   const info = (name) => links.info(name);
   const free = (name) => name !== c.name && !taken.has(name);
+  // The last role of the team needs a free champion that leaves no rule of Shanei's checker broken: the checker
+  // reads the whole team only once it is complete, so this looks one pick ahead (sf-1, sp-74, sp-48…).
+  if (openAfter.length === 1 && links.index) {
+    const last = openAfter[0];
+    const mended = LANE_CHAMPIONS.some((name) => {
+      if (!free(name) || !(LANES[name] ?? []).includes(last)) return false;
+      const status = compositionStatus(asTeam(team.concat([{ name, role: last }])), asTeam(enemy), links.index, { profiles: champions });
+      return !(status?.items ?? []).some((item) => item.state === "bad");
+    });
+    if (!mended) return false;
+  }
   // At most one immobile champion: two stack without counterplay (kp-67).
   if (team.filter((m) => (champions[m.name]?.immobile ?? 0) >= 2).length > 1) return false;
   // Four of one damage type: the last pick has to be the other type (sp-75, sr-5).
@@ -258,6 +344,20 @@ function structuralOk(c, mine, taken, links, champions) {
   if (team.length >= 3 && !team.some((m) => BLOCK.includes(m.role) && info(m.name)?.tank)) {
     if (!openAfter.some((r) => BLOCK.includes(r))) return false;
     if (!LANE_CHAMPIONS.some((name) => free(name) && info(name)?.tank)) return false;
+  }
+  // The block of four belongs to a family (sf-1): once three of its members share none, the last block role needs
+  // a free champion that shares one of their families.
+  const block = team.filter((m) => BLOCK.includes(m.role));
+  if (block.length === 3) {
+    const count = new Map();
+    for (const m of block) for (const f of links.families(m.name)) count.set(f, (count.get(f) ?? 0) + 1);
+    if (Math.max(0, ...count.values()) < 2) {
+      const families = new Set(count.keys());
+      const lastRoles = openAfter.filter((r) => BLOCK.includes(r));
+      if (!lastRoles.length) return false;
+      const fits = (name) => (LANES[name] ?? []).some((r) => lastRoles.includes(r)) && [...links.families(name)].some((f) => families.has(f));
+      if (!LANE_CHAMPIONS.some((name) => free(name) && fits(name))) return false;
+    }
   }
   return true;
 }
@@ -320,9 +420,17 @@ export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, 
   for (const m of mine.members)
     for (const r of m.flex ?? []) if (r !== m.role && mine.open.includes(r) && !movable.has(m.role)) movable.set(m.role, { member: m, to: r });
   const legal = candidates([...mine.open, ...movable.keys()], state.taken).filter((c) => !role || c.role === role);
-  // Offered only the picks that keep Shanei's structural rules satisfiable, unless no pick does.
-  const structural = legal.filter((c) => structuralOk(c, mine, state.taken, links, champions));
-  const options = (structural.length ? structural : legal)
+  // The replies of the other side: each champion it could take next, once, with the role it would play. Ranked by
+  // how much each would help that side now; the worst case of a pick runs the strongest of them and those that punish it.
+  const replyEntries = [...new Map(candidates(theirs.open, state.taken).map((reply) => [reply.name, reply])).values()].map((reply) => {
+    // Their reply is uncertain when it can still take several of their open roles.
+    const roles = (LANES[reply.name] ?? []).filter((r) => theirs.open.includes(r));
+    const member = roles.length >= 2 ? { name: reply.name, role: reply.role, flex: roles } : { name: reply.name, role: reply.role };
+    return { name: reply.name, member, proxy: standing([...theirs.members, member], mine.members, ctx) };
+  });
+  replyEntries.sort((a, b) => b.proxy - a.proxy || a.name.localeCompare(b.name));
+  const strongest = new Set(replyEntries.slice(0, REPLIES).map((e) => e.name));
+  const options = legal
     .map((c) => {
     const move = mine.open.includes(c.role) ? null : movable.get(c.role);
     const ownAfter = move
@@ -333,15 +441,10 @@ export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, 
     const flex = openAfter.length >= 2 ? WEIGHTS.flex * Math.max(0, playable - 1) : 0;
     let worst = Infinity;
     const taken = new Set([...state.taken, c.name]);
-    // A reply's role does not change its standing: each champion replies once.
-    const replies = [...new Map(candidates(theirs.open, taken).map((reply) => [reply.name, reply])).values()];
+    // The worst reply: the replies of the strongest kind, and every reply that punishes this champion.
+    const replies = replyEntries.filter((e) => e.name !== c.name && (strongest.has(e.name) || links.counter(c.name, e.name) < 0));
     if (!replies.length) worst = standing(ownAfter, theirs.members, ctx);
-    for (const reply of replies) {
-      // Their reply is uncertain when it can still take several of their open roles.
-      const roles = (LANES[reply.name] ?? []).filter((r) => theirs.open.includes(r));
-      const member = roles.length >= 2 ? { name: reply.name, role: reply.role, flex: roles } : { name: reply.name, role: reply.role };
-      worst = Math.min(worst, standing(ownAfter, [...theirs.members, member], ctx));
-    }
+    for (const reply of replies) worst = Math.min(worst, standing(ownAfter, [...theirs.members, reply.member], ctx));
     const reasons = reasonsFor({ name: c.name, role: c.role }, mine.members, theirs.members, ctx);
     const family = familyTerm(c, mine, lockFamily, links, blindPhase);
     if (family.reason) reasons.push(family.reason);
@@ -351,11 +454,51 @@ export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, 
     // An empty draft has no needs: the blind pick is chosen on its families and roles alone.
     // A documented duo of the champion that the team can still take: the draft is built on such duos.
     const pull = !blindPhase && openAfter.length && links.partners(c.name).some((p) => p !== c.name && !state.taken.has(p) && !mine.members.some((m) => m.name === p)) ? WEIGHTS.comboPull : 0;
+    // Shanei's composition checker on the team this pick leaves: the rules it breaks, its duo, what it still lacks.
+    const check = blindPhase ? { total: 0, bad: [] } : checkTerm(ownAfter, theirs.members, ctx);
+    if (check.total) reasons.push({ rule: "check", with: check.bad, saved: check.total });
+    // A pick that breaks a rule of Shanei, or leaves one that no free champion can mend, is ranked after the others.
+    const breach = !blindPhase && (!structuralOk(c, mine, state.taken, links, champions, theirs.members) || check.bad.length > 0) ? WEIGHTS.breach : 0;
     const score = blindPhase
       ? family.saved + 0.1 * flex
-      : worst + flex + family.saved + answer + pull;
-    return { champion: c.name, role: c.role, score: round(score), reasons };
+      : worst + flex + family.saved + answer + pull + check.total - breach;
+    // The team's value right after the pick: the completion's pool also takes the picks that fix a need now.
+    const value = blindPhase ? 0 : valueOf(ownAfter, theirs.members, ctx);
+    return { champion: c.name, role: c.role, score: round(score), value, reasons, ownAfter, openAfter, taken };
   });
+  // The completion: each option is judged on the team it can still become, from the best options of each role.
+  if (!blindPhase && options.length) {
+    const byScore = [...options].sort((a, b) => b.score - a.score);
+    // The pool: the best of each role by score, and the best of each role by the value of the team it leaves.
+    const pool = new Map();
+    for (const ranking of [byScore, [...options].sort((a, b) => b.value - a.value)]) {
+      const perRole = new Map();
+      for (const option of ranking) {
+        const count = perRole.get(option.role) ?? 0;
+        if (count >= POOL_PER_ROLE) continue;
+        perRole.set(option.role, count + 1);
+        pool.set(`${option.champion}|${option.role}`, { name: option.champion, role: option.role });
+      }
+    }
+    const poolList = [...pool.values()];
+    const planned = new Map();
+    for (const option of byScore.slice(0, SHORTLIST))
+      planned.set(
+        option,
+        completionValue({
+          team: option.ownAfter,
+          open: option.openAfter,
+          used: new Set(option.taken),
+          enemy: theirs.members,
+          pool: poolList,
+          links,
+          ctx,
+        }),
+      );
+    // An option outside the shortlist is judged as the weakest of the shortlist: it is not run.
+    const floor = Math.min(...planned.values());
+    for (const option of options) option.score = round(option.score + WEIGHTS.plan * (planned.get(option) ?? floor));
+  }
   // One entry per champion: its best role in this state.
   const best = new Map();
   for (const option of options) {
