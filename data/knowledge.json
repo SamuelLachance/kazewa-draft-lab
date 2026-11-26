@@ -281,48 +281,57 @@
     },
     "Anivia": {
       "champion": "Anivia",
-      "catch": 0,
-      "catch_type": null,
+      "catch": 1,
+      "catch_type": "longue_portee",
       "engage": 0,
       "engage_type": null,
       "follow_up": 0,
       "immobile": 2,
       "dashs": 0,
-      "anti_dash": 0,
+      "anti_dash": 1,
       "frontline": 0,
       "peel": 0,
       "disengage": 0,
-      "scaling": 0,
+      "scaling": 1,
       "snowball_early": 0,
       "bridge": 0,
-      "dps": 0,
+      "dps": 1,
       "burst": 1,
       "global": 0,
       "split": 0,
       "poke": 1,
       "zone": 2,
       "source": {
+        "catch": "kaze",
         "immobile": "kaze",
+        "anti_dash": "kaze",
         "zone": "kaze",
         "scaling": "kaze",
-        "poke": "déduit",
-        "burst": "déduit"
+        "dps": "kaze",
+        "burst": "kaze",
+        "poke": "déduit"
       },
-      "note": "Rangée ~6 fois dans les immobiles (aucun dash, dépend du Flash) ; son mur E est cité dans la famille contrôle de terrain/zone (cSekk7rvINc, iP33gPti5XA) ; explicitement qualifiée de « stabilisatrice, neutre en scaling » (ni early ni vraiment late, LVDYSqz2RiQ), pas une scaleuse au sens de Kazewa.",
+      "note": "Kazewa voit Anivia comme un mage-mur immobile, sans dash ni sortie hors Flash (zc7f2iPq7_8, b-XG7Ja-0hY), dont la force est le contrôle de zone par mur et ultime (gIpos4fRVw8, urI4eASNSNc), citée parmi les scalings purs et comme un « pic de 10 » en mid (ZxGZIIO91Tk, x-NpY60n-TY), avec du DPS et du burst soutenus par beaucoup de PV (g24oY7T46HU).",
       "_provenance": {
-        "file": "taxo/class_07.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "LVDYSqz2RiQ",
-          "cSekk7rvINc",
-          "iP33gPti5XA"
+          "b-XG7Ja-0hY",
+          "g24oY7T46HU",
+          "gIpos4fRVw8",
+          "k_ram4c1R8c",
+          "urI4eASNSNc",
+          "x-NpY60n-TY",
+          "zc7f2iPq7_8",
+          "ZxGZIIO91Tk"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Annie": {
       "champion": "Annie",
-      "catch": 0,
-      "catch_type": null,
+      "catch": 1,
+      "catch_type": "longue_portee",
       "engage": 0,
       "engage_type": null,
       "follow_up": 0,
@@ -335,26 +344,29 @@
       "scaling": 0,
       "snowball_early": 0,
       "bridge": 0,
-      "dps": 0,
+      "dps": 1,
       "burst": 2,
       "global": 0,
       "split": 0,
       "poke": 0,
       "zone": 0,
       "source": {
-        "burst": "kaze",
-        "immobile": "kaze"
+        "catch": "déduit",
+        "immobile": "déduit",
+        "dps": "kaze",
+        "burst": "kaze"
       },
-      "note": "Kazewa la voit comme un mage burst pur, exclusivement teamfight/backline, jamais joué en side lane (36pC3wm5u3w, xscoqh9K05I, g24oY7T46HU) ; citée une fois comme immobile (bG2Nn6Mw_lo).",
+      "note": "Kazewa en fait un mage burst AP dont le kit s'épuise en un seul combo (1kaw7VnpuhA), qu'il décrit pourtant comme un pick assassin capable d'isoler une cible (ENf_B4hevcw), peu fourni en DPS en mid game (g24oY7T46HU) et qui ne peut pas jouer sa vague face à un poke à distance (XgihzywQGng).",
       "_provenance": {
-        "file": "taxo/class_08.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "36pC3wm5u3w",
-          "bG2Nn6Mw_lo",
+          "1kaw7VnpuhA",
+          "ENf_B4hevcw",
           "g24oY7T46HU",
-          "xscoqh9K05I"
+          "XgihzywQGng"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Aphelios": {
@@ -837,45 +849,53 @@
       "champion": "Camille",
       "catch": 2,
       "catch_type": "flanc",
-      "engage": 0,
-      "engage_type": null,
+      "engage": 1,
+      "engage_type": "court",
       "follow_up": 0,
       "immobile": 0,
       "dashs": 1,
-      "anti_dash": 0,
+      "anti_dash": 1,
       "frontline": 0,
       "peel": 0,
       "disengage": 0,
-      "scaling": 1,
-      "snowball_early": 2,
+      "scaling": 2,
+      "snowball_early": 0,
       "bridge": 0,
-      "dps": 0,
-      "burst": 1,
+      "dps": 2,
+      "burst": 0,
       "global": 0,
       "split": 2,
       "poke": 0,
-      "zone": 0,
+      "zone": 1,
       "source": {
         "catch": "kaze",
-        "frontline": "kaze",
+        "engage": "kaze",
+        "dashs": "déduit",
+        "anti_dash": "déduit",
         "scaling": "kaze",
-        "snowball_early": "kaze",
+        "dps": "kaze",
         "split": "kaze",
-        "dashs": "kaze",
-        "burst": "déduit"
+        "zone": "kaze"
       },
-      "note": "Kazewa la range en catcheuse de flanc (JZecUmvga3M, uMyzvlkcP9A, F0GmsMinpa8) et splitteuse protégée dépendant de 2 items pour scaler (Y1kXb5XprGo, oKxtRF8q4OY) ; explicitement exclue de la frontline même jouée en carry (« ce n'est pas un tank », u73_c_7OQIg).",
+      "note": "Kazewa voit Camille comme un carry hyper-scaling de flanc, à la fois split et catcheuse via son mur d'ultime, qui ne pèse qu'après deux items et 20-25 minutes et reste fragile sans ultime global ni tank autour (2QkQYFPQF48, iPioYg7tv28, uMyzvlkcP9A, F0GmsMinpa8, u73_c_7OQIg).",
       "_provenance": {
-        "file": "taxo/class_08.json",
+        "file": "rebuilt-train-only",
         "sources": [
+          "uMyzvlkcP9A",
           "F0GmsMinpa8",
-          "JZecUmvga3M",
-          "Y1kXb5XprGo",
-          "oKxtRF8q4OY",
+          "iPioYg7tv28",
+          "2QkQYFPQF48",
           "u73_c_7OQIg",
-          "uMyzvlkcP9A"
+          "AvHU27oQDFE",
+          "hGJJOPzx6rw",
+          "qTLiY3J7nR0",
+          "3Ey0i4JQok8",
+          "lPIM3We7vE0",
+          "g24oY7T46HU",
+          "p5YA0gyY0b0"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Cassiopeia": {
@@ -888,38 +908,46 @@
       "immobile": 2,
       "dashs": 0,
       "anti_dash": 1,
-      "frontline": 0,
-      "peel": 0,
+      "frontline": 1,
+      "peel": 1,
       "disengage": 0,
       "scaling": 2,
       "snowball_early": 0,
       "bridge": 0,
       "dps": 2,
-      "burst": 0,
+      "burst": 1,
       "global": 0,
       "split": 0,
-      "poke": 0,
-      "zone": 1,
+      "poke": 2,
+      "zone": 2,
       "source": {
-        "follow_up": "kaze",
         "immobile": "kaze",
         "anti_dash": "kaze",
         "frontline": "kaze",
+        "peel": "kaze",
         "scaling": "kaze",
-        "dps": "kaze",
-        "zone": "kaze"
+        "poke": "kaze",
+        "zone": "kaze",
+        "dps": "déduit",
+        "burst": "kaze",
+        "follow_up": "kaze"
       },
-      "note": "Mage contrôle immobile (~8 vidéos) que Kazewa range côté 'followup/disengage' et pas engage (2p0DCiayuz8) ; DPS soutenu 'stratosphérique' mal perçu comme burst (cSQP5oImnRo) ; scaling extrême niveau 16+ (pA0HnoSk7lw).",
+      "note": "Kazewa voit Cassiopeia comme un poke-zone immobile sans dash, scaler conditionné au matchup et burst assassin qui ne tient pas sans front line devant elle, favorisée en top contre Poppy grâce à son poke ciblé mais contrée par Garen [slSBAzUOKks, ISAb1T_ORUU, b-XG7Ja-0hY, ND-ejmPURX0, lPIM3We7vE0].",
       "_provenance": {
-        "file": "taxo/class_09.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "2p0DCiayuz8",
-          "cSQP5oImnRo",
-          "pA0HnoSk7lw"
+          "1UOWdQ4EcbY",
+          "ISAb1T_ORUU",
+          "eEsCZhA3H0Q",
+          "ND-ejmPURX0",
+          "slSBAzUOKks",
+          "b-XG7Ja-0hY",
+          "qtH4Q6mrr_c",
+          "lPIM3We7vE0",
+          "lI1sxyNrpGc"
         ],
-        "warnings": [
-          "DPS et burst sont décrits différemment selon les vidéos et les builds."
-        ]
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Cho'Gath": {
@@ -1273,31 +1301,36 @@
       "frontline": 0,
       "peel": 0,
       "disengage": 1,
-      "scaling": 0,
+      "scaling": 1,
       "snowball_early": 0,
       "bridge": 0,
       "dps": 1,
       "burst": 0,
       "global": 0,
-      "split": 1,
-      "poke": 1,
+      "split": 0,
+      "poke": 2,
       "zone": 0,
       "source": {
-        "dashs": "kaze",
         "poke": "kaze",
         "scaling": "kaze",
-        "disengage": "déduit",
-        "dps": "déduit",
-        "split": "déduit"
+        "dps": "kaze",
+        "disengage": "kaze",
+        "dashs": "kaze"
       },
-      "note": "Explicitement exclu de l'immobile (« cible mobile à ne pas chasser ») et du scaling (« faux scaling » : sa valeur vient de la range, pas d'une vraie courbe de puissance, F2aZxRBr6tY) ; rangé « poke ADC mobile » (1aNsp7bWHVA).",
+      "note": "Kazewa voit Ezreal comme un carry range/poke, safe et à faible DPS soutenu, sans peel ni prise de lead, dont la win condition est de farmer jusqu'à 3-4 items (faux scaling selon ses définitions), donc dépendant d'une range ou d'un catch d'équipe et battu par Xayah ou Kai'Sa en matchup, le contrôle des dragons étant décisif contre Xayah [9UWJZe32Qsc, tXP0_AOfGBw, g24oY7T46HU, ObEvK-hR9bs, h7-S2AwioDY, dfTTHnzJVhU, Z5yhZKkTf0w].",
       "_provenance": {
-        "file": "taxo/class_07.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "1aNsp7bWHVA",
-          "F2aZxRBr6tY"
+          "9UWJZe32Qsc",
+          "tXP0_AOfGBw",
+          "g24oY7T46HU",
+          "ObEvK-hR9bs",
+          "h7-S2AwioDY",
+          "dfTTHnzJVhU",
+          "Z5yhZKkTf0w"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Fiddlesticks": {
@@ -2000,44 +2033,49 @@
       "follow_up": 0,
       "immobile": 0,
       "dashs": 1,
-      "anti_dash": 2,
+      "anti_dash": 1,
       "frontline": 1,
       "peel": 0,
       "disengage": 0,
-      "scaling": 1,
+      "scaling": 0,
       "snowball_early": 1,
       "bridge": 0,
       "dps": 0,
-      "burst": 1,
-      "global": 0,
+      "burst": 0,
+      "global": 1,
       "split": 0,
       "poke": 0,
       "zone": 2,
       "source": {
         "catch": "kaze",
         "engage": "kaze",
-        "anti_dash": "kaze",
-        "zone": "kaze",
         "dashs": "déduit",
-        "frontline": "déduit",
-        "scaling": "déduit",
-        "snowball_early": "déduit",
-        "burst": "déduit"
+        "anti_dash": "kaze",
+        "frontline": "kaze",
+        "snowball_early": "kaze",
+        "global": "kaze",
+        "zone": "kaze"
       },
-      "note": "Catcheur de référence absolu chez Kazewa (« ça fait 3 ans que je le répète », IPgCUDzCFpA) et hard-engage court (dfTTHnzJVhU) ; cage E+Q = outil anti-mobile/anti-dash majeur (91R-kQSi4_U) et zone control (8DH9VTnTSDk) ; nuancé par des « faux counter » contre immobiles à gros DPS (NKYY2NzHBnw, jRJJGkKpKBQ).",
+      "note": "Kazewa en fait le catcheur de référence anti-immobile (cage E+Q, « Jarvan est très fort dans les immobiles », 1UOWdQ4EcbY, dfTTHnzJVhU, b-XG7Ja-0hY, hKd-qIpegGE), un engage court committal qu'il juge sous-évalué (3Ey0i4JQok8), un faux counter face aux dps élevés et aux mobiles qui s'échappent (NKYY2NzHBnw, jRJJGkKpKBQ, zn2EpFiCFwI), et un ultime qu'il range comme global au sens lâche (F0GmsMinpa8).",
       "_provenance": {
-        "file": "taxo/class_01.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "8DH9VTnTSDk",
-          "91R-kQSi4_U",
-          "IPgCUDzCFpA",
-          "NKYY2NzHBnw",
-          "anti-mobile",
+          "1UOWdQ4EcbY",
+          "3Ey0i4JQok8",
+          "b-XG7Ja-0hY",
           "dfTTHnzJVhU",
-          "hard-engage",
-          "jRJJGkKpKBQ"
+          "NKYY2NzHBnw",
+          "jRJJGkKpKBQ",
+          "zn2EpFiCFwI",
+          "hKd-qIpegGE",
+          "F0GmsMinpa8",
+          "gIpos4fRVw8",
+          "XgihzywQGng",
+          "1kaw7VnpuhA",
+          "AvHU27oQDFE"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Jax": {
@@ -3154,15 +3192,15 @@
     "Maokai": {
       "champion": "Maokai",
       "catch": 1,
-      "catch_type": "flanc",
+      "catch_type": "longue_portée",
       "engage": 1,
       "engage_type": "court",
       "follow_up": 0,
-      "immobile": 0,
+      "immobile": 1,
       "dashs": 1,
-      "anti_dash": 2,
+      "anti_dash": 1,
       "frontline": 2,
-      "peel": 1,
+      "peel": 2,
       "disengage": 0,
       "scaling": 2,
       "snowball_early": 0,
@@ -3176,26 +3214,36 @@
       "source": {
         "catch": "kaze",
         "engage": "kaze",
+        "immobile": "kaze",
+        "dashs": "déduit",
         "anti_dash": "kaze",
         "frontline": "kaze",
+        "peel": "kaze",
         "scaling": "kaze",
         "bridge": "kaze",
-        "zone": "kaze",
-        "dashs": "déduit",
-        "peel": "déduit"
+        "zone": "kaze"
       },
-      "note": "Un des champions les plus cités du corpus : « un de mes persos préférés » (-B3b80GYtDM), vrai tank-jungle qui scale (31 mentions frontline, tank-scaling), « historiquement conçu pour contrer les dashers » (anti-dash ~4), gestionnaire de terrain/catch (« anti-mobile, tank, catch »), et bridge flex support/jungle (« cache l'information », aBZbd1OxPI8). Cas particulier : « peut engager sans jamais se commit en position » via son ulti, nuance par rapport à la définition stricte de l'engage.",
+      "note": "Kazewa voit Maokai comme un tank jungle qui scale, tient le terrain avec ses racines et sert de pont vers le carry, et il le juge bien plus fort associé à Azir (« Azir + Maokai = GG ») [VGCwjESeWeg, FEHZOwfcczc, b-XG7Ja-0hY, aBZbd1OxPI8, 7AKs-joyIOs].",
       "_provenance": {
-        "file": "taxo/class_07.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "-B3b80GYtDM",
+          "1VlERsENAR8",
+          "7AKs-joyIOs",
+          "9UWJZe32Qsc",
           "aBZbd1OxPI8",
-          "anti-mobile",
-          "information",
-          "particulier",
-          "tank-jungle"
+          "b-XG7Ja-0hY",
+          "dfTTHnzJVhU",
+          "eEsCZhA3H0Q",
+          "FEHZOwfcczc",
+          "IXQ-mf-PHsk",
+          "ISAb1T_ORUU",
+          "nq-i0Lmx-Hw",
+          "ObEvK-hR9bs",
+          "pF03MSD80-c",
+          "VGCwjESeWeg"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Master Yi": {
@@ -3831,55 +3879,68 @@
     "Orianna": {
       "champion": "Orianna",
       "catch": 1,
-      "catch_type": "null",
+      "catch_type": "longue_portee",
       "engage": 0,
       "engage_type": null,
       "follow_up": 1,
-      "immobile": 1,
+      "immobile": 2,
       "dashs": 0,
       "anti_dash": 0,
       "frontline": 0,
-      "peel": 0,
+      "peel": 1,
       "disengage": 0,
       "scaling": 1,
       "snowball_early": 0,
       "bridge": 0,
-      "dps": 0,
-      "burst": 1,
+      "dps": 1,
+      "burst": 0,
       "global": 0,
       "split": 0,
-      "poke": 0,
-      "zone": 0,
+      "poke": 1,
+      "zone": 1,
       "source": {
-        "immobile": "kaze",
         "catch": "kaze",
         "follow_up": "kaze",
-        "burst": "déduit",
-        "scaling": "déduit"
+        "immobile": "kaze",
+        "peel": "kaze",
+        "scaling": "kaze",
+        "dps": "déduit",
+        "poke": "kaze",
+        "zone": "kaze"
       },
-      "note": "Citée ~16 fois comme personnage immobile canonique (« Oriana est un personnage immobile qui se fait punir par Jarvan », GnJPSjKmRrM) ; rangée aussi parmi les « lockers » multiplicateurs de catch (Orianna/Viktor/Kennen/Galio/Poppy) — elle amplifie un CC déjà posé plutôt que d'initier seule, d'où follow_up=1.",
+      "note": "Kazewa voit Orianna comme un mage de contrôle immobile dont la valeur tient aux CC enchaînés sur une cible après un stun (Jarvan R puis Orianna Q/E puis Vi R, [lPIM3We7vE0]), punie par les assassins mobiles ([h7-S2AwioDY], [ENf_B4hevcw]), qu'il utilise comme locker de catch aux côtés de Jarvan ([NKYY2NzHBnw]) ou comme mid à zone/poke qui punit un split ([ObEvK-hR9bs]), avec une mention contradictoire la rangeant dans une composition mobile/dive ([j1PhMNTYqrY]).",
       "_provenance": {
-        "file": "taxo/class_00.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "GnJPSjKmRrM"
+          "lPIM3We7vE0",
+          "h7-S2AwioDY",
+          "ENf_B4hevcw",
+          "lI1sxyNrpGc",
+          "j1PhMNTYqrY",
+          "NKYY2NzHBnw",
+          "ObEvK-hR9bs",
+          "cynwgSKLGYI",
+          "NueyXunR8Zk",
+          "1VlERsENAR8"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Ornn": {
       "champion": "Ornn",
       "catch": 0,
       "catch_type": null,
-      "engage": 1,
+      "engage": 2,
       "engage_type": "court",
       "follow_up": 0,
-      "immobile": 0,
-      "dashs": 1,
-      "anti_dash": 0,
+      "immobile": 1,
+      "dashs": 2,
+      "anti_dash": 1,
       "frontline": 2,
       "peel": 1,
       "disengage": 0,
-      "scaling": 2,
+      "scaling": 0,
       "snowball_early": 0,
       "bridge": 0,
       "dps": 0,
@@ -3889,22 +3950,24 @@
       "poke": 0,
       "zone": 1,
       "source": {
+        "engage": "kaze",
         "frontline": "kaze",
-        "scaling": "kaze",
-        "engage": "déduit",
+        "peel": "kaze",
+        "zone": "kaze",
+        "immobile": "déduit",
         "dashs": "déduit",
-        "peel": "déduit",
-        "zone": "déduit"
+        "anti_dash": "déduit"
       },
-      "note": "« je vois pas un monde où tu joues pas tank en saison 16 » — vrai tank de référence, 31 mentions (S7aorVJ4wQQ, IPgCUDzCFpA) ; « scaling tank buffeur » (-B3b80GYtDM, IPgCUDzCFpA). Reste déduit : Q charge = engage/mobilité court, W piliers = zone/anti-fuite partielle.",
+      "note": "Kazewa voit Ornn comme un tank top hard-engage, qui punit l'immobilité de Varus et protège une composition poke/slow [IRtNQStqzS4], qu'il juge tanky à 3000-3500 HP [2DVB7PhKaSA] et qu'il range parmi les repousses pour sécuriser Nashor/Baron [ObEvK-hR9bs].",
       "_provenance": {
-        "file": "taxo/class_01.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "-B3b80GYtDM",
-          "IPgCUDzCFpA",
-          "S7aorVJ4wQQ"
+          "IRtNQStqzS4",
+          "2DVB7PhKaSA",
+          "ObEvK-hR9bs"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Pantheon": {
@@ -4185,9 +4248,9 @@
     },
     "Rek'Sai": {
       "champion": "Rek'Sai",
-      "catch": 0,
-      "catch_type": null,
-      "engage": 2,
+      "catch": 1,
+      "catch_type": "flanc",
+      "engage": 1,
       "engage_type": "court",
       "follow_up": 0,
       "immobile": 0,
@@ -4197,32 +4260,34 @@
       "peel": 0,
       "disengage": 0,
       "scaling": 0,
-      "snowball_early": 2,
+      "snowball_early": 1,
       "bridge": 0,
       "dps": 0,
-      "burst": 0,
+      "burst": 1,
       "global": 0,
       "split": 1,
       "poke": 0,
       "zone": 0,
       "source": {
+        "catch": "kaze",
         "engage": "kaze",
-        "scaling": "kaze",
+        "dashs": "déduit",
         "snowball_early": "kaze",
-        "dps": "kaze",
-        "split": "kaze",
-        "dashs": "déduit"
+        "burst": "kaze",
+        "split": "kaze"
       },
-      "note": "Jungler d'engage/dive ('Rek'Sai veut dive', BHKJ2zAU2Jo) explicitement exclue du scaling (dépend d'un monde à faible économie, Q9Js-_jsXEs) et du DPS pur ('faux counter récurrent par manque de DPS', cSQP5oImnRo) ; citée pour 'couper le pont' du jungler adverse (SSAtYP_oF4A).",
+      "note": "Kazewa voit Rek'Sai comme un jungler dive et multi-side, dont le CC d'initiation prépare les ultimes d'autres champions et qui finit ses cibles avec son R, mais pas comme un pont puisqu'il la décrit comme une individualité, et comme un cheese qui surperforme en scrim plutôt qu'en officiel (j1PhMNTYqrY, qs9fLYbYWOc, AaeEM1lZIsQ, lI1sxyNrpGc).",
       "_provenance": {
-        "file": "taxo/class_09.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "BHKJ2zAU2Jo",
-          "Q9Js-_jsXEs",
-          "SSAtYP_oF4A",
-          "cSQP5oImnRo"
+          "AaeEM1lZIsQ",
+          "j1PhMNTYqrY",
+          "lI1sxyNrpGc",
+          "p5YA0gyY0b0",
+          "qs9fLYbYWOc"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Rell": {
@@ -5269,39 +5334,41 @@
       "catch_type": null,
       "engage": 0,
       "engage_type": null,
-      "follow_up": 0,
+      "follow_up": 1,
       "immobile": 0,
-      "dashs": 2,
-      "anti_dash": 1,
+      "dashs": 1,
+      "anti_dash": 2,
       "frontline": 0,
       "peel": 0,
       "disengage": 0,
       "scaling": 0,
-      "snowball_early": 2,
+      "snowball_early": 1,
       "bridge": 0,
       "dps": 0,
       "burst": 2,
       "global": 0,
-      "split": 1,
+      "split": 2,
       "poke": 0,
       "zone": 0,
       "source": {
         "anti_dash": "kaze",
-        "engage": "kaze",
-        "dashs": "déduit",
-        "snowball_early": "déduit",
+        "split": "kaze",
         "burst": "déduit",
-        "split": "déduit"
+        "dashs": "déduit",
+        "follow_up": "déduit",
+        "snowball_early": "déduit"
       },
-      "note": "Cité parmi « les 3 anti-dash du jeu » avec Poppy et Cassiopeia (eEsCZhA3H0Q) — mention isolée, à ne pas sur-interpréter. Implicitement PAS un engage : « un pick isolé (ex. Talon mid) a besoin d'un jungler d'engage complémentaire » (cXnjfe8aBxA). Reste déduit : assassin mobile (W+E), burst early/mid, ne scale pas comme win condition principale.",
+      "note": "Kazewa voit Talon comme un pick kit-fraud et hors-méta : il le place parmi les 3 anti-dash de référence du jeu avec Poppy et Cassiopeia (eEsCZhA3H0Q), le juge « broken » en pleine léthalité mais délaissé (jRJJGkKpKBQ), en split solo dont la jungle est structurellement faible au clear et doit compenser par l'agression précoce (uVBkakyVGSY), et sa perma-priorité permet à un joueur plus faible d'outplay un plus fort par le kit seul (u73_c_7OQIg).",
       "_provenance": {
-        "file": "taxo/class_01.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "cXnjfe8aBxA",
           "eEsCZhA3H0Q",
-          "sur-interpr"
+          "jRJJGkKpKBQ",
+          "u73_c_7OQIg",
+          "uVBkakyVGSY"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Taric": {
@@ -6329,7 +6396,7 @@
     },
     "Yone": {
       "champion": "Yone",
-      "catch": 1,
+      "catch": 0,
       "catch_type": null,
       "engage": 1,
       "engage_type": "court",
@@ -6340,32 +6407,39 @@
       "frontline": 0,
       "peel": 0,
       "disengage": 0,
-      "scaling": 0,
-      "snowball_early": 0,
+      "scaling": 2,
+      "snowball_early": 1,
       "bridge": 0,
       "dps": 1,
       "burst": 1,
       "global": 0,
       "split": 1,
       "poke": 0,
-      "zone": 0,
+      "zone": 1,
       "source": {
-        "catch": "kaze",
+        "engage": "kaze",
         "dashs": "kaze",
+        "scaling": "kaze",
+        "snowball_early": "kaze",
         "split": "kaze",
-        "engage": "déduit",
+        "zone": "kaze",
         "dps": "déduit",
         "burst": "déduit"
       },
-      "note": "« fort en catch, teamfight, split, objectif » (catch.md, EirFDpT6E5Q/snszAfayyxA) ; rangé mobile avec les assassins à double dash (immobile.md) ; cible nommée : « contre Yone sans disengage/anti-dash = menace non maîtrisée » (def_immobile.md, j_LhfTsaMUc). Engage (ult AoE knockup) et profil dps/burst hybride déduits du kit.",
+      "note": "Kazewa voit Yone comme un carry de late game qui « dit j'ai gagné » une fois son seuil de puissance atteint (dfTTHnzJVhU), qui « arrache tout » en teamfight comme en split (x-NpY60n-TY) et dont l'efficacité dépend du premier kill (gIpos4fRVw8), avec un R utilisable comme engage dans une zone Rumble (FEHZOwfcczc) et classé parmi les champions de terrain (k_ram4c1R8c).",
       "_provenance": {
-        "file": "taxo/class_04.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "EirFDpT6E5Q",
-          "j_LhfTsaMUc",
-          "snszAfayyxA"
+          "dfTTHnzJVhU",
+          "A-FkOmLfNQU",
+          "FEHZOwfcczc",
+          "k_ram4c1R8c",
+          "x-NpY60n-TY",
+          "gIpos4fRVw8",
+          "XJ5bWx9xjRQ"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Yorick": {
@@ -6374,39 +6448,44 @@
       "catch_type": null,
       "engage": 0,
       "engage_type": null,
-      "follow_up": 0,
-      "immobile": 0,
+      "follow_up": 1,
+      "immobile": 2,
       "dashs": 0,
       "anti_dash": 1,
-      "frontline": 1,
-      "peel": 0,
-      "disengage": 0,
-      "scaling": 2,
+      "frontline": 2,
+      "peel": 1,
+      "disengage": 1,
+      "scaling": 1,
       "snowball_early": 0,
       "bridge": 0,
       "dps": 1,
       "burst": 0,
       "global": 0,
-      "split": 2,
+      "split": 1,
       "poke": 0,
       "zone": 1,
       "source": {
+        "follow_up": "déduit",
+        "immobile": "déduit",
         "anti_dash": "déduit",
-        "frontline": "kaze",
-        "scaling": "kaze",
+        "frontline": "déduit",
+        "peel": "déduit",
+        "disengage": "déduit",
+        "scaling": "déduit",
         "dps": "déduit",
         "split": "déduit",
         "zone": "déduit"
       },
-      "note": "Kaze le range explicitement dans les « tanks qui scalent » (Malphite/Nasus/Mundo/Yorick/Maokai, frontline_1) et le cite dans la hiérarchie anti-Kennen (« Jarvan IV > Yorick > Zac », 91R-kQSi4_U). Son identité de split-pusher via le mur/l'armée de goules n'est pas explicitement discutée par Kaze dans le corpus lu — déduit du kit.",
+      "note": "Les passages ne décrivent pas directement les flags de Yorick : Kazewa le cite comme l'un des deux meilleurs counters de Kennen (pF03MSD80-c, l54MxqChXXw), range Yorick parmi les tanks qui scalent dans ses définitions (l54MxqChXXw), et compte son ultimate comme une ressource de teamfight (dfTTHnzJVhU), les autres flags étant déduits du kit.",
       "_provenance": {
-        "file": "taxo/class_05.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "91R-kQSi4_U",
-          "anti-Kennen",
-          "frontline_1"
+          "dfTTHnzJVhU",
+          "l54MxqChXXw",
+          "pF03MSD80-c"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Yunara": {
@@ -6521,16 +6600,16 @@
       "engage_type": "court",
       "follow_up": 0,
       "immobile": 0,
-      "dashs": 2,
+      "dashs": 1,
       "anti_dash": 0,
       "frontline": 1,
       "peel": 0,
       "disengage": 0,
       "scaling": 0,
-      "snowball_early": 0,
+      "snowball_early": 1,
       "bridge": 0,
       "dps": 0,
-      "burst": 0,
+      "burst": 1,
       "global": 0,
       "split": 0,
       "poke": 0,
@@ -6538,22 +6617,23 @@
       "source": {
         "catch": "kaze",
         "engage": "kaze",
-        "frontline": "kaze",
+        "frontline": "déduit",
+        "dashs": "déduit",
+        "snowball_early": "déduit",
         "zone": "kaze",
-        "dashs": "déduit"
+        "burst": "kaze"
       },
-      "note": "Catch 'sans flash' à distance (40iKe-flrK0) et hard-engage 'value x3 contre les immobiles' (Y2ezLdCXtO4, j1PhMNTYqrY) ; semi-tank qui 'peut se faire tank et absorber sans forcément mourir' (91R-kQSi4_U) ; fort vs immobiles, faible vs mobile/poke (Corki/Zeri, XZYVApZ2_Ts).",
+      "note": "Kazewa voit Zac comme un engage dur et un catcheur à distance sans flash, fort contre les immobiles mais mauvais pick face à une compo mobile ou poke (IRtNQStqzS4, XZYVApZ2_Ts), et il juge qu'une compo sans front line est condamnée face à un pick engage comme Zac (j1PhMNTYqrY).",
       "_provenance": {
-        "file": "taxo/class_09.json",
+        "file": "rebuilt-train-only",
         "sources": [
-          "40iKe-flrK0",
-          "91R-kQSi4_U",
-          "XZYVApZ2_Ts",
-          "Y2ezLdCXtO4",
-          "hard-engage",
-          "j1PhMNTYqrY"
+          "AvHU27oQDFE",
+          "IRtNQStqzS4",
+          "j1PhMNTYqrY",
+          "XZYVApZ2_Ts"
         ],
-        "warnings": []
+        "warnings": [],
+        "rebuiltFrom": "training-only passages and Kazewa definitions (taxo/def_*.md), 2026-11-26"
       }
     },
     "Zed": {

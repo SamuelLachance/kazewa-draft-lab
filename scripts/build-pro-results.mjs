@@ -21,11 +21,6 @@ const oePath = path.resolve(root, at > -1 ? process.argv[at + 1] : ".cache/oe-ga
 const knowledge = JSON.parse(fs.readFileSync(path.join(root, "data", "knowledge.json"), "utf8"));
 const games = JSON.parse(fs.readFileSync(oePath, "utf8"));
 
-// The source writes "unknown team" where it has no name.
-const team = (name) =>
-  typeof name === "string" && name.trim() && !/^unknown team$/i.test(name.trim())
-    ? name.trim()
-    : null;
 // A record whose pick order names other champions than its own rosters is
 // damaged at the source: its result cannot be trusted either.
 const orderFits = (game, side, roster) => {
@@ -73,9 +68,10 @@ for (const game of games) {
   if (!shards.has(shard)) shards.set(shard, new Map());
   const rows = shards.get(shard);
   if (!rows.has(found.key)) rows.set(found.key, []);
+  // Team names are not published: the two name fields stay null (the row keeps its shape).
   const row = [
-    team(game.teams?.[found.first]),
-    team(game.teams?.[second]),
+    null,
+    null,
     game.winner === found.first ? 0 : 1,
     date,
     game.league ?? null,

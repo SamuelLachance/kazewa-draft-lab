@@ -1,6 +1,6 @@
 {
  "version": "2.5.0",
- "measuredAt": "2026-11-21T15:04:11.493Z",
+ "measuredAt": "2026-11-26T13:32:37.472Z",
  "note": "Measured agreement of each reading the site uses for a draft he did not judge. Nothing is fitted: a game already played gives a fact, which never sets the estimate; the estimate counts his arguments, then his champion cards, and is absent when neither separates the two compositions.",
  "reliability": {
   "result": {
@@ -34,10 +34,10 @@
    "interval": "group bootstrap"
   },
   "principles": {
-   "agreement": 0.5084745762711864,
-   "n": 236,
-   "low": 0.44274809160305345,
-   "high": 0.5734767025089605
+   "agreement": 0.48739495798319327,
+   "n": 238,
+   "low": 0.42412451361867703,
+   "high": 0.5538461538461539
   },
   "everyDraft": {
    "n": 70,
@@ -56,10 +56,10 @@
    "interval": "group bootstrap"
   },
   "theory": {
-   "agreement": 0.5034246575342466,
-   "n": 292,
-   "low": 0.4467455621301775,
-   "high": 0.56640625
+   "agreement": 0.49498327759197325,
+   "n": 299,
+   "low": 0.43613707165109034,
+   "high": 0.5548172757475083
   },
   "shanei": {
    "agreement": 0.49469964664310956,

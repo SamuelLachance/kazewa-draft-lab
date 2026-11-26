@@ -1081,7 +1081,6 @@ const site = {
     winnerSource: c.winnerSource,
     match: c.match
       ? {
-          teams: c.match.teams ?? null,
           date: c.match.date ?? null,
           league: c.match.league ?? null,
           patch: c.match.patch ?? null,

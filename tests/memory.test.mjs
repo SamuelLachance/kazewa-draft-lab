@@ -71,13 +71,14 @@ test("a judged draft returns his verdict on the side that holds his preferred co
   const straight = recall(draft, index);
   assert.equal(straight.verdict.side, "red");
   assert.equal(straight.flipped, false);
-  assert.equal(straight.teams.red, "T1");
+  // Team names are not part of the site: the recall carries no team field.
+  assert.equal("teams" in straight, false);
   assert.equal(straight.reads[0].side, "red");
 
   const mirrored = recall(swap(draft), index);
   assert.equal(mirrored.verdict.side, "blue");
   assert.equal(mirrored.flipped, true);
-  assert.equal(mirrored.teams.blue, "T1");
+  assert.equal("teams" in mirrored, false);
   assert.equal(mirrored.winner, "blue");
   assert.equal(mirrored.reads[0].side, "blue");
   assert.deepEqual(mirrored.later, {

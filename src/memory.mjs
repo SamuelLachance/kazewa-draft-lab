@@ -65,12 +65,6 @@ function orient(item, flipped) {
     })),
     winner: item.winner ? side(item.winner) : null,
     winnerSource: item.winnerSource ?? null,
-    teams: item.match?.teams
-      ? {
-          blue: item.match.teams[flipped ? "red" : "blue"] ?? null,
-          red: item.match.teams[flipped ? "blue" : "red"] ?? null,
-        }
-      : null,
     match: item.match
       ? {
           date: item.match.date ?? null,

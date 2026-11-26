@@ -1,6 +1,6 @@
 {
  "version": "2.5.0",
- "evaluatedAt": "2026-11-21T15:04:11.493Z",
+ "evaluatedAt": "2026-11-26T13:32:37.472Z",
  "memory": {
   "cases": 314,
   "decided": 304,
@@ -113,11 +113,11 @@
     "interval": "group bootstrap"
    },
    "writtenFrom": {
-    "n": 210,
-    "agree": 165,
-    "agreement": 0.7857142857142857,
-    "low": 0.7268041237113402,
-    "high": 0.8441558441558441,
+    "n": 211,
+    "agree": 166,
+    "agreement": 0.7867298578199052,
+    "low": 0.7268292682926829,
+    "high": 0.8433734939759037,
     "interval": "group bootstrap"
    },
    "heldOutVideos": 28,
@@ -318,7 +318,7 @@
     "agreement": 0.49678434986273495,
     "low": 0.4924909228566402,
     "high": 0.5010782511467223,
-    "grid": "1d28ff5345f22267ab82060cbe3267d9d525b5a4d4f2578cd65dc1a265c8ff01",
+    "grid": "71ecc5fdfeeabb3e41be9ef6192a332b9ad8d5f5baf7c39bba1cc1dea543424c",
     "games": 60365,
     "from": "2021-01-01",
     "to": "2026-11-13",
@@ -329,31 +329,31 @@
    "note": "Shanei's grid (src/method.mjs) reads the family of each composition and what he would fault in it, and names the healthier one. Agreement is with Kazewa's verdict on the drafts he judged; 'winner' is with the result of those games; 'proGames' with the result of every professional game. All three stand at a coin flip: the grid describes how a composition is built, it does not say who wins nor what Kazewa thinks. The site shows it as a second opinion and does not use it for the estimated verdict."
   },
   "theory": {
-   "n": 292,
-   "agree": 147,
-   "agreement": 0.5034246575342466,
-   "low": 0.4467455621301775,
-   "high": 0.56640625,
+   "n": 299,
+   "agree": 148,
+   "agreement": 0.49498327759197325,
+   "low": 0.43613707165109034,
+   "high": 0.5548172757475083,
    "interval": "group bootstrap",
-   "coverage": 0.9605263157894737,
+   "coverage": 0.9835526315789473,
    "note": "The draft procedure of the two coaches (src/theory.mjs): identity, structural holes, grid of axes, bonuses, timing and verdict of Kazewa's decision rubric, with Shanei's construction checks. Nothing is fitted; it reads no professional game. Agreement is with his verdict on the drafts where it leans to a side."
   },
   "structuralCalculator": {
    "tunedOn": {
     "n": 62,
-    "agree": 58,
-    "agreement": 0.9354838709677419,
-    "low": 0.8455226734181274,
-    "high": 0.974627505192356
+    "agree": 54,
+    "agreement": 0.8709677419354839,
+    "low": 0.7655044310309549,
+    "high": 0.9331420174150125
    },
    "neverSeen": {
-    "n": 236,
-    "agree": 120,
-    "agreement": 0.5084745762711864,
-    "low": 0.44274809160305345,
-    "high": 0.5734767025089605,
+    "n": 238,
+    "agree": 116,
+    "agreement": 0.48739495798319327,
+    "low": 0.42412451361867703,
+    "high": 0.5538461538461539,
     "interval": "group bootstrap",
-    "abstained": 6
+    "abstained": 4
    },
    "note": "The calculator's weights were set against the 'tunedOn' drafts. Only 'neverSeen' says how it follows him elsewhere. It is the composition-only figure the site shows."
   }
@@ -379,7 +379,7 @@
  ],
  "sourceHashes": {
   "memory": "17e6916252c4c7bf364936418a3c6e5440b48e473fbbed7580146fafd64d259d",
-  "knowledge": "1f0e6674d048d31e9b205a2cab651d0de3ccd7eb539782aa53c429a2494a1cf8",
+  "knowledge": "d1a231836fd689225892fe486a5106b40e290b791fcb7b63526ceba7ef0b6940",
   "engine": "817dbe8b270043497f18ed633cc40644847e42497eaea4d643a22889aa35d5ec"
  }
 }

@@ -60,6 +60,7 @@ let knowledge,
   cards = null,
   relations = null,
   coachData = null,
+  draftValues = null,
   coachBrain = null,
   method = null,
   methodIndex = null,
@@ -225,7 +226,7 @@ function judge(value, { live = false } = {}) {
   });
 }
 // The video behind a rule of the method (data/method.json), at its moment.
-const COACH_NAME = { shanei: "Shanei", kazewa: "Kazewa" };
+const COACH_NAME = { shanei: "Shanei", kazewa: "Kazewa", systeme: "Système" };
 function ruleLink(id) {
   const rule = methodIndex?.rules?.[id];
   if (!rule || !/^[a-zA-Z0-9_-]{11}$/.test(rule.video || "")) return "";
@@ -243,30 +244,20 @@ const frenchDate = (text) => {
     ? ""
     : date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 };
-// "T1 vs Gen.G · LCK · 14 avril 2024 · partie 3", blue side first.
+// "LCK · 14 avril 2024 · partie 3". Team names are not shown: a game is its league, its date and its number.
 function playedLine(game) {
   const parts = [];
-  if (game?.teams?.blue && game?.teams?.red)
-    parts.push(`${game.teams.blue} vs ${game.teams.red}`);
   if (game?.league) parts.push(game.league);
   if (game?.date && frenchDate(game.date)) parts.push(frenchDate(game.date));
   if (game?.game) parts.push(`partie ${game.game}`);
   return parts.join(" · ");
 }
-function sidePhrase(side, kazewa, names = SIDE_LABEL) {
-  const plain = side === "blue" ? "le côté bleu" : "le côté rouge";
-  const custom =
-    names[side] && names[side] !== SIDE_LABEL[side]
-      ? names[side]
-      : kazewa?.teams?.[side];
-  return custom
-    ? `la draft de ${custom} (${side === "blue" ? "côté bleu" : "côté rouge"})`
-    : plain;
+// The side is named by its colour only: team names are not part of the site.
+function sidePhrase(side) {
+  return side === "blue" ? "le côté bleu" : "le côté rouge";
 }
 function matchLine(kazewa) {
   const parts = [];
-  if (kazewa?.teams?.blue && kazewa?.teams?.red)
-    parts.push(`${kazewa.teams.blue} vs ${kazewa.teams.red}`);
   if (kazewa?.match?.league) parts.push(kazewa.match.league);
   if (kazewa?.match?.date && frenchDate(kazewa.match.date))
     parts.push(frenchDate(kazewa.match.date));
@@ -872,15 +863,10 @@ function playedFactLine(played) {
   if (!played?.games?.length) return "";
   if (played.side === "even")
     return "Partie pro déjà jouée avec ces dix champions : chaque côté a gagné, le résultat ne départage pas.";
-  const last = played.games[played.games.length - 1];
-  const sameTeams = played.games.every(
-    (game) => game.teams?.blue === last.teams?.blue && game.teams?.red === last.teams?.red,
-  );
-  const team = sameTeams && last.teams?.[played.side] ? ` (${last.teams[played.side]})` : "";
   const sideWord = played.side === "blue" ? "côté bleu" : "côté rouge";
   return played.games.length === 1
-    ? `Fait : avec ces dix champions, une partie pro déjà jouée, le ${sideWord}${team} a gagné.`
-    : `Fait : avec ces dix champions, ${played.games.length} parties pro déjà jouées ; le ${sideWord}${team} a gagné chaque fois.`;
+    ? `Fait : avec ces dix champions, une partie pro déjà jouée, le ${sideWord} a gagné.`
+    : `Fait : avec ces dix champions, ${played.games.length} parties pro déjà jouées ; le ${sideWord} a gagné chaque fois.`;
 }
 function renderQuickVerdict(judgement) {
   const node = $("#quick-verdict");
@@ -1769,7 +1755,7 @@ function bindEvents() {
 
 async function init() {
   try {
-    [knowledge, evaluation, memory, config, model, championAssets, cards, coachData, method] =
+    [knowledge, evaluation, memory, config, model, championAssets, cards, coachData, method, draftValues] =
       await Promise.all([
         getJSON("./data/knowledge.json"),
         getJSON("./data/evaluation.json", true),
@@ -1780,11 +1766,12 @@ async function init() {
         getJSON("./data/champion-cards.json", true),
         getJSON("./data/coach.json", true),
         getJSON("./data/method.json", true),
+        getJSON("./data/draft-values.json", true),
       ]);
     memoryIndex = memory?.cases ? indexMemory(memory) : null;
     relations = cards ? cardRelations(cards) : null;
     methodIndex = indexMethod(method);
-    coachBrain = coachContext({ knowledge, memory, relations, data: coachData, method });
+    coachBrain = coachContext({ knowledge, memory, relations, data: coachData, method, draftValues });
     config = { ...fallbackConfig, ...config };
     config.pollIntervalMs = Number.isFinite(Number(config.pollIntervalMs))
       ? Math.min(60000, Math.max(15000, Number(config.pollIntervalMs)))

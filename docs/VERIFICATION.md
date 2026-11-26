@@ -76,3 +76,14 @@ Vérifié sur le serveur local, en largeur bureau (1280 px) et mobile (375 px), 
 ## Sources live et HTTP
 
 Inchangé depuis la version précédente : les tests HTTP couvrent les erreurs réseau, observations périmées, doublons, limites de taille, CORS, fichiers privés, traversées de chemins et liens symboliques. Le connecteur PandaScore reste à vérifier avec un accès commercial réel.
+
+## Modèle de composition et retrait des équipes et des joueurs
+
+- Une revue indépendante (trois relecteurs en lecture seule) a été faite sur le modèle de composition. Pas de fuite d'information ; les chiffres 54,3 % et +0,9 point sont reproduits ; la précaution sur le choix de la variante et sur 2025-2026 est écrite dans [`docs/EVALUATION.md`](EVALUATION.md).
+- **Retiré** : les champs d'équipe des données structurées (`src/results.mjs`, `src/memory.mjs`, `scripts/build-memory.mjs`, `data/memory-site.json`) ; les noms d'équipes des 256 fichiers `data/pro-results/` (79 751 noms effacés, testé) ; l'affichage des noms d'équipes dans le fait « partie déjà jouée » et dans les phrases de verdict.
+- **Retiré des textes publiés** (`scripts/redact-names.mjs`, lancé par `npm run build`) : les noms d’équipes et de joueurs de la mémoire publiée, des notes du coach et des fiches de champions sont remplacés par « une équipe » et « un joueur ». 3 121 remplacements à la dernière exécution complète, sur 6 621 joueurs et 3 817 équipes connus. Un test rescanne les fichiers publiés contre la liste des données pro.
+- **Flux du direct** : le serveur ne transmet plus de nom d’équipe (le côté est nommé par sa couleur).
+- **Serveur de développement** : il ne sert plus les trois fichiers sources de la mémoire (`kazewa-memory.json`, `kazewa-enrichment.json`, `memory-overrides.json`).
+- **Limites, à connaître** : la liste des joueurs vient des saisons présentes dans `.cache/oe-new` (2018, 2019, 2021, 2026). Les joueurs des autres saisons ne sont pas couverts, et le test ne peut pas les voir. Des mots courants qui sont aussi des noms ont été gardés en clair (par exemple « Ghost », sort d’invocateur) pour ne pas abîmer le texte. Les fichiers sources de Kazewa (`data/kazewa-memory.json`) gardent les noms : la construction de la mémoire rapproche ses drafts des matchs par ces noms. Ils figurent aussi dans l’historique Git publié avant ce changement, qu’il faudrait réécrire pour les effacer.
+- **Hors modèle** : aucun nom d'équipe ni de joueur n'entre dans le calcul du modèle de composition ni dans les décisions du coach (vérifié par la revue et par un test sur le module de valeur).
+- Un doublon d'enregistrement source (une partie NLC publiée sous deux noms d'équipes) est conservé tel quel et noté dans le test.

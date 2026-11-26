@@ -20,7 +20,7 @@
     "memory:enrich": "node scripts/import-enrichment.mjs",
     "evaluate": "node scripts/evaluate.mjs",
     "sync:champions": "node scripts/sync-champions.mjs",
-    "build": "node scripts/build.mjs",
+    "build": "node scripts/redact-names.mjs && node scripts/build.mjs",
     "check": "npm run test && npm run evaluate && npm run build"
   }
 }

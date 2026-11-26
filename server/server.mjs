@@ -108,6 +108,12 @@ export function createServer({
             ? "index.html"
             : decoded.slice(1)
           : decoded.slice(bucket.length + 2);
+      // The records Kazewa's memory is built from keep team and player names: they are
+      // not served, locally or on the site (only the derived files are).
+      if (bucket === "data" && ["kazewa-memory.json", "kazewa-enrichment.json", "memory-overrides.json"].includes(path.basename(relative))) {
+        json(404, { error: "not_found" });
+        return;
+      }
       const base = path.resolve(root, bucket);
       const file = path.resolve(base, relative);
       if (!file.startsWith(base + path.sep)) {

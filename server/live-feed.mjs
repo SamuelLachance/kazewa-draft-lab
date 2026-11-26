@@ -34,7 +34,10 @@ function safeSource(value) {
   }
 }
 
-function normalizeTeam(team) {
+// Team names are not published: a side is named by its colour only.
+const sideName = (side) => (side === "blue" ? "Côté bleu" : "Côté rouge");
+
+function normalizeTeam(team, side) {
   if (!team || typeof team !== "object" || Array.isArray(team))
     throw new Error("invalid_payload");
   const picks = {};
@@ -44,7 +47,7 @@ function normalizeTeam(team) {
       throw new Error("invalid_payload");
     picks[role] = clean(value, 60) || null;
   }
-  return { name: clean(team.name, 100) || "Équipe inconnue", picks };
+  return { name: sideName(side), picks };
 }
 
 /** Strict normalized interchange format. Unknown roles are never guessed from pick order. */
@@ -77,8 +80,8 @@ export function normalizeSnapshot(
     seen.add(match.id);
     if (match.observedAt != null && !validTime(match.observedAt))
       throw new Error("invalid_payload");
-    const blue = normalizeTeam(match.blue);
-    const red = normalizeTeam(match.red);
+    const blue = normalizeTeam(match.blue, "blue");
+    const red = normalizeTeam(match.red, "red");
     const picks = [
       ...Object.values(blue.picks),
       ...Object.values(red.picks),
@@ -219,11 +222,7 @@ export function normalizePandaFrame(message, match, now = Date.now()) {
     return null;
   const roles = { top: "top", jng: "jun", mid: "mid", bot: "adc", sup: "sup" };
   const team = (side) => ({
-    name:
-      clean(frame[side].name, 100) ||
-      match.opponents?.find((entry) => entry.opponent?.id === frame[side].id)
-        ?.opponent?.name ||
-      "Équipe inconnue",
+    name: sideName(side),
     picks: Object.fromEntries(
       Object.entries(roles).map(([role, upstream]) => [
         role,

@@ -61,11 +61,8 @@ export function playedGames(draft, shard) {
   const rows = found ? shard?.[found.key] : null;
   if (!rows?.length) return null;
   const second = found.first === "blue" ? "red" : "blue";
-  // The source writes "unknown team" where it has no name.
-  const named = (name) =>
-    typeof name === "string" && !/^unknown team$/i.test(name.trim()) ? name : null;
-  const games = rows.map(([firstTeam, secondTeam, winner, date, league, game]) => ({
-    teams: { [found.first]: named(firstTeam), [second]: named(secondTeam) },
+  // Team names are not kept: a game is its winning side, its date, league and number.
+  const games = rows.map(([, , winner, date, league, game]) => ({
     winner: winner === 0 ? found.first : second,
     date: date ?? null,
     league: league ?? null,

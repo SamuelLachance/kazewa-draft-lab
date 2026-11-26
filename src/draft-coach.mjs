@@ -2,7 +2,8 @@
  * The draft coach: twenty steps, and at each one what to ban or pick and why.
  *
  * The ranking is src/coach.mjs: what Kazewa said about the champions already
- * locked, how professional teams draft right now, and who can still answer a
+ * locked, the composition-only draft value of each champion in its role (from
+ * professional drafts, no team and no player), and who can still answer a
  * pick. The structural calculator is not part of it: on the drafts he judged
  * it follows his verdict one time in two.
  */
@@ -10,6 +11,8 @@ import { ROLES } from "./engine.mjs";
 import { coachTables, latestNoteDate, playableRoles, rankBans, rankPicks } from "./coach.mjs";
 import { compositionStatus, FAMILY_FR, indexMethod, stepBrief } from "./method.mjs";
 import { theoryContext } from "./theory.mjs";
+import { systemPickRows } from "./draft-system/coach.mjs";
+import { buildLinks } from "./draft-system/links.mjs";
 
 // Blue opens bans and the first pick. Red opens the second ban phase and the last pick.
 export const DRAFT_STEPS = Object.freeze([
@@ -92,12 +95,16 @@ function taken(session) {
  *   method     data/method.json: the draft method of Shanei and Kazewa
  * Every part but `knowledge` may be missing: the coach then says less.
  */
-export function coachContext({ knowledge, memory = null, relations = null, data = null, method = null }) {
+export function coachContext({ knowledge, memory = null, relations = null, data = null, method = null, draftValues = null }) {
   const index = indexMethod(method);
   return {
     method: index,
     // The procedure of the two coaches (src/theory.mjs), which decides the reasons.
     theory: theoryContext({ knowledge, index }),
+    // The links of the draft system: families, duos and counters, from the same knowledge.
+    links: buildLinks({ method, relations }),
+    // The composition-only draft values (data/draft-values.json), or null.
+    draftValues,
     knowledge,
     champions: Object.keys(knowledge.champions),
     profiles: knowledge.champions,
@@ -132,6 +139,18 @@ export function ownNextPick(shared, slot, profiles = null) {
 /** The families a drafter can say they are going for. */
 export const PLANS = Object.freeze(Object.keys(FAMILY_FR));
 
+// The system's rows first, in its order, each with Kazewa's sentences about the champion.
+// Rows the system cannot play (no open role of the champion) stay in the pool, unplayable.
+function mergeSystemPicks(said, system) {
+  const sentences = new Map(
+    said.map((row) => [row.champion, (row.reasons ?? []).filter((reason) => ["said", "card", "opinion", "answer"].includes(reason.kind))]),
+  );
+  const ranked = system.map((row) => ({ ...row, reasons: [...row.reasons, ...(sentences.get(row.champion) ?? [])] }));
+  const placed = new Set(ranked.map((row) => row.champion));
+  const others = said.filter((row) => !row.playable && !placed.has(row.champion));
+  return [...ranked, ...others];
+}
+
 function rank(session, context, step, plan = null) {
   const key = JSON.stringify({
     bans: session.bans,
@@ -153,13 +172,25 @@ function rank(session, context, step, plan = null) {
       asOf: context.asOf,
       method: context.method,
       theory: context.theory,
+      draftValues: context.draftValues,
       // The plan is the reader's: it says nothing of the other side's draft.
       plan,
     };
     let rows;
-    if (step.action === "pick")
-      rows = rankPicks({ ...shared, slot: step.slot, profiles: context.profiles });
-    else {
+    if (step.action === "pick") {
+      // The order is the draft system's (src/draft-system). Kazewa's sentences about each
+      // champion stay as reasons; champions the system cannot play stay in the pool.
+      const said = rankPicks({ ...shared, slot: step.slot, profiles: context.profiles });
+      rows = mergeSystemPicks(
+        said,
+        systemPickRows(session.picks, step.side, {
+          champions: context.knowledge.champions,
+          bans: [...session.bans.blue, ...session.bans.red],
+          rules: context.knowledge.rules,
+          links: context.links,
+        }),
+      );
+    } else {
       // Blue picks first after the first bans, red after the second ones. The
       // side that picks next does not ban what it is about to take.
       const picked = session.log.filter((entry) => entry.action === "pick").length;

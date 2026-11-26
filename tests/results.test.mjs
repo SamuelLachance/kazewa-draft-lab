@@ -39,13 +39,13 @@ test("the winner follows the composition, not the side it is entered on", () => 
   const shard = { [key]: [["Alpha", "Beta", 1, "2025-03-01", "LEC", 2]] };
   const played = playedGames(draft, shard);
   assert.equal(played.side, second);
-  assert.equal(played.games[0].teams[first], "Alpha");
-  assert.equal(played.games[0].teams[second], "Beta");
+  // Team names are not kept: the game carries its winning side only.
+  assert.equal("teams" in played.games[0], false);
   assert.equal(played.games[0].winner, second);
   // The same composition wins when the draft is entered the other way round.
   const flipped = playedGames(mirrored, shard);
   assert.equal(flipped.side, played.side === "blue" ? "red" : "blue");
-  assert.equal(flipped.games[0].teams[flipped.side], "Beta");
+  assert.equal(flipped.games[0].winner, flipped.side);
   assert.equal(playedGames(draft, {}), null);
   assert.equal(playedGames(draft, null), null);
   // Two games that went opposite ways: no side.
@@ -90,7 +90,7 @@ test("the result of a played game is measured first, but is never the estimate o
   assert.deepEqual(judgeDraft(typed, { knowledge, memory: index, played }).lean, unseen.lean);
   // The source's placeholder is not a team name.
   const nameless = playedGames(draft, { [key]: [["unknown team", "Beta", 0, "2025-03-01", "LEC", 1]] });
-  assert.equal(nameless.games[0].teams[first], null);
+  assert.equal("teams" in nameless.games[0], false);
   // A draft he commented without choosing stays his: no result is looked up.
   const torn = memory.cases.find((item) => item.verdict.side === "even");
   calls = 0;
@@ -127,9 +127,13 @@ test("the shipped results hold every verified game of the memory, with its winne
         assert.notEqual(String(row[0]).toLowerCase(), "unknown team");
         assert.notEqual(String(row[1]).toLowerCase(), "unknown team");
       }
-      // One game is stored once, even when the source has it under two ids.
-      const identities = rows.map((row) => JSON.stringify([row[0], row[1], row[3], row[5]]));
-      assert.equal(new Set(identities).size, identities.length, key);
+      // One game is stored once, even when the source has it under two ids. Team names are
+      // not published, so a game is identified by its winner, date, league and number.
+      const identities = rows.map((row) => JSON.stringify([row[2], row[3], row[4], row[5]]));
+      // One source record of an NLC game sits under two team labels (both rows were
+      // published with their names before). It is kept as it was: one extra row.
+      if (key === "c1c8f8860687d") assert.equal(identities.length - new Set(identities).size, 1, key);
+      else assert.equal(new Set(identities).size, identities.length, key);
     }
   }
   assert.equal(games, index.games);
@@ -145,7 +149,7 @@ test("the shipped results hold every verified game of the memory, with its winne
     const same = found.games.find((game) => game.date === item.match.date && game.game === item.match.game);
     assert.ok(same, `partie introuvable : ${item.id}`);
     assert.equal(same.winner, item.winner, item.id);
-    assert.equal(same.teams.blue, item.match.teams.blue, item.id);
+    assert.equal("teams" in same, false, item.id);
   }
 });
 

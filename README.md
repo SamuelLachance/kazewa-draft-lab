@@ -2,7 +2,7 @@
 
 Le verdict de Kazewa sur les drafts de League of Legends qu’il a commentées, avec ses raisons et sa vidéo. Pour toute autre draft, le site donne un verdict estimé d’après ses propres arguments sur les mêmes champions, puis d’après ses fiches champion. Si ni l’un ni l’autre ne départage les deux compositions, il ne donne pas d’estimation. La grille de décision de Kazewa et la vérification de construction de Shanei, un second coach, sont des seconds avis, affichés à part. Aucun résultat de partie professionnelle ne décide du verdict. Chaque verdict dit quelle lecture a servi et ce qu’elle vaut.
 
-Le coach de draft suit le processus que les deux coachs enseignent : l’ordre des picks, les premiers picks, la famille de la composition, les pièces qui manquent, les bans qui protègent le plan. Il ne lit pas la méta professionnelle pour choisir.
+Le coach de draft suit le processus que les deux coachs enseignent : l’ordre des picks, les premiers picks, la famille de la composition, les pièces qui manquent, les bans qui protègent le plan. Il lit en plus une seule donnée professionnelle : la valeur de chaque champion dans chaque rôle, tirée des compositions des parties pro (dix champions et leurs rôles, sans équipe ni joueur). Elle pèse peu, et elle est étiquetée « Pro » dans les raisons.
 
 Site : [samuellachance.github.io/kazewa-draft-lab](https://samuellachance.github.io/kazewa-draft-lab/). Dépôt : [SamuelLachance/kazewa-draft-lab](https://github.com/SamuelLachance/kazewa-draft-lab).
 
@@ -74,9 +74,9 @@ Le coach suit les vingt tours d’une draft (bans et picks) et dit à chaque tou
 
 Tu peux dire au coach quelle famille tu vises (all-in, poke, hypercarry) : ce plan guide alors les picks et les bans dès le premier tour, et il n’est jamais montré à l’adversaire. À chaque tour le coach affiche les règles des deux coachs pour ce moment de la draft, et sous chaque côté l’état de la composition : sa famille, son tank, ce qui lui manque. Chaque ligne d’une suggestion dit de qui elle vient : Shanei, Kazewa ou la grille de décision.
 
-Un champion est proposé dans le rôle où il est réellement joué : la table des lanes est complétée par les rôles joués en pro. Les statistiques des parties professionnelles ne classent rien : elles ne servent qu’à lire les rôles. Pour les bans, le camp qui prend juste après ne bannit pas son propre meilleur pick. Sous les cinq suggestions, le coach montre jusqu’à trois champions moins joués en ce moment mais que Kazewa a nommés contre ou avec ceux déjà pris.
+Un champion est proposé dans le rôle où il est réellement joué : la table des lanes est complétée par les rôles joués en pro. La seule statistique professionnelle qui classe un pick est la valeur de composition (`src/draft-value.mjs`) : elle ajoute au plus quelques points, et la raison dit qu’elle ne lit que la composition. Les autres statistiques pro ne servent qu’à lire les rôles. Pour les bans, le camp qui prend juste après ne bannit pas son propre meilleur pick. Sous les cinq suggestions, le coach montre jusqu’à trois champions moins joués en ce moment mais que Kazewa a nommés contre ou avec ceux déjà pris.
 
-Le coach ne prédit pas le vainqueur. Il applique les règles de deux coachs, et ce qu’elles donnent n’a pas été réglé sur des parties professionnelles : un coach qui suivrait ce que font les équipes pro ne suivrait pas ces règles. La mesure sur des drafts professionnelles de 2026 reste dans [`docs/EVALUATION.md`](docs/EVALUATION.md) : elle ne sert plus de cible.
+Le coach ne prédit pas le vainqueur, et il ne peut pas le faire mieux qu’un pile ou face sur les drafts seules. Sa valeur de composition vient d’un modèle entraîné sur les parties pro de 2021 à novembre 2026 : sur 2025-2026, jamais utilisé pour choisir son réglage, il atteint 54,3 % contre 53,4 % pour « toujours bleu » (gain de 0,9 point, intervalle de +0,1 à +1,7 point ; faible, et nul si on regroupe par mois). Les règles de deux coachs ne sont pas réglées sur ces parties. Le détail est dans [`docs/EVALUATION.md`](docs/EVALUATION.md) et [`docs/VERIFICATION.md`](docs/VERIFICATION.md).
 
 ## Démarrer
 

@@ -15,7 +15,10 @@
  *     and the pieces it still lacks, the duos he names, the answers to what the
  *     opponent shows, and bans that protect the plan.
  *
- * No professional statistic decides anything here. The roles a champion can
+ * One professional figure enters a score, and only one: the composition-only
+ * draft value of a champion in a role (src/draft-value.mjs, from the ten
+ * champions and their roles of professional drafts). It is a small, labelled
+ * reason. No team and no player enters anything here. The roles a champion can
  * take come from the lane table (src/lanes.mjs). The professional figures of
  * data/coach.json are kept for the measure of the coach (research/coach-eval.mjs)
  * and the notes are read for their dates and their text only.
@@ -28,6 +31,7 @@ import { ROLES } from "./engine.mjs";
 import { LANES } from "./lanes.mjs";
 import { banNotes, METHOD_WEIGHTS, pickNotes } from "./method.mjs";
 import { banReason, pickReason } from "./theory.mjs";
+import { draftValueReason } from "./draft-value.mjs";
 
 const SIDES = ["blue", "red"];
 const other = (side) => (side === "blue" ? "red" : "blue");
@@ -72,6 +76,10 @@ export const WEIGHTS = Object.freeze({
   answer: 0,
   // The procedure of the two coaches (src/theory.mjs), in its own points.
   theory: 1,
+  // The composition-only draft value of a champion in a role, from professional
+  // drafts (src/draft-value.mjs): points per percentage point of chance. Low on
+  // purpose: its measured gain is small.
+  draftValue: 0.2,
   // The draft method of Shanei (src/method.mjs): see METHOD_WEIGHTS there.
   method: METHOD_WEIGHTS,
 });
@@ -401,6 +409,15 @@ const byScore = (a, b) =>
 /* Lists                                                               */
 /* ------------------------------------------------------------------ */
 
+// Adds the composition-only draft value of the pick to a candidate row.
+function withDraftValue(row, { draftValues, side, weights }) {
+  if (!draftValues || !row.role || !weights.draftValue) return row;
+  const reason = draftValueReason(draftValues, { side, role: row.role, champion: row.champion, weight: weights.draftValue });
+  if (!reason) return row;
+  const reasons = [...row.reasons, reason];
+  return { ...row, reasons, score: round(sum(reasons.map((item) => item.points))) };
+}
+
 // Adds the reason of the procedure to a candidate row, and recomputes its score.
 function withTheory(row, { theory, side, picks, weights }) {
   if (!theory || !row.role || !weights.theory) return row;
@@ -431,6 +448,7 @@ export function rankPicks({
   method = null,
   plan = null,
   theory = null,
+  draftValues = null,
   weights = WEIGHTS,
 }) {
   const taken = unavailable(picks, bans);
@@ -445,9 +463,12 @@ export function rankPicks({
     }
     const scored = roles
       .map((role) =>
-        withTheory(
-          scorePick({ champion, role, side, picks, bans, slot, tables, profiles, notes: noteOf?.(champion), asOf, mine, method, plan, weights }),
-          { theory, side, picks, weights },
+        withDraftValue(
+          withTheory(
+            scorePick({ champion, role, side, picks, bans, slot, tables, profiles, notes: noteOf?.(champion), asOf, mine, method, plan, weights }),
+            { theory, side, picks, weights },
+          ),
+          { draftValues, side, weights },
         ),
       )
       .sort((a, b) => b.score - a.score || roles.indexOf(a.role) - roles.indexOf(b.role));
