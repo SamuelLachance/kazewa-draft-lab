@@ -24,14 +24,23 @@ import { RULES, violations } from "./rules.mjs";
 import { buildLinks } from "./links.mjs";
 
 const ROLES = ["top", "jng", "mid", "bot", "sup"];
+const BLOCK = ["jng", "mid", "bot", "sup"];
 
 // Weights of the terms that are not needs of the rules. Written here, not fitted.
 export const WEIGHTS = Object.freeze({
   counter: 6, // one of their champions is bad against one of ours: whatever the role, a counter is a counter
   counterGood: 6, // one of ours is good against one of theirs, whatever the role (as much as a counter received)
   combo: 1, // a bad duo in the team
-  comboGood: 0.5, // a good duo in the team
-  family: 0.5, // a member outside the dominant family of a team of three or more
+  comboGood: 1, // a good duo in the team, from his champion cards
+  comboDocumented: 12, // a duo documented as a combo (his rule of topic combo): as much as a counter exchanged (a counter is counted on both sides)
+  comboPull: 6, // a pick that leaves a documented duo of its champion open to the team
+  comboMissing: 6, // a team of three or more with no documented duo: Shanei wants one in every draft
+  immobileStack: 8, // each immobile champion beyond the first: two stack without counterplay (kp-67)
+  blockTank: 8, // a team of three with no real tank in the block of four (sp-74, sr-0)
+  antiSynergy: 8, // a poke or disengage block mixed with an engage or catch block (sf-6)
+  blockFamily: 6, // a block of four that belongs to no family: two of its members share none (sf-1)
+  fullDamage: 8, // a full AD or a full AP composition: the enemy stacks one resistance (sr-5, sp-75)
+  family: 2, // a member outside the dominant family of a team of three or more (sf-5: one theme per composition)
   flex: 0.25, // each extra open role one of our picks can still fill
   flexThreat: 1, // the weight of the worst role an enemy flex can take against us
   unanswered: 0.5, // a role an enemy flex can take, where we have no champion yet
@@ -157,8 +166,38 @@ export function costOf(own, enemy, { champions, links = NO_LINKS, needsScale = 1
     for (let j = i + 1; j < own.length; j += 1) {
       const sign = links.combo(own[i].name, own[j].name);
       if (sign < 0) combos += WEIGHTS.combo;
-      else if (sign > 0) combos -= WEIGHTS.comboGood;
+      else if (sign > 0) combos -= links.strong(own[i].name, own[j].name) ? WEIGHTS.comboDocumented : WEIGHTS.comboGood;
     }
+  // Shanei's structural checks, read from the knowledge base: at most one immobile champion, a real tank
+  // in the block of four, and no mix of the poke or disengage families with the engage or catch ones.
+  const immobiles = own.filter((m) => (champions[m.name]?.immobile ?? 0) >= 2).length;
+  const immobileStack = WEIGHTS.immobileStack * Math.max(0, immobiles - 1);
+  const blockTank = own.length >= 3 && !own.some((m) => BLOCK.includes(m.role) && links.info(m.name)?.tank) ? WEIGHTS.blockTank : 0;
+  const damageTypes = new Set(own.map((m) => links.info(m.name)?.damage).filter(Boolean));
+  // With four of one damage type, the fifth is of the other: Shanei's last pick (sp-75).
+  const fullDamage = own.length >= 4 && damageTypes.size === 1 ? WEIGHTS.fullDamage : 0;
+  const isEngage = (name) => [...links.families(name)].some((f) => f.startsWith("all-in"));
+  const isPoke = (name) => !isEngage(name) && (links.families(name).has("poke") || links.families(name).has("disengage"));
+  const mixed = own.length >= 3 && own.filter((m) => isEngage(m.name)).length >= 2 && own.filter((m) => isPoke(m.name)).length >= 2 ? WEIGHTS.antiSynergy : 0;
+  // The block of four belongs to a family: two of its members share one (sf-1).
+  const blockPicks = own.filter((m) => BLOCK.includes(m.role));
+  const blockCount = new Map();
+  for (const m of blockPicks) for (const f of links.families(m.name)) blockCount.set(f, (blockCount.get(f) ?? 0) + 1);
+  const blockFamily = blockPicks.length >= 3 && Math.max(0, ...blockCount.values()) < 2 ? WEIGHTS.blockFamily : 0;
+  parts.immobileStack = immobileStack;
+  parts.blockTank = blockTank;
+  parts.antiSynergy = mixed;
+  parts.blockFamily = blockFamily;
+  parts.fullDamage = fullDamage;
+  total += (immobileStack + blockTank + mixed + blockFamily + fullDamage) * needsScale;
+  // Shanei: one documented duo at least in every draft. A team of three with none is still short of it.
+  let documentedDuo = false;
+  for (let i = 0; i < own.length; i += 1)
+    for (let j = i + 1; j < own.length; j += 1)
+      if (links.strong(own[i].name, own[j].name)) documentedDuo = true;
+  const duoMissing = own.length >= 3 && !documentedDuo ? WEIGHTS.comboMissing : 0;
+  parts.comboMissing = duoMissing;
+  total += duoMissing * needsScale;
   let family = 0;
   if (own.length >= 3) {
     const count = new Map();
@@ -194,6 +233,35 @@ function candidates(open, taken) {
   return out;
 }
 
+/**
+ * The structural rules of Shanei that a pick must leave satisfiable: a pick that makes one of them
+ * impossible to meet, with the champions still free, is not offered (unless every pick does).
+ */
+function structuralOk(c, mine, taken, links, champions) {
+  const team = [...mine.members, { name: c.name, role: c.role }];
+  const openAfter = mine.open.filter((r) => r !== c.role);
+  const info = (name) => links.info(name);
+  const free = (name) => name !== c.name && !taken.has(name);
+  // At most one immobile champion: two stack without counterplay (kp-67).
+  if (team.filter((m) => (champions[m.name]?.immobile ?? 0) >= 2).length > 1) return false;
+  // Four of one damage type: the last pick has to be the other type (sp-75, sr-5).
+  const damage = team.map((m) => info(m.name)?.damage).filter(Boolean);
+  if (team.length >= 4 && damage.length === team.length && new Set(damage).size === 1) {
+    const other = damage[0] === "ad" ? "ap" : "ad";
+    if (!openAfter.length || !LANE_CHAMPIONS.some((name) => free(name) && info(name)?.damage === other)) return false;
+  }
+  // A poke or disengage block never mixes with an engage or catch block (sf-6).
+  const engage = team.filter((m) => [...links.families(m.name)].some((f) => f.startsWith("all-in"))).length;
+  const poke = team.filter((m) => ![...links.families(m.name)].some((f) => f.startsWith("all-in")) && (links.families(m.name).has("poke") || links.families(m.name).has("disengage"))).length;
+  if ((engage >= 2 && poke >= 1) || (poke >= 2 && engage >= 1)) return false;
+  // A real tank in the block of four, while a block role is open (sp-74): a tank that is still free.
+  if (team.length >= 3 && !team.some((m) => BLOCK.includes(m.role) && info(m.name)?.tank)) {
+    if (!openAfter.some((r) => BLOCK.includes(r))) return false;
+    if (!LANE_CHAMPIONS.some((name) => free(name) && info(name)?.tank)) return false;
+  }
+  return true;
+}
+
 /** The reasons of one candidate: what its pick changes for its team, term by term. */
 function reasonsFor(candidate, own, enemy, ctx) {
   const { links = NO_LINKS, champions, needsScale = 1 } = ctx;
@@ -210,7 +278,7 @@ function reasonsFor(candidate, own, enemy, ctx) {
   }
   for (const x of own) {
     const sign = links.combo(candidate.name, x.name);
-    if (sign) reasons.push({ rule: "combo", with: x.name, saved: round(sign < 0 ? -WEIGHTS.combo : WEIGHTS.comboGood) });
+    if (sign) reasons.push({ rule: "combo", with: x.name, saved: round(sign < 0 ? -WEIGHTS.combo : links.strong(candidate.name, x.name) ? WEIGHTS.comboDocumented : WEIGHTS.comboGood) });
   }
   for (const e of enemy) {
     if (!e.flex) continue;
@@ -246,8 +314,10 @@ export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, 
   const lockFamily = lockFamilyOf(mine, theirs, state.taken, links);
   // The blind pick is chosen on its flexibility alone: the needs of an empty draft weigh nothing.
   const blindPhase = !mine.members.length && !theirs.members.length;
-  const options = candidates(mine.open, state.taken)
-    .filter((c) => !role || c.role === role)
+  const legal = candidates(mine.open, state.taken).filter((c) => !role || c.role === role);
+  // Offered only the picks that keep Shanei's structural rules satisfiable, unless no pick does.
+  const structural = legal.filter((c) => structuralOk(c, mine, state.taken, links, champions));
+  const options = (structural.length ? structural : legal)
     .map((c) => {
     const ownAfter = [...mine.members, { name: c.name, role: c.role }];
     const openAfter = mine.open.filter((role) => role !== c.role);
@@ -271,9 +341,11 @@ export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, 
     // Each counter of an enemy champion, whatever its role, comes on top of the needs.
     const answer = WEIGHTS.answer * theirs.members.reduce((sum, y) => sum + Math.sign(links.counter(c.name, y.name)), 0);
     // An empty draft has no needs: the blind pick is chosen on its families and roles alone.
+    // A documented duo of the champion that the team can still take: the draft is built on such duos.
+    const pull = !blindPhase && openAfter.length && links.partners(c.name).some((p) => p !== c.name && !state.taken.has(p) && !mine.members.some((m) => m.name === p)) ? WEIGHTS.comboPull : 0;
     const score = blindPhase
       ? family.saved + 0.1 * flex
-      : worst + flex + family.saved + answer;
+      : worst + flex + family.saved + answer + pull;
     return { champion: c.name, role: c.role, score: round(score), reasons };
   });
   // One entry per champion: its best role in this state.

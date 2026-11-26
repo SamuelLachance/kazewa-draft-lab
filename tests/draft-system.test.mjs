@@ -188,3 +188,32 @@ test("a champion whose usual roles are all taken is still offered: the system gu
   assert.equal(maokai.length, 1, "one entry for Maokai");
   assert.ok(["top", "mid", "bot"].includes(maokai[0].role), `Maokai is guessed in an open role, not ${maokai[0].role}`);
 });
+
+test("a documented duo is worth taking: after Nocturne, its duo partners are near the top of the board", () => {
+  assert.equal(links.strong("Nocturne", "Twisted Fate"), true, "a duo Shanei documents as a combo");
+  const board = bestPick({ blue: team(null, "Nocturne", null, null, null), red: {} }, "blue", { champions, links, limit: 1000 });
+  const rank = (name) => board.findIndex((o) => o.champion === name) + 1;
+  assert.ok(rank("Twisted Fate") <= 20, `Twisted Fate is ${rank("Twisted Fate")}`);
+  assert.ok(rank("Jhin") <= 10, `Jhin is ${rank("Jhin")}`);
+});
+
+test("a team of three with no documented duo pays for it, and a pick that makes one removes the cost", () => {
+  const own = [{ name: "Nocturne", role: "jng" }, { name: "Gwen", role: "top" }, { name: "Sylas", role: "mid" }];
+  assert.equal(links.strong("Nocturne", "Gwen"), false);
+  assert.equal(links.strong("Nocturne", "Sylas"), false);
+  const short = costOf(own, [], { champions, links, needsScale: 1 });
+  assert.ok(short.parts.comboMissing > 0, "no documented duo in the team");
+  const made = costOf([...own, { name: "Ashe", role: "bot" }], [], { champions, links, needsScale: 1 });
+  assert.equal(links.strong("Ashe", "Nocturne"), true, "Ashe is a documented duo of Nocturne");
+  assert.equal(made.parts.comboMissing, 0, "the duo removes the cost");
+});
+
+test("two immobile champions are not offered together while another pick is legal (kp-67)", () => {
+  const options = bestPick({ blue: team(null, null, null, null, null), red: {} }, "blue", { champions, links, limit: 1000 });
+  // Ashe is immobile: a second immobile champion is not offered beside it, while the team has other picks.
+  const withAshe = bestPick({ blue: team(null, null, null, "Ashe", null), red: {} }, "blue", { champions, links, limit: 1000 });
+  const immobile = (name) => (champions[name]?.immobile ?? 0) >= 2;
+  const offered = withAshe.filter((o) => immobile(o.champion));
+  assert.ok(options.length > 0 && withAshe.length > 0);
+  assert.equal(offered.length, 0, `offered beside Ashe: ${offered.map((o) => o.champion).join(", ")}`);
+});
