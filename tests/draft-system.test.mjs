@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
-import { bestPick, judgeDraft, stateOf } from "../src/draft-system/chooser.mjs";
+import { bestPick, costOf, judgeDraft, stateOf } from "../src/draft-system/chooser.mjs";
 import { buildLinks } from "../src/draft-system/links.mjs";
 import { FUNCTIONS, teamVector, vectorOf } from "../src/draft-system/profile.mjs";
 import { RULES, violations } from "../src/draft-system/rules.mjs";
@@ -88,7 +88,7 @@ test("a bad duo with a locked partner makes the pick worse, and only with that p
   assert.ok(linked.find((o) => o.champion === "Zac").reasons.some((r) => r.rule === "combo" && r.with === "Viktor" && r.saved < 0));
 });
 
-test("a counter counts in the lane it faces: a champion played only in that role is penalised by its counter", () => {
+test("a counter counts whatever the role: a champion is penalised by its counter in any role", () => {
   // A bad matchup written in the knowledge base, where a can only play the role of b: a is
   // bad against b in their lane, and b punishes a there.
   let pair = null;
@@ -142,4 +142,38 @@ test("after the other team answers, the team locks into one family: its champion
     if (!lock) continue;
     assert.equal(lock.saved > 0, links.families(option.champion).has(family), `${option.champion} follows the lock`);
   }
+});
+
+test("a counter is role-free: Sylas answers Maokai whatever role Maokai plays", () => {
+  assert.equal(links.counter("Sylas", "Maokai"), 1, "Sylas is good against Maokai in the knowledge base");
+  for (const role of ["top", "jng", "sup"]) {
+    const withMaokai = { blue: { [role]: "Maokai" }, red: {} };
+    const sylas = bestPick(withMaokai, "red", { champions, links, limit: 1000 }).find((o) => o.champion === "Sylas");
+    assert.ok(sylas, `Sylas is a legal answer when Maokai plays ${role}`);
+    assert.ok(sylas.reasons.some((r) => r.rule === "counter" && r.with === "Maokai" && r.saved > 0), `Sylas counters Maokai in ${role}`);
+  }
+});
+
+test("a champion the knowledge base does not name as good against Maokai is not an answer to it", () => {
+  assert.ok(!(links.counter("Rumble", "Maokai") > 0), "Rumble is a duo of Maokai, not a counter");
+  assert.equal(links.combo("Rumble", "Maokai"), 1, "Rumble and Maokai are a good duo");
+  const options = bestPick({ blue: { jng: "Maokai" }, red: {} }, "red", { champions, links, limit: 1000 });
+  const rumble = options.find((o) => o.champion === "Rumble");
+  assert.ok(rumble, "Rumble stays a legal pick");
+  assert.ok(!rumble.reasons.some((r) => r.rule === "counter" && r.with === "Maokai" && r.saved > 0), "no counter reason for Rumble");
+});
+
+test("the needs of the rules weigh less early in the draft, and all of them at the last pick", () => {
+  const own = [{ name: "Gwen", role: "top" }];
+  const enemy = [{ name: "Malphite", role: "top" }, { name: "Vi", role: "jng" }];
+  const full = costOf(own, enemy, { champions, links }).total;
+  const early = costOf(own, enemy, { champions, links, needsScale: 0.2 }).total;
+  const rulesOnly = violations(teamVector(own.map((m) => m.name), champions), teamVector(enemy.map((m) => m.name), champions)).total;
+  assert.ok(rulesOnly > 0, "Gwen alone lacks needs");
+  assert.ok(Math.abs((full - early) - rulesOnly * 0.8) < 1e-9, "the needs are scaled, the counters and duos are not");
+});
+
+test("the blind pick is chosen on its families and roles, not on the needs of an empty draft", () => {
+  const options = bestPick({ blue: {}, red: {} }, "blue", { champions, links, limit: 1000 });
+  for (const option of options.slice(0, 5)) assert.ok(links.families(option.champion).size >= 2, `${option.champion} opens several families`);
 });

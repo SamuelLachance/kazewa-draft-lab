@@ -3,10 +3,10 @@
  *
  * A team's cost is what it still lacks, given the other team (the needs of
  * rules.mjs), plus five terms that depend on the state of the draft:
- *   - counters, in the same lane only: a champion of one team against the
- *     champion of the other team that plays the same role;
+ *   - counters, whatever the role: a champion of one team against a champion of
+ *     the other team;
  *   - flexibility: an enemy champion still able to take several roles costs us
- *     the worst of them, where we have no answer in that role;
+ *     the worst of the roles we leave empty;
  *   - duos, good or bad, inside the team;
  *   - families: a team of three or more with members outside its dominant family.
  *
@@ -27,8 +27,8 @@ const ROLES = ["top", "jng", "mid", "bot", "sup"];
 
 // Weights of the terms that are not needs of the rules. Written here, not fitted.
 export const WEIGHTS = Object.freeze({
-  counter: 1, // in the same lane, one of their champions is good against one of ours
-  counterGood: 0.5, // in the same lane, one of ours is good against one of theirs
+  counter: 6, // one of their champions is bad against one of ours: whatever the role, a counter is a counter
+  counterGood: 6, // one of ours is good against one of theirs, whatever the role (as much as a counter received)
   combo: 1, // a bad duo in the team
   comboGood: 0.5, // a good duo in the team
   family: 0.5, // a member outside the dominant family of a team of three or more
@@ -38,6 +38,10 @@ export const WEIGHTS = Object.freeze({
   blindFamily: 1.5, // blind pick: each family the champion can join
   blindRole: 0.5, // blind pick: each extra open role the champion can fill
   blindThin: 2, // blind pick: a champion of fewer than two families does not open the draft
+  // The answer comes first: each counter of an enemy champion is worth more than one need of its team.
+  answer: 6,
+  // The needs of the rules weigh this much at the first pick, and all of them at the last: they are filled late in the draft.
+  needsEarly: 0.2,
   lock: 1, // after the blind pick: a champion of the locked family
   leave: 1, // after the blind pick: a champion outside the locked family (an answer can still win)
 });
@@ -65,8 +69,8 @@ function lockFamilyOf(mine, theirs, taken, links) {
 }
 
 /** The family term of one candidate: the blind pick's flexibility, or the locked family. */
-function familyTerm(candidate, mine, lockFamily, links) {
-  if (!mine.members.length) {
+function familyTerm(candidate, mine, lockFamily, links, blindPhase) {
+  if (blindPhase) {
     const families = links.families(candidate.name).size;
     const roles = (LANES[candidate.name] ?? []).filter((role) => mine.open.includes(role)).length;
     const thin = families < 2 ? WEIGHTS.blindThin : 0;
@@ -124,8 +128,8 @@ function exposureOf(own, flexMember, ctx) {
   const { links = NO_LINKS } = ctx;
   let worst = -Infinity;
   for (const role of flexMember.flex) {
-    const mine = own.find((m) => m.role === role);
-    const cost = mine ? counterCost(links, mine.name, flexMember.name) : WEIGHTS.unanswered;
+    // A role we fill is answered by the counters of its champion, which the sum above already counts, whatever the role.
+    const cost = own.some((m) => m.role === role) ? 0 : WEIGHTS.unanswered;
     worst = Math.max(worst, cost);
   }
   return WEIGHTS.flexThreat * worst;
@@ -135,19 +139,17 @@ function exposureOf(own, flexMember, ctx) {
  * What a team costs, given the other team. `own` and `enemy` are lists of
  * { name, role, flex? }. Returns the total and the amount of each term.
  */
-export function costOf(own, enemy, { champions, links = NO_LINKS }) {
+export function costOf(own, enemy, { champions, links = NO_LINKS, needsScale = 1 }) {
   const ownVector = teamVector(own.map((m) => m.name), champions);
   const enemyVector = teamVector(enemy.map((m) => m.name), champions);
   const rules = violations(ownVector, enemyVector);
   const parts = { ...rules.parts };
-  let total = rules.total;
+  let total = rules.total * needsScale;
 
+  // Counters are not lane bound: a champion counters another through its kit (an ultimate stolen,
+  // a fight it wins), whichever role the other one plays.
   let counters = 0;
-  for (const x of own)
-    for (const y of enemy) {
-      if (x.role !== y.role || x.flex || y.flex) continue;
-      counters += counterCost(links, x.name, y.name);
-    }
+  for (const x of own) for (const y of enemy) counters += counterCost(links, x.name, y.name);
   let exposure = 0;
   for (const e of enemy) if (e.flex) exposure += exposureOf(own, e, { links });
   let combos = 0;
@@ -189,18 +191,17 @@ function candidates(open, taken) {
 
 /** The reasons of one candidate: what its pick changes for its team, term by term. */
 function reasonsFor(candidate, own, enemy, ctx) {
-  const { links = NO_LINKS, champions } = ctx;
+  const { links = NO_LINKS, champions, needsScale = 1 } = ctx;
   const before = costOf(own, enemy, ctx);
   const after = costOf([...own, candidate], enemy, ctx);
   const reasons = [];
   for (const id of Object.keys(RULES)) {
-    const saved = before.parts[id] * RULES[id].weight - after.parts[id] * RULES[id].weight;
+    const saved = (before.parts[id] - after.parts[id]) * RULES[id].weight * needsScale;
     if (Math.abs(saved) > 1e-9) reasons.push({ rule: id, saved: round(saved) });
   }
   for (const y of enemy) {
-    if (y.role !== candidate.role || y.flex) continue;
-    const cost = counterCost(links, candidate.name, y.name);
-    if (cost) reasons.push({ rule: "counter", with: y.name, saved: round(-cost) });
+    const sign = links.counter(candidate.name, y.name);
+    if (sign) reasons.push({ rule: "counter", with: y.name, saved: round(sign * WEIGHTS.answer) });
   }
   for (const x of own) {
     const sign = links.combo(candidate.name, x.name);
@@ -216,6 +217,13 @@ function reasonsFor(candidate, own, enemy, ctx) {
   return reasons.filter((r) => r.saved !== 0 && champions[candidate.name]);
 }
 
+/** The weight of the needs at this point of the draft: low at the first pick, full once ten picks are made. */
+function needsScaleOf(picks) {
+  const made = ROLES.reduce((n, role) => n + (picks?.blue?.[role] ? 1 : 0) + (picks?.red?.[role] ? 1 : 0), 0);
+  const fraction = Math.min(1, made / 10);
+  return WEIGHTS.needsEarly + (1 - WEIGHTS.needsEarly) * fraction;
+}
+
 function round(value) {
   return Math.round(value * 100) / 100;
 }
@@ -226,13 +234,13 @@ function round(value) {
  * names; `flexRoles` the roles a champion could still take, for the uncertain picks.
  */
 export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, flexRoles = {}, limit = 5 } = {}) {
-  const ctx = { champions, links };
+  const ctx = { champions, links, needsScale: needsScaleOf(picks) };
   const state = stateOf(picks, bans, flexRoles);
   const mine = state[side];
   const theirs = state[side === "blue" ? "red" : "blue"];
   const lockFamily = lockFamilyOf(mine, theirs, state.taken, links);
-  // The blind pick is chosen on its flexibility; the needs only break ties.
-  const blindPhase = !mine.members.length;
+  // The blind pick is chosen on its flexibility alone: the needs of an empty draft weigh nothing.
+  const blindPhase = !mine.members.length && !theirs.members.length;
   const options = candidates(mine.open, state.taken).map((c) => {
     const ownAfter = [...mine.members, { name: c.name, role: c.role }];
     const openAfter = mine.open.filter((role) => role !== c.role);
@@ -249,10 +257,15 @@ export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, 
       worst = Math.min(worst, standing(ownAfter, [...theirs.members, member], ctx));
     }
     const reasons = reasonsFor({ name: c.name, role: c.role }, mine.members, theirs.members, ctx);
-    const family = familyTerm(c, mine, lockFamily, links);
+    const family = familyTerm(c, mine, lockFamily, links, blindPhase);
     if (family.reason) reasons.push(family.reason);
     if (flex) reasons.push({ rule: "flex", saved: round(flex) });
-    const score = blindPhase ? family.saved + 0.1 * (worst + flex) : worst + flex + family.saved;
+    // Each counter of an enemy champion, whatever its role, comes on top of the needs.
+    const answer = WEIGHTS.answer * theirs.members.reduce((sum, y) => sum + Math.sign(links.counter(c.name, y.name)), 0);
+    // An empty draft has no needs: the blind pick is chosen on its families and roles alone.
+    const score = blindPhase
+      ? family.saved + 0.1 * flex
+      : worst + flex + family.saved + answer;
     return { champion: c.name, role: c.role, score: round(score), reasons };
   });
   // One entry per champion: its best role in this state.
