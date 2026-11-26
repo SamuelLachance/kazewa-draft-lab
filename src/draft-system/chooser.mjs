@@ -2,15 +2,21 @@
  * The draft system: what to pick next, and who is ahead in a finished draft.
  *
  * A team's cost is what it still lacks, given the other team (the needs of
- * rules.mjs), plus what its own picks do to each other (duos, good or bad), what
- * they do to the other team (counters), and how coherent its families are.
- * A pick is judged by the cost it leaves for its team, minus the cost it leaves
- * for the other team, after the other team's best reply: a two-step lookahead.
- * A pick also keeps value when it can still fill several open roles (flex).
+ * rules.mjs), plus five terms that depend on the state of the draft:
+ *   - counters, in the same lane only: a champion of one team against the
+ *     champion of the other team that plays the same role;
+ *   - flexibility: an enemy champion still able to take several roles costs us
+ *     the worst of them, where we have no answer in that role;
+ *   - duos, good or bad, inside the team;
+ *   - families: a team of three or more with members outside its dominant family.
  *
- * Every state-dependent term is zero when the state does not trigger it: no
- * all-in, no answer needed; no counter named, no counter counted; no open role,
- * no flex value. The weights below are the only numbers that are not in the knowledge base.
+ * A pick is judged by the cost it leaves for its team, minus the cost it leaves
+ * for the other team, after the other team's best reply: a two-step lookahead,
+ * so that the pick is never worse than the reply the other side can make to it.
+ * Our own flexible picks keep value while they can still fill open roles.
+ *
+ * Every state-dependent term is zero when the state does not trigger it. The
+ * weights below are the only numbers that are not in the knowledge base.
  */
 import { LANES } from "../lanes.mjs";
 import { teamVector } from "./profile.mjs";
@@ -21,18 +27,66 @@ const ROLES = ["top", "jng", "mid", "bot", "sup"];
 
 // Weights of the terms that are not needs of the rules. Written here, not fitted.
 export const WEIGHTS = Object.freeze({
-  counter: 1, // one of their picks is bad against one of ours
-  counterGood: 0.5, // one of ours is good against one of theirs
+  counter: 1, // in the same lane, one of their champions is good against one of ours
+  counterGood: 0.5, // in the same lane, one of ours is good against one of theirs
   combo: 1, // a bad duo in the team
   comboGood: 0.5, // a good duo in the team
   family: 0.5, // a member outside the dominant family of a team of three or more
-  flex: 0.25, // each extra open role a pick can still fill
+  flex: 0.25, // each extra open role one of our picks can still fill
+  flexThreat: 1, // the weight of the worst role an enemy flex can take against us
+  unanswered: 0.5, // a role an enemy flex can take, where we have no champion yet
+  blindFamily: 1.5, // blind pick: each family the champion can join
+  blindRole: 0.5, // blind pick: each extra open role the champion can fill
+  blindThin: 2, // blind pick: a champion of fewer than two families does not open the draft
+  lock: 1, // after the blind pick: a champion of the locked family
+  leave: 1, // after the blind pick: a champion outside the locked family (an answer can still win)
 });
+
+const LANE_CHAMPIONS = Object.keys(LANES);
+
+/**
+ * The family a team locks into once its blind pick is down: the family of its
+ * members that answers the other team best (members in it, and enemy members it
+ * has a counter for). Null while the team has no pick: the blind phase.
+ */
+function lockFamilyOf(mine, theirs, taken, links) {
+  if (!mine.members.length) return null;
+  const ours = new Map();
+  for (const m of mine.members) for (const f of links.families(m.name)) ours.set(f, (ours.get(f) ?? 0) + 1);
+  let best = null;
+  for (const family of [...ours.keys()].sort()) {
+    const answers = theirs.members.filter((e) =>
+      LANE_CHAMPIONS.some((c) => !taken.has(c) && links.families(c).has(family) && links.counter(c, e.name) > 0),
+    ).length;
+    const score = 2 * ours.get(family) + answers;
+    if (!best || score > best.score) best = { family, score };
+  }
+  return best ? best.family : null;
+}
+
+/** The family term of one candidate: the blind pick's flexibility, or the locked family. */
+function familyTerm(candidate, mine, lockFamily, links) {
+  if (!mine.members.length) {
+    const families = links.families(candidate.name).size;
+    const roles = (LANES[candidate.name] ?? []).filter((role) => mine.open.includes(role)).length;
+    const thin = families < 2 ? WEIGHTS.blindThin : 0;
+    const saved = round(WEIGHTS.blindFamily * families + WEIGHTS.blindRole * Math.max(0, roles - 1) - thin);
+    return { saved, reason: { rule: "blind", saved } };
+  }
+  if (!lockFamily) return { saved: 0, reason: null };
+  const inside = links.families(candidate.name).has(lockFamily);
+  const saved = inside ? WEIGHTS.lock : -WEIGHTS.leave;
+  return { saved, reason: { rule: "lock", with: lockFamily, saved } };
+}
 
 const NO_LINKS = buildLinks({});
 
-/** The draft state: who has what, in which role, and what is still open. */
-export function stateOf(picks, bans = []) {
+/**
+ * The draft state. `flexRoles` maps a champion to the roles it could still take
+ * when it was picked without a role. A member of an uncertain pick carries
+ * `flex`: the roles it can still take among the open ones.
+ */
+export function stateOf(picks, bans = [], flexRoles = {}) {
   const taken = new Set([...bans].filter(Boolean));
   const side = (team) => {
     const members = [];
@@ -43,16 +97,43 @@ export function stateOf(picks, bans = []) {
         taken.add(name);
       }
     }
-    return { members, names: members.map((m) => m.name), open: ROLES.filter((role) => !team?.[role]) };
+    const open = ROLES.filter((role) => !team?.[role]);
+    for (const member of members) {
+      const roles = flexRoles[member.name];
+      if (!roles || roles.length < 2) continue;
+      const possible = roles.filter((role) => open.includes(role) || role === member.role);
+      if (possible.length >= 2) member.flex = possible;
+    }
+    return { members, names: members.map((m) => m.name), open };
   };
   const blue = side(picks?.blue);
   const red = side(picks?.red);
   return { blue, red, taken };
 }
 
+/** The cost of one counter in a lane: positive when `a` is bad against `b`. */
+function counterCost(links, a, b) {
+  const sign = links.counter(a, b);
+  if (sign < 0) return WEIGHTS.counter;
+  if (sign > 0) return -WEIGHTS.counterGood;
+  return 0;
+}
+
+/** What an uncertain enemy flex costs `own`: its worst role, where we have no answer. */
+function exposureOf(own, flexMember, ctx) {
+  const { links = NO_LINKS } = ctx;
+  let worst = -Infinity;
+  for (const role of flexMember.flex) {
+    const mine = own.find((m) => m.role === role);
+    const cost = mine ? counterCost(links, mine.name, flexMember.name) : WEIGHTS.unanswered;
+    worst = Math.max(worst, cost);
+  }
+  return WEIGHTS.flexThreat * worst;
+}
+
 /**
  * What a team costs, given the other team. `own` and `enemy` are lists of
- * { name, role }. Returns the total and the amount of each term.
+ * { name, role, flex? }. Returns the total and the amount of each term.
  */
 export function costOf(own, enemy, { champions, links = NO_LINKS }) {
   const ownVector = teamVector(own.map((m) => m.name), champions);
@@ -64,10 +145,11 @@ export function costOf(own, enemy, { champions, links = NO_LINKS }) {
   let counters = 0;
   for (const x of own)
     for (const y of enemy) {
-      const sign = links.counter(x.name, y.name);
-      if (sign < 0) counters += WEIGHTS.counter;
-      else if (sign > 0) counters -= WEIGHTS.counterGood;
+      if (x.role !== y.role || x.flex || y.flex) continue;
+      counters += counterCost(links, x.name, y.name);
     }
+  let exposure = 0;
+  for (const e of enemy) if (e.flex) exposure += exposureOf(own, e, { links });
   let combos = 0;
   for (let i = 0; i < own.length; i += 1)
     for (let j = i + 1; j < own.length; j += 1) {
@@ -83,9 +165,10 @@ export function costOf(own, enemy, { champions, links = NO_LINKS }) {
     family = WEIGHTS.family * (own.length - dominant);
   }
   parts.counters = counters;
+  parts.flexThreat = exposure;
   parts.combos = combos;
   parts.family = family;
-  total += counters + combos + family;
+  total += counters + exposure + combos + family;
   return { total, parts };
 }
 
@@ -104,7 +187,7 @@ function candidates(open, taken) {
   return out;
 }
 
-/** What one candidate changes for its team, term by term: the reasons of the pick. */
+/** The reasons of one candidate: what its pick changes for its team, term by term. */
 function reasonsFor(candidate, own, enemy, ctx) {
   const { links = NO_LINKS, champions } = ctx;
   const before = costOf(own, enemy, ctx);
@@ -114,13 +197,19 @@ function reasonsFor(candidate, own, enemy, ctx) {
     const saved = before.parts[id] * RULES[id].weight - after.parts[id] * RULES[id].weight;
     if (Math.abs(saved) > 1e-9) reasons.push({ rule: id, saved: round(saved) });
   }
+  for (const y of enemy) {
+    if (y.role !== candidate.role || y.flex) continue;
+    const cost = counterCost(links, candidate.name, y.name);
+    if (cost) reasons.push({ rule: "counter", with: y.name, saved: round(-cost) });
+  }
   for (const x of own) {
     const sign = links.combo(candidate.name, x.name);
     if (sign) reasons.push({ rule: "combo", with: x.name, saved: round(sign < 0 ? -WEIGHTS.combo : WEIGHTS.comboGood) });
   }
-  for (const y of enemy) {
-    const sign = links.counter(candidate.name, y.name);
-    if (sign) reasons.push({ rule: "counter", with: y.name, saved: round(sign < 0 ? -WEIGHTS.counter : WEIGHTS.counterGood) });
+  for (const e of enemy) {
+    if (!e.flex) continue;
+    const saved = exposureOf(own, e, ctx) - exposureOf([...own, candidate], e, ctx);
+    if (Math.abs(saved) > 1e-9) reasons.push({ rule: "flexThreat", with: e.name, saved: round(saved) });
   }
   const famSaved = before.parts.family - after.parts.family;
   if (Math.abs(famSaved) > 1e-9) reasons.push({ rule: "family", saved: round(famSaved) });
@@ -133,28 +222,38 @@ function round(value) {
 
 /**
  * The best pick for `side` in this state, best first, with its reasons.
- * `picks` is { blue: {top, jng, mid, bot, sup}, red: {...} }; `bans` a list of names.
+ * `picks` is { blue: {top, jng, mid, bot, sup}, red: {...} }; `bans` a list of
+ * names; `flexRoles` the roles a champion could still take, for the uncertain picks.
  */
-export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, limit = 5 } = {}) {
+export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, flexRoles = {}, limit = 5 } = {}) {
   const ctx = { champions, links };
-  const state = stateOf(picks, bans);
+  const state = stateOf(picks, bans, flexRoles);
   const mine = state[side];
   const theirs = state[side === "blue" ? "red" : "blue"];
+  const lockFamily = lockFamilyOf(mine, theirs, state.taken, links);
+  // The blind pick is chosen on its flexibility; the needs only break ties.
+  const blindPhase = !mine.members.length;
   const options = candidates(mine.open, state.taken).map((c) => {
-    const ownAfter = [...mine.members, c];
+    const ownAfter = [...mine.members, { name: c.name, role: c.role }];
     const openAfter = mine.open.filter((role) => role !== c.role);
     const playable = (LANES[c.name] ?? []).filter((role) => openAfter.includes(role)).length;
     const flex = openAfter.length >= 2 ? WEIGHTS.flex * Math.max(0, playable - 1) : 0;
     let worst = Infinity;
-    const replies = candidates(theirs.open, new Set([...state.taken, c.name]));
+    const taken = new Set([...state.taken, c.name]);
+    const replies = candidates(theirs.open, taken);
     if (!replies.length) worst = standing(ownAfter, theirs.members, ctx);
     for (const reply of replies) {
-      const theirAfter = [...theirs.members, reply];
-      worst = Math.min(worst, standing(ownAfter, theirAfter, ctx));
+      // Their reply is uncertain when it can still take several of their open roles.
+      const roles = (LANES[reply.name] ?? []).filter((r) => theirs.open.includes(r));
+      const member = roles.length >= 2 ? { name: reply.name, role: reply.role, flex: roles } : { name: reply.name, role: reply.role };
+      worst = Math.min(worst, standing(ownAfter, [...theirs.members, member], ctx));
     }
-    const reasons = reasonsFor(c, mine.members, theirs.members, ctx);
+    const reasons = reasonsFor({ name: c.name, role: c.role }, mine.members, theirs.members, ctx);
+    const family = familyTerm(c, mine, lockFamily, links);
+    if (family.reason) reasons.push(family.reason);
     if (flex) reasons.push({ rule: "flex", saved: round(flex) });
-    return { champion: c.name, role: c.role, score: round(worst + flex), reasons };
+    const score = blindPhase ? family.saved + 0.1 * (worst + flex) : worst + flex + family.saved;
+    return { champion: c.name, role: c.role, score: round(score), reasons };
   });
   // One entry per champion: its best role in this state.
   const best = new Map();
@@ -171,8 +270,8 @@ export function bestPick(picks, side, { champions, bans = [], links = NO_LINKS, 
  * Who is ahead in a finished draft. Positive score: blue. Counted by the same
  * terms on both sides, so swapping the sides swaps the verdict.
  */
-export function judgeDraft(picks, { champions, links = NO_LINKS }) {
-  const state = stateOf(picks);
+export function judgeDraft(picks, { champions, links = NO_LINKS, flexRoles = {} }) {
+  const state = stateOf(picks, [], flexRoles);
   const score = standing(state.blue.members, state.red.members, { champions, links });
   const side = score > 0 ? "blue" : score < 0 ? "red" : "even";
   return { side, score: round(score) };

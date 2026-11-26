@@ -12,6 +12,7 @@ import { coachTables, latestNoteDate, playableRoles, rankBans, rankPicks } from 
 import { compositionStatus, FAMILY_FR, indexMethod, stepBrief } from "./method.mjs";
 import { theoryContext } from "./theory.mjs";
 import { systemPickRows } from "./draft-system/coach.mjs";
+import { LANES } from "./lanes.mjs";
 import { buildLinks } from "./draft-system/links.mjs";
 
 // Blue opens bans and the first pick. Red opens the second ban phase and the last pick.
@@ -139,6 +140,14 @@ export function ownNextPick(shared, slot, profiles = null) {
 /** The families a drafter can say they are going for. */
 export const PLANS = Object.freeze(Object.keys(FAMILY_FR));
 
+// The roles a champion picked without a role could still take: uncertain for the draft system.
+function flexRolesOf(session) {
+  const out = {};
+  for (const entry of session.log)
+    if (entry.action === "pick" && !entry.explicit && entry.flex && entry.flex.length >= 2) out[entry.champion] = entry.flex;
+  return out;
+}
+
 // The system's rows first, in its order, each with Kazewa's sentences about the champion.
 // Rows the system cannot play (no open role of the champion) stay in the pool, unplayable.
 function mergeSystemPicks(said, system) {
@@ -184,6 +193,7 @@ function rank(session, context, step, plan = null) {
       rows = mergeSystemPicks(
         said,
         systemPickRows(session.picks, step.side, {
+          flexRoles: flexRolesOf(session),
           champions: context.knowledge.champions,
           bans: [...session.bans.blue, ...session.bans.red],
           rules: context.knowledge.rules,
@@ -296,19 +306,27 @@ export function applyAction(session, champion, role = null, context = null, plan
   if (!assigned || next.picks[step.side][assigned])
     throw new Error("Aucun rôle habituel n’est libre pour ce champion.");
   next.picks[step.side][assigned] = name;
+  // The roles the champion could still take on this side: a pick made without a role stays uncertain.
+  const openBefore = ROLES.filter((r) => !session.picks[step.side][r]);
   next.log.push({
     action: "pick",
     side: step.side,
     champion: name,
     role: assigned,
+    explicit: ROLES.includes(role),
+    flex: (LANES[name] ?? []).filter((r) => openBefore.includes(r)),
   });
   return next;
 }
 
 export function undo(session) {
   if (!session.log.length) return session;
-  return session.log.slice(0, -1).reduce(
-    (state, entry) => applyAction(state, entry.champion, entry.role),
-    createSession(session.seat),
-  );
+  // Replays the kept log as it was played, so that a pick made without a role stays uncertain.
+  const state = createSession(session.seat);
+  for (const entry of session.log.slice(0, -1)) {
+    if (entry.action === "ban") state.bans[entry.side].push(entry.champion);
+    else state.picks[entry.side][entry.role] = entry.champion;
+    state.log.push({ ...entry });
+  }
+  return state;
 }

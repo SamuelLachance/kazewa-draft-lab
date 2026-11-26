@@ -21,6 +21,10 @@ function sentence(reason, titles) {
     return good ? `Bon contre ${reason.with}, dans l'équipe adverse.` : `${reason.with} punit ce champion.`;
   if (reason.rule === "family")
     return good ? "Cohérence de famille : il rejoint la famille dominante." : "Mélange de familles : il sort de la famille dominante.";
+  if (reason.rule === "blind")
+    return "Blind pick : il peut rejoindre plusieurs familles et jouer plusieurs rôles, ce qui garde la draft ouverte.";
+  if (reason.rule === "lock")
+    return good ? `Reste dans la famille ${reason.with}.` : `Sort de la famille ${reason.with} : à ne prendre que pour répondre.`;
   if (reason.rule === "flex")
     return "Garde de la flexibilité : il peut encore jouer plusieurs rôles ouverts.";
   const title = titles.get(reason.rule) ?? RULES[reason.rule]?.title ?? reason.rule;
@@ -32,11 +36,11 @@ function sentence(reason, titles) {
  * champion, role, roles, flex, playable, score, reasons.
  * `rules` is the rule list of the knowledge base (for the titles); `links` the index of links.
  */
-export function systemPickRows(picks, side, { champions, bans = [], rules = [], links }) {
+export function systemPickRows(picks, side, { champions, bans = [], rules = [], links, flexRoles = {} }) {
   const titles = new Map(rules.map((rule) => [rule.id, rule.title]));
   const mine = picks?.[side] ?? {};
   const openRoles = ["top", "jng", "mid", "bot", "sup"].filter((role) => !mine[role]);
-  return bestPick(picks, side, { champions, bans, links, limit: 1000 }).map((option) => {
+  return bestPick(picks, side, { champions, bans, links, flexRoles, limit: 1000 }).map((option) => {
     const roles = (LANES[option.champion] ?? []).filter((role) => openRoles.includes(role));
     const reasons = option.reasons
       .filter((reason) => reason.saved !== 0)

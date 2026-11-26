@@ -222,3 +222,14 @@ Le découpage du corpus (`kb_split.json` : 28 vidéos tenues à l'écart, les au
 | Après reconstruction, liens des fiches seuls | 44,4 % |
 
 **Lecture.** Une fois la contamination retirée, le système est au niveau du hasard, et les liens ne l'aident pas. Avec 71 drafts, l'intervalle est de plus de dix points : aucune de ces différences n'est établie. Le constat tient : les connaissances ne permettent pas, en l'état, de reproduire ses verdicts hors échantillon.
+
+## Procédure de draft du système (sans mesure sur les drafts pro)
+
+Le système suit la procédure que tu as décrite :
+
+1. **Blind pick.** Au premier pick, le système choisit d'abord la flexibilité : un champion qui peut rejoindre plusieurs familles et jouer plusieurs rôles ouvre la draft. Un champion d'une seule famille est pénalisé. Les besoins de composition ne départagent que les ex aequo.
+2. **Réponse adverse.** Un champion adverse pris sans rôle reste incertain : le système garde ses rôles possibles (`flex`). Sa réponse doit le contrer dans un de ces rôles, avec un champion qui peut jouer ce rôle (raison `flexThreat`). Un rôle sans réponse coûte.
+3. **Verrouillage.** Après la réponse, l'équipe se verrouille dans la famille du blind pick qui répond le mieux à l'adversaire. Les champions de cette famille gagnent, les autres perdent, sauf s'ils répondent à une menace (raisons `lock`).
+4. **Contres dans la même lane.** Un contre ne compte que contre le champion qui joue le même rôle. Les duos et les familles restent comptés comme avant.
+
+Ces règles sont vérifiées par des tests de scénario écrits à la main (`tests/draft-system.test.mjs`), pas par une mesure sur les drafts pro. Le système ne prédit pas le vainqueur : il applique la procédure et explique chaque pick.

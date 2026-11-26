@@ -88,12 +88,13 @@ test("a bad duo with a locked partner makes the pick worse, and only with that p
   assert.ok(linked.find((o) => o.champion === "Zac").reasons.some((r) => r.rule === "combo" && r.with === "Viktor" && r.saved < 0));
 });
 
-test("a champion the other team counter-picks is penalised for us, with that counter named", () => {
-  // A bad matchup written in the knowledge base: a is bad against b (b punishes a).
+test("a counter counts in the lane it faces: a champion played only in that role is penalised by its counter", () => {
+  // A bad matchup written in the knowledge base, where a can only play the role of b: a is
+  // bad against b in their lane, and b punishes a there.
   let pair = null;
   for (const a of Object.keys(LANES)) {
     for (const b of Object.keys(LANES)) {
-      if (a !== b && links.counter(a, b) === -1 && LANES[b].length) {
+      if (a !== b && links.counter(a, b) === -1 && LANES[a].length === 1 && LANES[a].includes(LANES[b][0])) {
         pair = { a, b, bRole: LANES[b][0] };
         break;
       }
@@ -114,4 +115,31 @@ test("a pick that can fill several open roles keeps flexibility, and only while 
   assert.ok(flexible, "a flexible champion is valued at the start of the draft");
   const late = bestPick({ blue: team("Gnar", "Xin Zhao", "Viktor", "Draven", null), red: {} }, "blue", { champions, links, limit: 1000 });
   assert.ok(late.every((o) => !o.reasons.some((r) => r.rule === "flex")), "one role left: no flexibility to keep");
+});
+
+test("the blind pick is worth more for a champion that joins several families and plays several roles", () => {
+  const options = bestPick({ blue: {}, red: {} }, "blue", { champions, links, limit: 1000 });
+  const blind = (name) => options.find((o) => o.champion === name)?.reasons.find((r) => r.rule === "blind")?.saved ?? 0;
+  const flexible = Object.keys(LANES).find((c) => links.families(c).size >= 2 && LANES[c].length >= 2);
+  const single = Object.keys(LANES).find((c) => links.families(c).size === 1 && LANES[c].length === 1);
+  assert.ok(flexible && single, "the knowledge has both kinds of champion");
+  assert.ok(blind(flexible) > blind(single), `${flexible} gives more options than ${single}`);
+});
+
+test("after the other team answers, the team locks into one family: its champions are rewarded, the others pay unless they answer", () => {
+  // Our blind pick: a champion of at least two families. Their answer: a champion they lock in mid.
+  const blind = Object.keys(LANES).find((c) => links.families(c).size >= 2 && LANES[c].includes("top"));
+  const answer = Object.keys(LANES).find((c) => c !== blind && LANES[c].includes("mid") && !links.families(c).size === false);
+  assert.ok(blind && answer, "the knowledge has a blind pick and an answer");
+  const picks = { blue: team(blind, null, null, null, null), red: team(null, null, answer, null, null) };
+  const options = bestPick(picks, "blue", { champions, links, limit: 1000 });
+  const locks = options.map((o) => o.reasons.find((r) => r.rule === "lock")).filter(Boolean);
+  assert.ok(locks.length > 0, "a locked family is named after the blind pick");
+  const family = locks[0].with;
+  assert.ok(links.families(blind).has(family), "the lock is one of the blind pick's families");
+  for (const option of options) {
+    const lock = option.reasons.find((r) => r.rule === "lock");
+    if (!lock) continue;
+    assert.equal(lock.saved > 0, links.families(option.champion).has(family), `${option.champion} follows the lock`);
+  }
 });
